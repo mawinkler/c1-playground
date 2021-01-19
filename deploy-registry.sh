@@ -2,16 +2,22 @@
 
 set -e
 
-REG_NAMESPACE=registry
-REG_NAME=registry2
-REG_SIZE=10Gi
-REG_USERNAME=admin
-REG_PASSWORD=trendmicro
+REG_NAMESPACE="$(jq -r '.registry_namespace' config.json)"
+REG_NAME="$(jq -r '.registry_name' config.json)"
+REG_SIZE="$(jq -r '.registry_size' config.json)"
+REG_USERNAME="$(jq -r '.registry_username' config.json)"
+REG_PASSWORD="$(jq -r '.registry_password' config.json)"
+
+printf '%s' "configure registry namespace"
+
+kubectl create namespace ${REG_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f - > /dev/null
+
+printf ' - %s\n' "configured"
 
 # create auth secret
 mkdir -p auth
 docker run --rm --entrypoint htpasswd registry:2.6.2 -Bbn ${REG_USERNAME} ${REG_PASSWORD} > auth/htpasswd
-kubectl create secret generic auth-secret --from-file=auth/htpasswd
+kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd
 
 # create service
 cat <<EOF | kubectl apply -f -
@@ -19,6 +25,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ${REG_NAME}
+  namespace: ${REG_NAMESPACE}
   labels:
     app: ${REG_NAME}
 spec:
@@ -32,13 +39,11 @@ spec:
 EOF
 
 # create tls secret
-EXTERNAL_IP=$(kubectl get svc ${REG_NAME} \
+EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-echo "Registry IP: ${EXTERNAL_IP}"
-
 mkdir -p certs
-cat <<EOF >certs/req.conf
+cat <<EOF >certs/req-reg.conf
 [req]
   distinguished_name=req
 [san]
@@ -47,8 +52,8 @@ EOF
 
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout certs/tls.key -out certs/tls.crt \
-  -subj "/CN=${EXTERNAL_IP//./-}.nip.io" -extensions san -config certs/req.conf &> /dev/null
-kubectl create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key
+  -subj "/CN=${EXTERNAL_IP//./-}.nip.io" -extensions san -config certs/req-reg.conf &> /dev/null
+kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key
 
 # create the rest
 cat <<EOF | kubectl apply -f -
@@ -56,6 +61,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: docker-repo-pvc
+  namespace: ${REG_NAMESPACE}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -67,6 +73,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ${REG_NAME}
+  namespace: ${REG_NAMESPACE}
   labels:
     app: ${REG_NAME}
 spec:
@@ -122,4 +129,4 @@ spec:
 
 EOF
 
-echo "Login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP//./-}.nip.io:5000 --username ${REG_USERNAME} --password-stdin"
+echo "login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP//./-}.nip.io:5000 --username ${REG_USERNAME} --password-stdin"

@@ -1,7 +1,9 @@
 #!/bin/bash
 
-REG_NAME='playground-registry'
+REGISTRY_NAME="$(jq -r '.host_registry_name' config.json)"
 
-kind delete cluster
-docker stop ${REG_NAME}
-docker rm ${REG_NAME}
+kind delete clusters playground
+docker stop ${REGISTRY_NAME}
+docker rm ${REGISTRY_NAME}
+
+rm -Rf auth certs overrides

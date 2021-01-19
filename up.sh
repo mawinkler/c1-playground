@@ -1,21 +1,29 @@
 #!/bin/sh
 set -o errexit
 
+
+CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
+REGISTRY_NAME="$(jq -r '.host_registry_name' config.json)"
+REGISTRY_PORT="$(jq -r '.host_registry_port' config.json)"
+
 # create registry container unless it already exists
-REG_NAME='playground-registry'
-REG_PORT='5005'
-running="$(docker inspect -f '{{.State.Running}}' "${REG_NAME}" 2>/dev/null || true)"
+printf '%s' "host registry"
+
+running="$(docker inspect -f '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
   docker run \
-    -d --restart=always -p "${REG_PORT}:5000" --name "${REG_NAME}" \
-    registry:2
+    -d --restart=always -p "${REGISTRY_PORT}:5000" --name "${REGISTRY_NAME}" \
+    registry:2 > /dev/null 2>&1
 fi
+printf ' %s\n' "created"
 
 # create a cluster with the local registry enabled in containerd
-cat <<EOF | kind create cluster --config=-
+printf '%s' "cluster"
+
+cat <<EOF | kind create cluster -q --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-name: playground
+name: ${CLUSTER_NAME}
 nodes:
 - role: control-plane
   kubeadmConfigPatches:
@@ -25,36 +33,50 @@ nodes:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
   extraPortMappings:
-  - containerPort: 443
-    hostPort: 443
-    listenAddress: "0.0.0.0"
-    protocol: tcp
-  - containerPort: 443
-    hostPort: 1443
-    listenAddress: "0.0.0.0"
-    protocol: tcp
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 80
-    hostPort: 8080
-    listenAddress: "0.0.0.0"
-    protocol: tcp
-  - containerPort: 5000
-    hostPort: 5000
-    listenAddress: "0.0.0.0"
-    protocol: tcp
+  # - containerPort: 443
+  #   hostPort: 443
+  #   listenAddress: "0.0.0.0"
+  #   protocol: tcp
+  # - containerPort: 443
+  #   hostPort: 1443
+  #   listenAddress: "0.0.0.0"
+  #   protocol: tcp
+  # - containerPort: 80
+  #   hostPort: 80
+  #   protocol: TCP
+  # - containerPort: 80
+  #   hostPort: 8080
+  #   listenAddress: "0.0.0.0"
+  #   protocol: tcp
+  # - containerPort: 5000
+  #   hostPort: 5000
+  #   listenAddress: "0.0.0.0"
+  #   protocol: tcp
 - role: worker
 - role: worker
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${REG_PORT}"]
-    endpoint = ["http://${REG_NAME}:${REG_PORT}","172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000","172-18-255-1.nip.io:5000","172-18-255-2.nip.io:5000","172-18-255-3.nip.io:5000"]
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${REGISTRY_PORT}"]
+          endpoint = ["http://${REGISTRY_NAME}:${REGISTRY_PORT}"]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.1:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.2:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
+          insecure_skip_verify = true
 EOF
+
+printf ' %s\n' "created"
 
 # connect the registry to the cluster network
 # (the network may already be connected)
-docker network connect "kind" "${REG_NAME}" || true
+printf '%s\n' "configure host registry"
+
+docker network connect "kind" "${REGISTRY_NAME}" || true
 
 # Document the local registry
 # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
@@ -66,12 +88,13 @@ metadata:
   namespace: kube-public
 data:
   localRegistryHosting.v1: |
-    host: "localhost:${REG_PORT}"
+    host: "localhost:${REGISTRY_PORT}"
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
 
-
 # load balancer
+printf '%s\n' "create load balancer"
+
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
 kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
@@ -93,11 +116,7 @@ data:
 EOF
 
 # ingress
+printf '%s' "create ingress controller"
+
 kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
 kubectl patch daemonsets -n projectcontour envoy -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"},"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Equal","effect":"NoSchedule"}]}}}}'
-
-# echo
-# kubectl create deployment echo --image=inanimate/echo-server
-# kubectl scale deployment echo --replicas=3
-# kubectl get deployments
-# kubectl expose deployment echo --port=8080 --type LoadBalancer
