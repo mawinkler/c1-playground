@@ -52,7 +52,7 @@ EOF
 
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout certs/tls.key -out certs/tls.crt \
-  -subj "/CN=${EXTERNAL_IP//./-}.nip.io" -extensions san -config certs/req-reg.conf &> /dev/null
+  -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
 kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key
 
 # create the rest
@@ -126,7 +126,24 @@ spec:
       - name: auth-vol
         secret:
           secretName: auth-secret
-
 EOF
 
-echo "login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP//./-}.nip.io:5000 --username ${REG_USERNAME} --password-stdin"
+echo "login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:5000 --username ${REG_USERNAME} --password-stdin"
+
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  rules:
+  - http:
+      paths:
+        - pathType: ImplementationSpecific
+          backend:
+            service:
+              name: playground-registry
+              port:
+                number: 5000
+EOF

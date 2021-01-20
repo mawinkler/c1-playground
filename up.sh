@@ -1,7 +1,6 @@
 #!/bin/sh
 set -o errexit
 
-
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 REGISTRY_NAME="$(jq -r '.host_registry_name' config.json)"
 REGISTRY_PORT="$(jq -r '.host_registry_port' config.json)"
@@ -12,7 +11,7 @@ printf '%s' "host registry"
 running="$(docker inspect -f '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
   docker run \
-    -d --restart=always -p "${REGISTRY_PORT}:5000" --name "${REGISTRY_NAME}" \
+    -d --restart=always -p "${REGISTRY_PORT}:${REGISTRY_PORT}" --name "${REGISTRY_NAME}" \
     registry:2 > /dev/null 2>&1
 fi
 printf ' %s\n' "created"
@@ -20,7 +19,7 @@ printf ' %s\n' "created"
 # create a cluster with the local registry enabled in containerd
 printf '%s' "cluster"
 
-cat <<EOF | kind create cluster -q --config=-
+cat <<EOF | kind create cluster --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: ${CLUSTER_NAME}
@@ -48,12 +47,12 @@ nodes:
   #   hostPort: 8080
   #   listenAddress: "0.0.0.0"
   #   protocol: tcp
-  # - containerPort: 5000
-  #   hostPort: 5000
-  #   listenAddress: "0.0.0.0"
-  #   protocol: tcp
-- role: worker
-- role: worker
+  - containerPort: 5000
+    hostPort: 5000
+    listenAddress: "0.0.0.0"
+    protocol: tcp
+# - role: worker
+# - role: worker
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri"]
