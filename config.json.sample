@@ -20,5 +20,6 @@
     "container_security_policy_name": "relaxed_playground",
     "container_security_policy_mode": "block",
     "container_security_namespace": "container-security",
-    "api_key": "YOUR KEY HERE"
+    "api_key": "YOUR KEY HERE",
+    "activation_key": "YOUR KEY HERE"
 }

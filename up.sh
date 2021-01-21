@@ -36,10 +36,10 @@ nodes:
   #   hostPort: 443
   #   listenAddress: "0.0.0.0"
   #   protocol: tcp
-  # - containerPort: 443
-  #   hostPort: 1443
-  #   listenAddress: "0.0.0.0"
-  #   protocol: tcp
+  - containerPort: 443
+    hostPort: 1443
+    listenAddress: "0.0.0.0"
+    protocol: tcp
   # - containerPort: 80
   #   hostPort: 80
   #   protocol: TCP

@@ -5,8 +5,9 @@ set -e
 SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
 SC_USERNAME="$(jq -r '.smartcheck_username' config.json)"
 SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
-SC_REG_USERNAME=""$(jq -r '.smartcheck_reg_username' config.json)""
+SC_REG_USERNAME="$(jq -r '.smartcheck_reg_username' config.json)"
 SC_REG_PASSWORD="$(jq -r '.smartcheck_reg_password' config.json)"
+SC_AC="$(jq -r '.activation_key' config.json)"
 
 printf '%s' "smart check namespace"
 
