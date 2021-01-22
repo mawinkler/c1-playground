@@ -69,8 +69,6 @@ containerdConfigPatches:
           insecure_skip_verify = true
 EOF
 
-printf ' %s\n' "created"
-
 # connect the registry to the cluster network
 # (the network may already be connected)
 printf '%s\n' "configure host registry"
