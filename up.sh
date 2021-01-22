@@ -11,7 +11,7 @@ printf '%s' "host registry"
 running="$(docker inspect -f '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
   docker run \
-    -d --restart=always -p "${REGISTRY_PORT}:${REGISTRY_PORT}" --name "${REGISTRY_NAME}" \
+    -d --restart=always -p "${REGISTRY_PORT}:5000" --name "${REGISTRY_NAME}" \
     registry:2 > /dev/null 2>&1
 fi
 printf ' %s\n' "created"
@@ -36,10 +36,10 @@ nodes:
   #   hostPort: 443
   #   listenAddress: "0.0.0.0"
   #   protocol: tcp
-  - containerPort: 443
-    hostPort: 1443
-    listenAddress: "0.0.0.0"
-    protocol: tcp
+  # - containerPort: 443
+  #   hostPort: 1443
+  #   listenAddress: "0.0.0.0"
+  #   protocol: tcp
   # - containerPort: 80
   #   hostPort: 80
   #   protocol: TCP
@@ -47,10 +47,10 @@ nodes:
   #   hostPort: 8080
   #   listenAddress: "0.0.0.0"
   #   protocol: tcp
-  - containerPort: 5000
-    hostPort: 5000
-    listenAddress: "0.0.0.0"
-    protocol: tcp
+  # - containerPort: 5000
+  #   hostPort: 5000
+  #   listenAddress: "0.0.0.0"
+  #   protocol: tcp
 # - role: worker
 # - role: worker
 containerdConfigPatches:
@@ -119,3 +119,14 @@ printf '%s' "create ingress controller"
 
 kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
 kubectl patch daemonsets -n projectcontour envoy -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"},"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Equal","effect":"NoSchedule"}]}}}}'
+
+# wating for the cluster be ready
+printf '%s' "wating for the cluster be ready"
+
+while [ $(kubectl -n kube-system get deployments | grep -cE "1/1|2/2|3/3|4/4|5/5") -ne $(kubectl -n kube-system get deployments | grep -c "/") ]
+do
+  printf '%s' "."
+  sleep 2
+done
+
+printf '\ndone\n'
