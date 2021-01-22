@@ -76,7 +76,7 @@ kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type==
 
 The `up.sh` script will deploy a load balancer amongst others. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
 
-To do this, modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
+To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
 
 ```json
 {"insecure-registries": ["172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000"]}
@@ -85,6 +85,7 @@ To do this, modify `/etc/docker/daemon.json` to include a small subset probable 
 Finally restart the docker daemon.
 
 ```sh
+./stop.sh
 sudo systemctl restart docker
 ```
 
@@ -100,17 +101,23 @@ sudo systemctl restart docker
 kubectl port-forward -n smartcheck svc/proxy 1443:443
 ```
 
-Access with browser `https://localhost:1443`
+Access Smart Check with browser `https://localhost:1443`
 
 ## Start Linux
 
 ```sh
 ./up.sh
-./deploy-registry.sh
 ./deploy-smartcheck.sh
 ./deploy-proxy.sh
+```
+
+If you want to deploy Container Security, run
+
+```sh
 ./deploy-container-security.sh
 ```
+
+Access Smart Check with browser `https://<IP OF YOUR HOST>:2443`
 
 ## Tests
 
