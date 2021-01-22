@@ -130,3 +130,5 @@ do
 done
 
 printf '\ndone\n'
+
+./deploy-registry.sh

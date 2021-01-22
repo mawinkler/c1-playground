@@ -1,7 +1,7 @@
 {
     "cluster_name": "playground",
     "host_registry_name": "playground-host-registry",
-    "host_registry_port": "5001",
+    "host_registry_port": "5000",
     "registry_namespace": "registry",
     "registry_name": "playground-registry",
     "registry_size": "10Gi",

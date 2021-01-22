@@ -9,7 +9,7 @@
     - [Registry](#registry)
     - [Host Registry](#host-registry)
     - [Container Security](#container-security)
-- [try to deploy nginx pod in its own namspace - fail](#try-to-deploy-nginx-pod-in-its-own-namspace---fail)
+- [try to deploy nginx pod in its own namspace - fail if you set the policy to block](#try-to-deploy-nginx-pod-in-its-own-namspace---fail-if-you-set-the-policy-to-block)
 
 Ultra fast and slim kubernetes playground
 
@@ -75,9 +75,9 @@ kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type==
 172.18.0.2
 ```
 
-The `up.sh` script will deploy a load balancer amongst others. It will get a range of IP addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
+The `up.sh` script will deploy a load balancer amongst others. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
 
-To do this, modify `/etc/docker/daemon.json` to include a small subset 
+To do this, modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
 
 ```json
 {"insecure-registries": ["172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000"]}
@@ -118,6 +118,8 @@ Access with browser `https://localhost:1443`
 ### Registry
 
 ```sh
+# pull hello-app:1.0 from Google and push it to the cluster registry
+# verify w/ curl
 REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
 REGISTRY_NAMESPACE="$(jq -r '.registry_namespace' config.json)"
 REGISTRY_USERNAME="$(jq -r '.registry_username' config.json)"
@@ -131,10 +133,31 @@ echo ${REGISTRY_PASSWORD} | docker login https://${REGISTRY_IP}:${REGISTRY_PORT}
 docker pull gcr.io/google-samples/hello-app:1.0
 docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_IP}:${REGISTRY_PORT}/hello-app:1.0
 docker push ${REGISTRY_IP}:${REGISTRY_PORT}/hello-app:1.0
+curl -k https://${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}@${REGISTRY_IP}:${REGISTRY_PORT}/v2/_catalog
+```
 
+```sh
+# create a pull secret and deployment
 kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
 
 cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: hello-server
+  labels:
+    app: hello-server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+    name: hello-server
+    targetPort: 8080
+  selector:
+    app: hello-server
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -163,31 +186,41 @@ spec:
       - name: regcred
 EOF
 
-kubectl expose deployment hello-server --type LoadBalancer
+echo Try: curl $(kubectl --namespace default get svc hello-server \
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
 ```
 
 Echo Server
 
 ```sh
+# instant deployment and scale an echo-server
 kubectl create deployment echo --image=inanimate/echo-server
 kubectl scale deployment echo --replicas=3
 kubectl get deployments
 kubectl expose deployment echo --port=8080 --type LoadBalancer
+
+echo Try: curl $(kubectl --namespace default get svc echo \
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
 ```
 
 ### Host Registry
 
 ```sh
+# test the shared registry running on the host
+# pull hello-app:2.0 from Google and push it to the host registry
+# deploy to the cluster
 docker pull gcr.io/google-samples/hello-app:2.0
 docker tag gcr.io/google-samples/hello-app:2.0 localhost:5000/hello-app:2.0
 docker push localhost:5000/hello-app:2.0
 kubectl create deployment hello-server-2 --image=localhost:5000/hello-app:2.0
+
+echo Try: kubectl get pods | grep hello-server-2
 ```
 
 ### Container Security
 
 ```sh
-# try to deploy nginx pod in its own namspace - fail
+# try to deploy nginx pod in its own namspace - fail if you set the policy to block
 kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /dev/null
 kubectl create deployment --image=nginx --namespace nginx nginx
 ````
