@@ -9,7 +9,6 @@
     - [Registry](#registry)
     - [Host Registry](#host-registry)
     - [Container Security](#container-security)
-- [try to deploy nginx pod in its own namspace - fail if you set the policy to block](#try-to-deploy-nginx-pod-in-its-own-namspace---fail-if-you-set-the-policy-to-block)
 
 Ultra fast and slim kubernetes playground
 
@@ -224,3 +223,13 @@ echo Try: kubectl get pods | grep hello-server-2
 kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /dev/null
 kubectl create deployment --image=nginx --namespace nginx nginx
 ````
+
+### Smart Check
+
+Ensure to have `deploy-smartcheck.sh` run.
+
+```sh
+./scan_image.sh
+```
+
+To access the UI of Smart Check run `deploy-proxy.sh`. Point your broswer to the ip address of the host with the configured port.

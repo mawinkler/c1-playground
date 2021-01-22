@@ -127,6 +127,6 @@ do
   sleep 2
 done
 
-printf '\ndone\n'
+# printf '\ndone\n'
 
 ./deploy-registry.sh
