@@ -26,7 +26,7 @@ sudo apt install -y jq apt-transport-https gnupg2 curl nginx
 # install docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-ME=${whoami}
+ME=$(whoami)
 sudo usermod -aG docker ${ME}
 
 # kubectl
