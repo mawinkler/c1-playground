@@ -1,17 +1,34 @@
 # Playground
 
 - [Playground](#playground)
-  - [Start MacOS](#start-macos)
+  - [Requirements](#requirements)
+  - [Configure](#configure)
+  - [Start MacOS (todo)](#start-macos-todo)
   - [Start Linux](#start-linux)
+  - [Tests](#tests)
+    - [Registry](#registry)
+    - [Host Registry](#host-registry)
+    - [Container Security](#container-security)
+- [try to deploy nginx pod in its own namspace - fail](#try-to-deploy-nginx-pod-in-its-own-namspace---fail)
 
 Ultra fast and slim kubernetes playground
 
 ## Requirements
 
+*Tested on Ubuntu Bionic only*
+
+Install required packages if not available:
+
 ```sh
 # install packages
 sudo apt update
 sudo apt install -y jq apt-transport-https gnupg2 curl nginx
+
+# install docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+ME=${whoami}
+sudo usermod -aG docker ${ME}
 
 # kubectl
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
@@ -30,10 +47,46 @@ chmod +x ./kind
 sudo mv kind /usr/local/bin/
 ```
 
-Modify `/etc/docker/daemon.json` to include
+## Configure
+
+First, create your personal configuration file with
+
+```sh
+cp config.json.sample config.json
+```
+
+Typically you don't need to change anything here besides setting your api key for C1 and an activation key for smart check.
+
+```json
+{
+    ...
+    "api_key": "YOUR KEY HERE",
+    "activation_key": "YOUR KEY HERE"
+}
+```
+
+At this point we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
+
+```sh
+kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
+```
+
+```sh
+172.18.0.2
+```
+
+The `up.sh` script will deploy a load balancer amongst others. It will get a range of IP addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
+
+To do this, modify `/etc/docker/daemon.json` to include a small subset 
 
 ```json
 {"insecure-registries": ["172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000"]}
+```
+
+Finally restart the docker daemon.
+
+```sh
+sudo systemctl restart docker
 ```
 
 ## Start MacOS (todo)

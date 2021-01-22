@@ -2,3 +2,4 @@ auth
 certs
 overrides
 .pdf
+.DS_Store
