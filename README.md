@@ -16,7 +16,7 @@ Ultra fast and slim kubernetes playground
 
 *Tested on Ubuntu Bionic only*
 
-Install required packages if not available:
+Install required packages if not available. **After the installation continue in a new shell.**
 
 ```sh
 # install packages
@@ -46,6 +46,7 @@ chmod +x ./kind
 sudo mv kind /usr/local/bin/
 ```
 
+**IMPORTANT: Proceed in a new shell!**
 ## Configure
 
 First, create your personal configuration file with
