@@ -7,11 +7,12 @@ HOST_REGISTRY_PORT="$(jq -r '.host_registry_port' config.json)"
 REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
 REGISTRY_PORT="$(jq -r '.registry_port' config.json)"
 OS="$(uname)"
-echo 1
+
+printf '%s' "target environment ${OS}"
+
 function create_cluster_linux {
   # create a cluster with the local registry enabled in containerd
 
-  printf 'Linux\n'
   cat <<EOF | kind create cluster --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -42,11 +43,10 @@ containerdConfigPatches:
           insecure_skip_verify = true
 EOF
 }
-echo 2
+
 function create_cluster_darwin {
   # create a cluster with the local registry enabled in containerd
 
-  printf 'macos\n'
   cat <<EOF | kind create cluster --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
