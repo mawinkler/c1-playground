@@ -8,7 +8,7 @@ REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
 REGISTRY_PORT="$(jq -r '.registry_port' config.json)"
 OS="$(uname)"
 
-printf '%s' "target environment ${OS}"
+printf '%s\n' "target environment ${OS}"
 
 function create_cluster_linux {
   # create a cluster with the local registry enabled in containerd
@@ -81,6 +81,7 @@ containerdConfigPatches:
           endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
 EOF
 }
+
 
 
 # create registry container unless it already exists

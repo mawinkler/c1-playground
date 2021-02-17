@@ -2,7 +2,7 @@
 # ##############################################################################
 # Pulls an image, initiates a scan with Smart Check and creates a PDF report
 # ##############################################################################
-TARGET_IMAGE=ubuntu
+TARGET_IMAGE=nginx
 TARGET_IMAGE_TAG=latest
 
 SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"

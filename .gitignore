@@ -3,3 +3,4 @@ certs
 overrides
 .pdf
 .DS_Store
+config.json
