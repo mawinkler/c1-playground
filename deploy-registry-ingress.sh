@@ -9,10 +9,10 @@ REG_USERNAME="$(jq -r '.registry_username' config.json)"
 REG_PASSWORD="$(jq -r '.registry_password' config.json)"
 REG_HOSTNAME="$(jq -r '.registry_hostname' config.json)"
 
-kubectl -n registry delete deployment playground-registry
-kubectl -n registry delete svc playground-registry
-kubectl -n registry delete ingress playground-registry
-kubectl delete ns registry
+# kubectl -n registry delete deployment playground-registry
+# kubectl -n registry delete svc playground-registry
+# kubectl -n registry delete ingress playground-registry
+# kubectl delete ns registry
 
 printf '%s' "create namespace and service"
 

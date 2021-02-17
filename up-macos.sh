@@ -36,21 +36,10 @@ nodes:
     hostPort: 443
     listenAddress: "0.0.0.0"
     protocol: tcp
-  # - containerPort: 443
-  #   hostPort: 1443
-  #   listenAddress: "0.0.0.0"
-  #   protocol: tcp
   - containerPort: 80
     hostPort: 80
+    listenAddress: "0.0.0.0"
     protocol: TCP
-  # - containerPort: 80
-  #   hostPort: 8080
-  #   listenAddress: "0.0.0.0"
-  #   protocol: tcp
-  # - containerPort: 5000
-  #   hostPort: 5000
-  #   listenAddress: "0.0.0.0"
-  #   protocol: tcp
 # - role: worker
 # - role: worker
 containerdConfigPatches:
@@ -123,13 +112,6 @@ EOF
 printf '%s' "create ingress controller"
 kubectl apply -f ingress-nginx.yaml
 
-sleep 10
-
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
-
 # wating for the cluster be ready
 printf '%s' "wating for the cluster be ready"
 
@@ -141,4 +123,11 @@ done
 
 printf '\n'
 
-# ./deploy-registry.sh
+printf '%s\n' "wating for the ingress controller to be ready"
+
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
+
+./deploy-registry-ingress.sh
