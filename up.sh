@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -o errexit
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
@@ -7,7 +7,7 @@ HOST_REGISTRY_PORT="$(jq -r '.host_registry_port' config.json)"
 REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
 REGISTRY_PORT="$(jq -r '.registry_port' config.json)"
 OS="$(uname)"
-
+echo 1
 function create_cluster_linux {
   # create a cluster with the local registry enabled in containerd
 
@@ -42,7 +42,7 @@ containerdConfigPatches:
           insecure_skip_verify = true
 EOF
 }
-
+echo 2
 function create_cluster_darwin {
   # create a cluster with the local registry enabled in containerd
 
