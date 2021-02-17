@@ -32,17 +32,17 @@ nodes:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
   extraPortMappings:
-  # - containerPort: 443
-  #   hostPort: 443
-  #   listenAddress: "0.0.0.0"
-  #   protocol: tcp
+  - containerPort: 443
+    hostPort: 443
+    listenAddress: "0.0.0.0"
+    protocol: tcp
   # - containerPort: 443
   #   hostPort: 1443
   #   listenAddress: "0.0.0.0"
   #   protocol: tcp
-  # - containerPort: 80
-  #   hostPort: 80
-  #   protocol: TCP
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
   # - containerPort: 80
   #   hostPort: 8080
   #   listenAddress: "0.0.0.0"
@@ -112,11 +112,23 @@ data:
       - ${ADDRESS_POOL}
 EOF
 
-# ingress
-printf '%s' "create ingress controller"
+# # ingress countour
+# printf '%s' "create ingress controller"
 
-kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
-kubectl patch daemonsets -n projectcontour envoy -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"},"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Equal","effect":"NoSchedule"}]}}}}'
+# kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
+# kubectl patch daemonsets -n projectcontour envoy -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"},"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Equal","effect":"NoSchedule"}]}}}}'
+
+# ingress nginx
+# original manifest: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
+printf '%s' "create ingress controller"
+kubectl apply -f ingress-nginx.yaml
+
+sleep 10
+
+kubectl wait --namespace ingress-nginx \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/component=controller \
+  --timeout=90s
 
 # wating for the cluster be ready
 printf '%s' "wating for the cluster be ready"
@@ -129,4 +141,4 @@ done
 
 printf '\n'
 
-./deploy-registry.sh
+# ./deploy-registry.sh
