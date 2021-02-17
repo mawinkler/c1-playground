@@ -8,18 +8,167 @@ SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
 SC_REG_USERNAME="$(jq -r '.smartcheck_reg_username' config.json)"
 SC_REG_PASSWORD="$(jq -r '.smartcheck_reg_password' config.json)"
 SC_AC="$(jq -r '.activation_key' config.json)"
+OS="$(uname)"
+
+function create_ssl_certificate_linux {
+  # create ssl certificate
+
+  printf '%s\n' "create ssl certificate"
+  cat <<EOF >certs/req-sc.conf
+[req]
+  distinguished_name=req
+[san]
+  subjectAltName=DNS:${SC_HOST//./-}.nip.io
+EOF
+
+  openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+    -keyout certs/sc.key -out certs/sc.crt \
+    -subj "/CN=${SC_HOST//./-}.nip.io" -extensions san -config certs/req-sc.conf &> /dev/null
+  kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
+    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - > /dev/null
+}
+
+function create_ssl_certificate_darwin {
+  # create ssl certificate
+
+  cat <<EOF >certs/req-sc.conf
+[req]
+  distinguished_name=req
+[san]
+  subjectAltName=DNS:smartcheck.localdomain,DNS:registry.localdomain
+EOF
+
+  openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+    -keyout certs/sc.key -out certs/sc.crt \
+    -subj "/CN=smartcheck.localdomain" -extensions san -config certs/req-sc.conf &> /dev/null
+  kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
+    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - > /dev/null
+}
+
+function password_change_linux {
+  # initial password change
+  
+  printf '%s\n' "executing initial password change"
+  SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                -H "Content-Type: application/json" \
+                -H "Api-Version: 2018-05-01" \
+                -H "cache-control: no-cache" \
+                -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
+                  jq '.user.id' | tr -d '"'  2>/dev/null)
+  SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                    -H "Content-Type: application/json" \
+                    -H "Api-Version: 2018-05-01" \
+                    -H "cache-control: no-cache" \
+                    -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
+                      jq '.token' | tr -d '"'  2>/dev/null)
+  X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
+        -H "Content-Type: application/json" \
+        -H "Api-Version: 2018-05-01" \
+        -H "cache-control: no-cache" \
+        -H "authorization: Bearer ${SC_BEARERTOKEN}" \
+        -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
+}
+
+function password_change_darwin {
+  # initial password change
+  
+  printf '%s\n' "executing initial password change"
+  SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                -H "Content-Type: application/json" \
+                -H "Api-Version: 2018-05-01" \
+                -H "cache-control: no-cache" \
+                -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
+                  jq '.user.id' | tr -d '"'  2>/dev/null)
+  SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                    -H "Content-Type: application/json" \
+                    -H "Api-Version: 2018-05-01" \
+                    -H "cache-control: no-cache" \
+                    -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
+                      jq '.token' | tr -d '"'  2>/dev/null)
+  X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
+        -H "Content-Type: application/json" \
+        -H "Api-Version: 2018-05-01" \
+        -H "cache-control: no-cache" \
+        -H "authorization: Bearer ${SC_BEARERTOKEN}" \
+        -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
+}
+
+function create_ingress {
+    # create ingress for smart check
+
+  printf '%s' "create ingress"
+#   cat <<EOF | kubectl apply -f -
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: smartcheck-ingress
+#   namespace: smartcheck
+# spec:
+#   rules:
+#   - http:
+#       paths:
+#         - pathType: ImplementationSpecific
+#           backend:
+#             service:
+#               name: proxy
+#               port:
+#                 number: 443
+# EOF
+
+  cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+    # kubernetes.io/tls-acme: 'true'
+  name: smartcheck
+  namespace: smartcheck
+spec:
+  tls:
+  - hosts:
+    - smartcheck.localdomain
+    #secretName: k8s-certificate
+  rules:
+  - host: smartcheck.localdomain
+    http:
+      paths:
+      - backend:
+          serviceName: proxy
+          servicePort: 443
+        path: /
+  - host: smartcheck-registry.localdomain
+    http:
+      paths:
+      - backend:
+          serviceName: proxy
+          servicePort: 5000
+        path: /
+EOF
+}
+
+
+
+if [ "${OS}" == 'Linux' ]; then
+  SERVICE_TYPE='LoadBalancer'
+fi
+if [ "${OS}" == 'Darwin' ]; then
+  SERVICE_TYPE='ClusterIP'
+fi
 
 printf '%s' "smart check namespace"
-
 kubectl create namespace ${SC_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f - > /dev/null
-
 printf ' %s\n' "created"
 
 printf '%s' "smart check overrides"
-
 SC_TEMPPW='justatemppw'
 mkdir -p overrides
-
 cat <<EOF >overrides/overrides-image-security.yml
 ##
 ## Default value: (none)
@@ -46,8 +195,7 @@ auth:
 service:
   ## type is the Kubernetes Service type for the proxy service that acts as
   ## an entry point to the system.
-  # type: ClusterIP
-  type: LoadBalancer
+  type: ${SERVICE_TYPE}
   ## httpsPort is the port where the service will listen for HTTPS requests.
   httpsPort: 443
   ## httpPort is the port where the service will listen for HTTP requests.
@@ -84,11 +232,9 @@ certificate:
     certificate: tls.crt
     privateKey: tls.key
 EOF
-
 printf ' %s\n' "created"
 
 printf '%s\n' "install smart check"
-
 helm upgrade --namespace ${SC_NAMESPACE} \
   --values overrides/overrides-image-security.yml \
   smartcheck \
@@ -97,56 +243,25 @@ helm upgrade --namespace ${SC_NAMESPACE} \
   https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
 
 printf '%s' "waiting for smart check to be in active state"
-
 SMARTCHECK_DEPLOYMENTS=$(kubectl -n smartcheck get deployments | grep -c "/")
-
 while [ $(kubectl -n smartcheck get deployments | grep -cE "1/1|2/2|3/3|4/4|5/5") -ne ${SMARTCHECK_DEPLOYMENTS} ]
 do
   printf '%s' "."
   sleep 2
 done
-
-SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-            -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-
 printf '\n'
-printf '%s\n' "smart check load balancer ip ${SC_HOST}"
 
-printf '%s\n' "executing initial password change"
-
-SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-              -H "Content-Type: application/json" \
-              -H "Api-Version: 2018-05-01" \
-              -H "cache-control: no-cache" \
-              -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-                jq '.user.id' | tr -d '"'  2>/dev/null)
-SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                  -H "Content-Type: application/json" \
-                  -H "Api-Version: 2018-05-01" \
-                  -H "cache-control: no-cache" \
-                  -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-                    jq '.token' | tr -d '"'  2>/dev/null)
-X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
-      -H "Content-Type: application/json" \
-      -H "Api-Version: 2018-05-01" \
-      -H "cache-control: no-cache" \
-      -H "authorization: Bearer ${SC_BEARERTOKEN}" \
-      -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
-
-printf '%s\n' "configure smart check certificate"
-
-cat <<EOF >certs/req-sc.conf
-[req]
-  distinguished_name=req
-[san]
-  subjectAltName=DNS:${SC_HOST//./-}.nip.io
-EOF
-
-openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
-  -keyout certs/sc.key -out certs/sc.crt \
-  -subj "/CN=${SC_HOST//./-}.nip.io" -extensions san -config certs/req-sc.conf &> /dev/null
-kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
-  --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - > /dev/null
+if [ "${OS}" == 'Linux' ]; then
+  SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+            -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  password_change_linux
+  create_ssl_certificate_linux
+fi
+if [ "${OS}" == 'Darwin' ]; then
+  SC_HOST='smartcheck.localdomain'
+  password_change_darwin
+  create_ssl_certificate_darwin
+fi
 
 printf '%s\n' "upgrade smart check"
 
@@ -156,22 +271,10 @@ helm upgrade --namespace ${SC_NAMESPACE} \
   --reuse-values \
   https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
 
-cat <<EOF | kubectl apply -f -
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: smartcheck-ingress
-  namespace: smartcheck
-spec:
-  rules:
-  - http:
-      paths:
-        - pathType: ImplementationSpecific
-          backend:
-            service:
-              name: proxy
-              port:
-                number: 443
-EOF
-
-echo "smart check at ${SC_HOST}"
+if [ "${OS}" == 'Linux' ]; then
+  echo "login with: echo ${SC_REG_USERNAME} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
+fi
+if [ "${OS}" == 'Darwin' ]; then
+  create_ingress
+  echo "login with: echo ${SC_REG_USERNAME} | docker login ${SC_HOST} --username ${SC_REG_USERNAME} --password-stdin"
+fi

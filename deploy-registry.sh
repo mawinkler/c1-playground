@@ -10,10 +10,6 @@ REG_PASSWORD="$(jq -r '.registry_password' config.json)"
 REG_HOSTNAME="$(jq -r '.registry_hostname' config.json)"
 OS="$(uname)"
 
-rm -Rf auth certs overrides
-# kubectl --namespace ${REG_NAMESPACE} delete secret auth-secret 
-# kubectl --namespace ${REG_NAMESPACE} delete secret certs-secret
-
 function create_namespace_service {
   printf '%s' "create namespace and service"
 
@@ -32,7 +28,7 @@ metadata:
   labels:
     app: ${REG_NAME}
 spec:
-  type: LoadBalancer
+  type: ${SERVICE_TYPE}
   ports:
   - port: 5000
     protocol: TCP
@@ -225,6 +221,14 @@ spec:
         path: /
 EOF
 }
+
+
+if [ "${OS}" == 'Linux' ]; then
+  SERVICE_TYPE='LoadBalancer'
+fi
+if [ "${OS}" == 'Darwin' ]; then
+  SERVICE_TYPE='ClusterIP'
+fi
 
 if [ "${OS}" == 'Linux' ]; then
   create_namespace_service
