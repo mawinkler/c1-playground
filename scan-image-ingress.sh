@@ -11,8 +11,8 @@ SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
 SC_REG_USERNAME="$(jq -r '.smartcheck_reg_username' config.json)"
 SC_REG_PASSWORD="$(jq -r '.smartcheck_reg_password' config.json)"
 
-SC_REGISTRY="smartcheck.localdomain"
-SC_SERVICE="smartcheck-registry.localdomain"
+SC_REGISTRY="smartcheck-registry.localdomain"
+SC_SERVICE="smartcheck.localdomain"
 
 docker pull ${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 
