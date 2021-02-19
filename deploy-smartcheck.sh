@@ -5,8 +5,10 @@ set -e
 SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
 SC_USERNAME="$(jq -r '.smartcheck_username' config.json)"
 SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
+SC_HOSTNAME="$(jq -r '.smartcheck_hostname' config.json)"
 SC_REG_USERNAME="$(jq -r '.smartcheck_reg_username' config.json)"
 SC_REG_PASSWORD="$(jq -r '.smartcheck_reg_password' config.json)"
+SC_REG_HOSTNAME="$(jq -r '.smartcheck_reg_hostname' config.json)"
 SC_AC="$(jq -r '.activation_key' config.json)"
 OS="$(uname)"
 
@@ -35,12 +37,12 @@ function create_ssl_certificate_darwin {
 [req]
   distinguished_name=req
 [san]
-  subjectAltName=DNS:smartcheck.localdomain,DNS:registry.localdomain
+  subjectAltName=DNS:${SC_HOSTNAME},DNS:${SC_REG_HOSTNAME}
 EOF
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/sc.key -out certs/sc.crt \
-    -subj "/CN=smartcheck.localdomain" -extensions san -config certs/req-sc.conf &> /dev/null
+    -subj "/CN=${SC_HOSTNAME}" -extensions san -config certs/req-sc.conf &> /dev/null
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
     --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - > /dev/null
 }
@@ -133,17 +135,17 @@ metadata:
 spec:
   tls:
   - hosts:
-    - smartcheck.localdomain
+    - ${SC_HOSTNAME}
     #secretName: k8s-certificate
   rules:
-  - host: smartcheck.localdomain
+  - host: ${SC_HOSTNAME}
     http:
       paths:
       - backend:
           serviceName: proxy
           servicePort: 443
         path: /
-  - host: smartcheck-registry.localdomain
+  - host: ${SC_REG_HOSTNAME}
     http:
       paths:
       - backend:
@@ -258,7 +260,7 @@ if [ "${OS}" == 'Linux' ]; then
   create_ssl_certificate_linux
 fi
 if [ "${OS}" == 'Darwin' ]; then
-  SC_HOST='smartcheck.localdomain'
+  SC_HOST="${SC_HOSTNAME}"
   password_change_darwin
   create_ssl_certificate_darwin
 fi

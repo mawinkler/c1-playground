@@ -4,6 +4,7 @@ set -e
 
 REG_NAMESPACE="$(jq -r '.registry_namespace' config.json)"
 REG_NAME="$(jq -r '.registry_name' config.json)"
+REG_HOSTNAME="$(jq -r '.registry_hostname' config.json)"
 REG_SIZE="$(jq -r '.registry_size' config.json)"
 REG_USERNAME="$(jq -r '.registry_username' config.json)"
 REG_PASSWORD="$(jq -r '.registry_password' config.json)"
@@ -209,10 +210,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - registry.localdomain
+    - ${REG_HOSTNAME}
     #secretName: certs-secret
   rules:
-  - host: registry.localdomain
+  - host: ${REG_HOSTNAME}
     http:
       paths:
       - backend:
