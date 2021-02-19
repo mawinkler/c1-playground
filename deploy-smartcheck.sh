@@ -127,8 +127,8 @@ metadata:
     # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
     # kubernetes.io/tls-acme: 'true'
   name: smartcheck
   namespace: smartcheck
@@ -136,7 +136,7 @@ spec:
   tls:
   - hosts:
     - ${SC_HOSTNAME}
-    #secretName: k8s-certificate
+    # secretName: k8s-certificate
   rules:
   - host: ${SC_HOSTNAME}
     http:
@@ -274,9 +274,9 @@ helm upgrade --namespace ${SC_NAMESPACE} \
   https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
 
 if [ "${OS}" == 'Linux' ]; then
-  echo "login with: echo ${SC_REG_USERNAME} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
+  echo "login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
 fi
 if [ "${OS}" == 'Darwin' ]; then
   create_ingress
-  echo "login with: echo ${SC_REG_USERNAME} | docker login ${SC_HOST} --username ${SC_REG_USERNAME} --password-stdin"
+  echo "login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin"
 fi
