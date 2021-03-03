@@ -123,6 +123,9 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
+    #
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    #
     # nginx.ingress.kubernetes.io/proxy-body-size: "0"
     # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
@@ -161,7 +164,7 @@ if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
 fi
 if [ "${OS}" == 'Darwin' ]; then
-  SERVICE_TYPE='ClusterIP'
+  SERVICE_TYPE='NodePort'
 fi
 
 printf '%s' "smart check namespace"
