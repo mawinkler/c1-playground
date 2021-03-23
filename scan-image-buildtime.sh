@@ -2,8 +2,8 @@
 # ##############################################################################
 # Pulls an image, initiates a scan with Smart Check and creates a PDF report
 # ##############################################################################
-TARGET_IMAGE=richxsl/rhel7
-TARGET_IMAGE_TAG=latest
+TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7}
+TARGET_IMAGE_TAG=${TARGET_IMAGE_TAG:-latest}
 
 SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
 SC_USERNAME="$(jq -r '.smartcheck_username' config.json)"

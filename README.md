@@ -3,8 +3,9 @@
 - [Playground](#playground)
   - [Requirements](#requirements)
   - [Configure](#configure)
-  - [Start MacOS (todo)](#start-macos-todo)
   - [Start Linux](#start-linux)
+  - [Start MacOS (in progress)](#start-macos-in-progress)
+  - [Tear Down](#tear-down)
   - [Tests](#tests)
     - [Registry](#registry)
     - [Host Registry](#host-registry)
@@ -93,20 +94,6 @@ Finally restart the docker daemon.
 sudo systemctl restart docker
 ```
 
-## Start MacOS (todo)
-
-```sh
-./start.sh
-./deploy-registry.sh
-./deploy-smartcheck.sh
-```
-
-```sh
-kubectl port-forward -n smartcheck svc/proxy 1443:443
-```
-
-Access Smart Check with browser `https://localhost:1443`
-
 ## Start Linux
 
 ```sh
@@ -121,7 +108,27 @@ If you want to deploy Container Security, run
 ./deploy-container-security.sh
 ```
 
-Access Smart Check with browser `https://<IP OF YOUR HOST>:2443`
+## Start MacOS (in progress)
+
+Support for MacOS is still in progress.
+
+```sh
+./up.sh
+./deploy-registry.sh
+./deploy-smartcheck.sh
+```
+
+```sh
+kubectl port-forward -n smartcheck svc/proxy 1443:443
+```
+
+Access Smart Check with browser `https://localhost:1443`
+
+## Tear Down
+
+```sh
+./down.sh
+```
 
 ## Tests
 
@@ -239,8 +246,22 @@ kubectl create deployment --image=nginx --namespace nginx nginx
 
 Ensure to have `deploy-smartcheck.sh` run.
 
+Do trigger a scan of an image
+
 ```sh
-./scan_image.sh
+export TARGET_IMAGE=busybox
+export TARGET_IMAGE_TAG=latest
+
+./scan-image.sh
+```
+
+If you want to trigger a build time scan run
+
+```sh
+export TARGET_IMAGE=busybox
+export TARGET_IMAGE_TAG=latest
+
+./scan-image-buildtime.sh
 ```
 
 To access the UI of Smart Check run `deploy-proxy.sh`. Point your broswer to the ip address of the host with the configured port.
