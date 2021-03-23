@@ -14,7 +14,7 @@ Ultra fast and slim kubernetes playground
 
 ## Requirements
 
-*Tested on Ubuntu Bionic only*
+*Tested on Ubuntu Bionic only, MacOS 10+ in progress*
 
 Install required packages if not available. **After the installation continue in a new shell.**
 
@@ -47,6 +47,7 @@ sudo mv kind /usr/local/bin/
 ```
 
 **IMPORTANT: Proceed in a new shell!**
+
 ## Configure
 
 After cloning the repo to your machine create your personal configuration file.

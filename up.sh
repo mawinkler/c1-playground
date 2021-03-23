@@ -8,11 +8,12 @@ REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
 REGISTRY_PORT="$(jq -r '.registry_port' config.json)"
 OS="$(uname)"
 
-printf '%s\n' "target environment ${OS}"
+printf '%s\n' "Target environment ${OS}"
 
 function create_cluster_linux {
   # create a cluster with the local registry enabled in containerd
 
+  printf '%s\n' "Create cluster (linux)"
   cat <<EOF | kind create cluster --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -47,6 +48,7 @@ EOF
 function create_cluster_darwin {
   # create a cluster with the local registry enabled in containerd
 
+  printf '%s\n' "Create cluster (darwin)"
   cat <<EOF | kind create cluster --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -82,35 +84,31 @@ containerdConfigPatches:
 EOF
 }
 
+function create_host_registry {
+  # create registry container unless it already exists
+  printf '%s\n' "Create host registry"
 
+  running="$(docker inspect -f '{{.State.Running}}' "${HOST_REGISTRY_NAME}" 2>/dev/null || true)"
+  if [ "${running}" != 'true' ]; then
+    docker run \
+      -d --restart=always -p "${HOST_REGISTRY_PORT}:5000" --name "${HOST_REGISTRY_NAME}" \
+      registry:2 >/dev/null 2>&1
+  fi
+  printf '%s\n' "Host registry created 🍺"
+}
 
-# create registry container unless it already exists
-printf '%s' "host registry"
+function configure_host_registry {
+  # connect the registry to the cluster network
+  # (the network may already be connected)
+  printf '%s\n' "Configure host registry"
 
-running="$(docker inspect -f '{{.State.Running}}' "${HOST_REGISTRY_NAME}" 2>/dev/null || true)"
-if [ "${running}" != 'true' ]; then
-  docker run \
-    -d --restart=always -p "${HOST_REGISTRY_PORT}:5000" --name "${HOST_REGISTRY_NAME}" \
-    registry:2 > /dev/null 2>&1
-fi
-printf ' %s\n' "created"
+  docker network connect "kind" "${HOST_REGISTRY_NAME}" || true
 
-if [ "${OS}" == 'Linux' ]; then
-  create_cluster_linux
-fi
-if [ "${OS}" == 'Darwin' ]; then
-  create_cluster_darwin
-fi
-
-# connect the registry to the cluster network
-# (the network may already be connected)
-printf '%s\n' "configure host registry"
-
-docker network connect "kind" "${HOST_REGISTRY_NAME}" || true
-
-# Document the local registry
-# https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/generic/1755-communicating-a-local-registry
-cat <<EOF | kubectl apply -f -
+  # Document the local registry
+  # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/ \
+  # generic/1755-communicating-a-local-registry
+  echo "---" >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -121,16 +119,29 @@ data:
     host: "localhost:${HOST_REGISTRY_PORT}"
     help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
+  printf '%s\n' "Host registry configured 🍷"
+}
 
-# load balancer
-printf '%s\n' "create load balancer"
+function create_load_balancer {
+  # load balancer
+  printf '%s' "Create load balancer"
 
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
-kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
-ADDRESS_POOL=$(kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|')
+  echo "---" >> up.log && \
+    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml \
+    -o yaml | cat >> up.log
+  echo "---" >> up.log && \
+    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml \
+    -o yaml | cat >> up.log
+  echo "---" >> up.log && \
+    kubectl create secret generic -n metallb-system memberlist \
+    --from-literal=secretkey="$(openssl rand -base64 128)" \
+    -o yaml | cat >> up.log
+  ADDRESS_POOL=$(kubectl get nodes -o json | \
+    jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | \
+    sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|')
 
-cat <<EOF | kubectl apply -f -
+  echo "---" >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log 
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -144,34 +155,49 @@ data:
       addresses:
       - ${ADDRESS_POOL}
 EOF
+  printf '%s\n' "Load balancer created 🍹"
+}
 
-# # ingress countour
-# printf '%s' "create ingress controller"
+function create_ingress_controller {
+  # ingress nginx
+  # original manifest: 
+  # https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
+  printf '%s\n' "Create ingress controller"
+  kubectl apply -f ingress-nginx.yaml -o yaml | cat >> up.log
 
-# kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
-# kubectl patch daemonsets -n projectcontour envoy -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"},"tolerations":[{"key":"node-role.kubernetes.io/master","operator":"Equal","effect":"NoSchedule"}]}}}}'
+  # wating for the cluster be ready
+  printf '%s' "Wating for the cluster be ready"
 
-# ingress nginx
-# original manifest: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
-printf '%s' "create ingress controller"
-kubectl apply -f ingress-nginx.yaml
+  while [ $(kubectl -n kube-system get deployments | \
+          grep -cE "1/1|2/2|3/3|4/4|5/5") -ne $(kubectl -n kube-system get deployments | \
+          grep -c "/") ]; do
+    printf '%s' "."
+    sleep 2
+  done
 
-# wating for the cluster be ready
-printf '%s' "wating for the cluster be ready"
+  kubectl wait --namespace ingress-nginx \
+    --for=condition=ready pod \
+    --selector=app.kubernetes.io/component=controller \
+    --timeout=90s \
+    -o yaml | cat >> up2.log
+    
+  printf '\n%s\n' "Cluster and ingress controller ready 🍾"
+}
 
-while [ $(kubectl -n kube-system get deployments | grep -cE "1/1|2/2|3/3|4/4|5/5") -ne $(kubectl -n kube-system get deployments | grep -c "/") ]
-do
-  printf '%s' "."
-  sleep 2
-done
+# flush logfile
+echo > up.log
 
-printf '\n'
+create_host_registry
 
-printf '%s\n' "wating for the ingress controller to be ready"
+if [ "${OS}" == 'Linux' ]; then
+  create_cluster_linux
+fi
+if [ "${OS}" == 'Darwin' ]; then
+  create_cluster_darwin
+fi
 
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
+configure_host_registry
+create_load_balancer
+create_ingress_controller
 
 ./deploy-registry.sh

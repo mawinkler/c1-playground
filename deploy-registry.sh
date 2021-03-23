@@ -12,10 +12,11 @@ REG_HOSTNAME="$(jq -r '.registry_hostname' config.json)"
 OS="$(uname)"
 
 function create_namespace_service {
-  printf '%s' "create namespace and service"
+  printf '%s' "Create registry namespace and service"
 
+  echo "---" >> up.log
   # create service
-  cat <<EOF | kubectl apply -f -
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -37,22 +38,26 @@ spec:
   selector:
     app: ${REG_NAME}
 EOF
+  printf '%s\n' " 🍼"
 }
 
 function create_auth_secret {
   # create auth secret
 
-  printf '%s' "create auth secret"
+  printf '%s' "Create registry auth secret"
 
   mkdir -p auth
   docker run --rm --entrypoint htpasswd registry:2.6.2 -Bbn ${REG_USERNAME} ${REG_PASSWORD} > auth/htpasswd
-  kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd
+  echo "---" >> up.log
+  kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd \
+    -o yaml | cat >> up.log
+  printf '%s\n' " 🍿"
 }
 
 function create_tls_secret_linux {
   # create tls secret
 
-  printf '%s' "create tls secret (linux)"
+  printf '%s' "Create registry tls secret (linux)"
 
   EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
                 -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -68,13 +73,16 @@ EOF
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
     -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
-  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key
+  echo "---" >> up.log
+  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key \
+    -o yaml | cat >> up.log
+  printf '%s\n' " 🍵"
 }
 
 function create_tls_secret_darwin {
   # create tls secret
 
-  printf '%s' "create tls secret (macos)"
+  printf '%s' "create tls secret (darwin)"
 
   mkdir -p certs
   cat <<EOF >certs/req-reg.conf
@@ -87,16 +95,19 @@ EOF
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
     -subj "/CN=${REG_HOSTNAME}" -extensions san -config certs/req-reg.conf &> /dev/null
-  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key
+  echo "---" >> up.log
+  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key \
+    -o yaml | cat >> up.log
+  printf '%s\n' " 🍵"
 }
-
 
 function create_deployment {
   # create registry deployment
 
-  printf '%s' "create deployment"
+  printf '%s' "Create registry deployment"
 
-  cat <<EOF | kubectl apply -f -
+  echo "---" >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -167,6 +178,7 @@ spec:
         secret:
           secretName: auth-secret
 EOF
+  printf '%s\n' " 🍶"
 }
 
 function create_ingress {
@@ -190,9 +202,10 @@ function create_ingress {
   #                 number: 5000
   # EOF
 
-  printf '%s' "create ingress"
+  printf '%s\n' "Create registry ingress"
 
-  cat <<EOF | kubectl apply -f -
+  echo "---" >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
@@ -221,8 +234,8 @@ spec:
           servicePort: 5000
         path: /
 EOF
+  printf '%s\n' "Registry ingress created 🍻"
 }
-
 
 if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
@@ -236,7 +249,7 @@ if [ "${OS}" == 'Linux' ]; then
   create_auth_secret
   create_tls_secret_linux
   create_deployment
-  echo "login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:5000 --username ${REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:5000 --username ${REG_USERNAME} --password-stdin"
 fi
 
 if [ "${OS}" == 'Darwin' ]; then
@@ -245,5 +258,5 @@ if [ "${OS}" == 'Darwin' ]; then
   create_tls_secret_darwin
   create_deployment
   create_ingress
-  echo "login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME} --username ${REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME} --username ${REG_USERNAME} --password-stdin"
 fi
