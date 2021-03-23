@@ -16,7 +16,7 @@
     "proxy_service_name": "smartcheck",
     "proxy_service_namespace": "smartcheck",
     "proxy_service_port": "443",
-    "proxy_listen_port": "2443",
+    "proxy_listen_port": "8443",
     "container_security_policy_name": "relaxed_playground",
     "container_security_policy_mode": "block",
     "container_security_namespace": "container-security",
