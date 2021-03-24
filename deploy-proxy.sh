@@ -4,6 +4,8 @@ SERVICE_NAME="$(jq -r '.proxy_service_name' config.json)"
 SERVICE_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
 SERVICE_PORT="$(jq -r '.proxy_service_port' config.json)"
 LISTEN_PORT="$(jq -r '.proxy_listen_port' config.json)"
+SC_USERNAME="$(jq -r '.smartcheck_username' config.json)"
+SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
 OS="$(uname)"
 
 function create_proxy_configuration {
@@ -37,3 +39,9 @@ create_proxy_configuration
 printf '%s\n' "Apply nginx proxy configuration 🍭"
 sudo nginx -t
 sudo service nginx restart
+
+HOST_IP=$(hostname -I | awk '{print $1}')
+
+if [ "${OS}" == 'Linux' ]; then
+  echo "Smart check UI on: https://${HOST_IP}:${LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}"
+fi
