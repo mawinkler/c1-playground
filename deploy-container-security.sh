@@ -204,11 +204,11 @@ function deploy_container_security {
   cat <<EOF >overrides/overrides-container-security.yml
 cloudOne:
   admissionController:
-  apiKey: ${API_KEY_ADMISSION_CONTROLLER}
+    apiKey: ${API_KEY_ADMISSION_CONTROLLER}
   runtimeSecurity:
-  enabled: true
-  apiKey: ${AP_KEY}
-  secret: ${AP_SECRET}
+    enabled: true
+    apiKey: ${AP_KEY}
+    secret: ${AP_SECRET}
 EOF
 
   helm upgrade \
