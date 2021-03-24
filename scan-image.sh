@@ -37,6 +37,7 @@ docker run -v /var/run/docker.sock:/var/run/docker.sock --network host \
   --smartcheck-user="$SC_USERNAME" \
   --smartcheck-password="$SC_PASSWORD" \
   --image-pull-auth=\''{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'\' \
+  --findings-threshold "{\"malware\":0,\"vulnerabilities\":{\"defcon1\":0,\"critical\":100,\"high\":100},\"contents\":{\"defcon1\":0,\"critical\":0,\"high\":1},\"checklists\":{\"defcon1\":0,\"critical\":0,\"high\":0}}" \
   --insecure-skip-tls-verify \
   --insecure-skip-registry-tls-verify
 
