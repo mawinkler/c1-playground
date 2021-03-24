@@ -307,9 +307,11 @@ helm upgrade --namespace ${SC_NAMESPACE} \
   https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
 
 if [ "${OS}" == 'Linux' ]; then
-  echo "login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
+  echo "Smart check UI on: https://${SC_HOST}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
 fi
 if [ "${OS}" == 'Darwin' ]; then
   create_ingress
-  echo "login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin"
+  echo "Smart check UI on: https://${SC_HOSTNAME}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
 fi

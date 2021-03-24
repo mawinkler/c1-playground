@@ -239,12 +239,6 @@ EOF
 
 if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
-fi
-if [ "${OS}" == 'Darwin' ]; then
-  SERVICE_TYPE='ClusterIP'
-fi
-
-if [ "${OS}" == 'Linux' ]; then
   create_namespace_service
   create_auth_secret
   create_tls_secret_linux
@@ -253,6 +247,7 @@ if [ "${OS}" == 'Linux' ]; then
 fi
 
 if [ "${OS}" == 'Darwin' ]; then
+  SERVICE_TYPE='ClusterIP'
   create_namespace_service
   create_auth_secret
   create_tls_secret_darwin
