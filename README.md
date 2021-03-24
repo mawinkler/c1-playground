@@ -10,6 +10,7 @@
     - [Registry](#registry)
     - [Host Registry](#host-registry)
     - [Container Security](#container-security)
+    - [Smart Check](#smart-check)
 
 Ultra fast and slim kubernetes playground
 
@@ -240,7 +241,7 @@ echo Try: kubectl get pods | grep hello-server-2
 # try to deploy nginx pod in its own namspace - fail if you set the policy to block
 kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /dev/null
 kubectl create deployment --image=nginx --namespace nginx nginx
-````
+```
 
 ### Smart Check
 
@@ -249,8 +250,8 @@ Ensure to have `deploy-smartcheck.sh` run.
 Do trigger a scan of an image
 
 ```sh
-export TARGET_IMAGE=busybox
-export TARGET_IMAGE_TAG=latest
+TARGET_IMAGE=busybox
+TARGET_IMAGE_TAG=latest
 
 ./scan-image.sh
 ```
@@ -258,8 +259,8 @@ export TARGET_IMAGE_TAG=latest
 If you want to trigger a build time scan run
 
 ```sh
-export TARGET_IMAGE=busybox
-export TARGET_IMAGE_TAG=latest
+TARGET_IMAGE=busybox
+TARGET_IMAGE_TAG=latest
 
 ./scan-image-buildtime.sh
 ```
