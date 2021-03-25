@@ -13,7 +13,38 @@
 
 ## Prepare the Training Server
 
-This quick lab guide is based on the training server. First, please install `kind`.
+This quick lab guide is based on the training server, but you should be able to use any Linux with a bash (at least in theory). Please ensure, that your server has at least 2 CPUs and >= 8 GB memory.
+
+Two variants for the preparation.
+
+<details>
+<summary>Using a fresh training machine w/o microk8s</summary>
+
+First, ensure to have docker installed with `docker ps`. If that fails install Docker with
+
+```sh
+curl -fsSL get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+sudo usermod -aG docker trendmicro && sudo service docker start
+```
+
+Then, logout of the shell an reconnect to the machine. Then proceed with the installation of `kind`.
+</details>
+
+<details>
+<summary>Reusing the training machine w/ microk8s</summary>
+
+First, we need to clean up a little
+
+```sh
+microk8s.stop
+sudo snap remove jq microk8s helm kubectl
+```
+
+Now, please logout from your ssh or console session before proceeding and relogin again. This will clean up your environment.
+
+</details>
+
+Next, please install `kind`.
 
 ```sh
 # kind
@@ -22,7 +53,7 @@ chmod +x ./kind
 sudo mv kind /usr/local/bin/
 ```
 
-Following this, we install the full verions of helm and kubectl
+Following this, we install the full verions of `helm`, `kubectl`, `nginx` and `jq`
 
 ```sh
 # kubectl
@@ -38,25 +69,14 @@ chmod 700 get_helm.sh
 
 # nginx
 sudo apt install -y nginx
-```
 
-Depending on how you installed `jq` (eventually by snap) it is likely in strict mode which prevents access for jq to access any other folder on your system than `/tmp/snap.jq/`. To get a fully working jq simply execute the following commands:
-
-```sh
-sudo snap remove jq
+# jq
 sudo add-apt-repository universe
 sudo apt update
 sudo apt install -y jq
+
 # there you go :)
 ```
-
-Before you continue, ensure to have microk8s stopped
-
-```sh
-microk8s.stop
-```
-
-Now, please logout from your ssh or console session before proceeding and relogin again. This will clean up your environment.
 
 ## Configure
 
