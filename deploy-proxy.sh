@@ -36,6 +36,9 @@ function create_proxy_configuration {
 
 create_proxy_configuration
 
+printf '%s\n' "Remove default site 🍭"
+sudo rm -f /etc/nginx/sites-enabled/default
+
 printf '%s\n' "Apply nginx proxy configuration 🍭"
 sudo nginx -t
 sudo service nginx restart

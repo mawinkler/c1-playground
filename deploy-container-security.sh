@@ -187,7 +187,7 @@ function create_cluster_object {
       \"name\": \"${CLUSTER_NAME}\",
       \"description\": \"Playground Cluster\",
       \"policyID\": \"${CS_POLICYID}\",
-      \"runtimeEnabled\": true
+      \"runtimeEnabled\": false
     }"
   )
 
