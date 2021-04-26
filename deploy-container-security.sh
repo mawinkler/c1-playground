@@ -206,7 +206,7 @@ cloudOne:
   admissionController:
     apiKey: ${API_KEY_ADMISSION_CONTROLLER}
   runtimeSecurity:
-    enabled: true
+    enabled: false
     apiKey: ${AP_KEY}
     secret: ${AP_SECRET}
 EOF
