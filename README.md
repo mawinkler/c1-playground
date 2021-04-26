@@ -10,6 +10,8 @@
     - [Registry](#registry)
     - [Host Registry](#host-registry)
     - [Container Security](#container-security)
+      - [Demo Namespace Exclusions](#demo-namespace-exclusions)
+      - [Explore](#explore)
 
 Ultra fast and slim kubernetes playground
 
@@ -181,7 +183,7 @@ If you want to deploy Container Security, run
 
 1. Query the public IP of your Cloud9 instance with
    ```sh
-   curl curl http://169.254.169.254/latest/meta-data/public-ipv4
+   curl http://169.254.169.254/latest/meta-data/public-ipv4
    ```
 2. In the IDE for the environment, on the menu bar, choose your user icon, and then choose Manage EC2 Instance
 3. Select the security group associated to the instance and select Edit inbound rules.
@@ -400,4 +402,51 @@ Finally, create the deployment
 
 ```sh
 kubectl apply -f nginx.yaml
+```
+
+#### Demo Namespace Exclusions
+
+Ensure to have the block rule `Images that are not scanned` applied to your Container Control policy, as above,
+
+Create a namespace for a different pod and try to deploy it
+
+```sh
+export TARGET_IMAGE=nginx
+export TARGET_IMAGE_TAG=latest
+
+kubectl create ns ${TARGET_IMAGE}
+kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
+```
+
+The above should fail.
+
+If you want to exclude a namespace from admission control, label it
+
+```sh
+kubectl label ns ${TARGET_IMAGE} ignoreAdmissionControl=true --overwrite
+
+kubectl get ns --show-labels
+
+kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
+```
+
+This should now work, because Container Control is ignoring the labeled namespace.
+
+#### Explore
+
+The potentially most interesting part on your cluster (in reagards Container Control) is the ValidatingWebhookConfiguration. Review and understand it.
+
+```sh
+kubectl get ValidatingWebhookConfiguration
+```
+
+```sh
+NAME                                                              WEBHOOKS   AGE
+admission-controller-container-security-trendmicro-container-se   1          8m1s
+```
+
+```sh
+kubectl edit ValidatingWebhookConfiguration admission-controller-container-security-trendmicro-container-se
+
+helm inspect values https://github.com/trendmicro/cloudone-admission-controller-helm/archive/master.tar.gz
 ```
