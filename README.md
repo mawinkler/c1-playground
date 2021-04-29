@@ -7,8 +7,9 @@
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
   - [Tests](#tests)
-    - [Registry](#registry)
-    - [Host Registry](#host-registry)
+    - [Cluster Registry](#cluster-registry)
+    - [Create a Deployment on Kubernetes - Echo Server #1](#create-a-deployment-on-kubernetes---echo-server-1)
+    - [Create a Deployment on Kubernetes - Echo Server #2](#create-a-deployment-on-kubernetes---echo-server-2)
     - [Container Security](#container-security)
       - [Demo Namespace Exclusions](#demo-namespace-exclusions)
       - [Explore](#explore)
@@ -191,7 +192,7 @@ If you want to deploy Container Security, run
 5. Depending on the currently configured Network ACL you might need to add a rule to allow ingoing traffic on the same port. To do this go to the VPC within the Cloud9 instance is running and proceed to the associated Main network ACL.
 6. Ensure that an inbound rule is set which allows traffic on the `proxy_listen_port`. If not, click on `Edit inbound rules` and add a rule with a low Rule number, Custom TCP, Port range 8443 (or your configured port), Source 0.0.0.0/0 and Allow.
 
-You should now be able to connect to Smart Check on the public ip with your configured port.
+You should now be able to connect to Smart Check on the public ip of your Cloud9 with your configured port.
 
 </details>
 
@@ -219,7 +220,7 @@ Access Smart Check with browser `https://localhost:1443`
 
 ## Tests
 
-### Registry
+### Cluster Registry
 
 ```sh
 # pull hello-app:1.0 from Google and push it to the cluster registry
@@ -239,6 +240,14 @@ docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_IP}:${REGISTRY_PORT}/h
 docker push ${REGISTRY_IP}:${REGISTRY_PORT}/hello-app:1.0
 curl -k https://${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}@${REGISTRY_IP}:${REGISTRY_PORT}/v2/_catalog
 ```
+
+You should get
+
+```sh
+{"repositories":["hello-app"]}
+```
+
+### Create a Deployment on Kubernetes - Echo Server #1
 
 ```sh
 # create a pull secret and deployment
@@ -294,7 +303,15 @@ echo Try: curl $(kubectl --namespace default get svc hello-server \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
 ```
 
-Echo Server
+You should get
+
+```sh
+Hello, world!
+Version: 1.0.0
+Hostname: hello-server-6488746978-vvtdx
+```
+
+### Create a Deployment on Kubernetes - Echo Server #2
 
 ```sh
 # instant deployment and scale an echo-server
@@ -307,20 +324,6 @@ echo Try: curl $(kubectl --namespace default get svc echo \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
 ```
 
-### Host Registry
-
-```sh
-# test the shared registry running on the host
-# pull hello-app:2.0 from Google and push it to the host registry
-# deploy to the cluster
-docker pull gcr.io/google-samples/hello-app:2.0
-docker tag gcr.io/google-samples/hello-app:2.0 localhost:5000/hello-app:2.0
-docker push localhost:5000/hello-app:2.0
-kubectl create deployment hello-server-2 --image=localhost:5000/hello-app:2.0
-
-echo Try: kubectl get pods | grep hello-server-2
-```
-
 ### Container Security
 
 First, deploy Cloud One Container Security
@@ -328,6 +331,17 @@ First, deploy Cloud One Container Security
 ```sh
 ./deploy-container-security.sh
 ```
+
+```sh
+kubectl -n container-security get pods
+```
+
+```sh
+NAME                                               READY   STATUS             RESTARTS   AGE
+trendmicro-admission-controller-c6587bf86-v999w    1/1     Running            0          94s
+```
+
+What you've now got is a running instance of the trendmicro-admission-controller within the namespace container-security. The admission controller is already bound to your Smart Check instance whereby a pretty scrict policy is asssigned.
 
 Try it:
 
@@ -337,9 +351,14 @@ kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /
 kubectl create deployment --image=nginx --namespace nginx nginx
 ```
 
-Ensure to have `deploy-smartcheck.sh` run.
+You will get an error in return, which tells you that the nginx image is unscanned and therefore not allowed to be deployed on your cluster.
 
-Do trigger a scan of an image
+```sh
+error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request:
+- unscannedImage violated in container(s) "nginx" (block).
+```
+
+Do trigger a scan of the image
 
 ```sh
 export TARGET_IMAGE=nginx
@@ -347,6 +366,23 @@ export TARGET_IMAGE_TAG=latest
 
 ./scan-image.sh
 ```
+
+The script above downloads the `nginx`, pushes it to our internal cluster registry and initiates a regular scan (not a pre-registry-scan).
+
+So, let's try the deployment again...
+
+```sh
+kubectl create deployment --image=nginx --namespace nginx nginx
+```
+
+Uuups, still not working!
+
+```sh
+error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request:
+- unscannedImage violated in container(s) "nginx" (block).
+```
+
+The reason for this is, that we scanned the nginx image within the cluster registry but we tried to deploy from docker hub.
 
 Now the nginx was scanned, we need to change the deployment manfest for it, that it is pulled from our internal registry and not docker hub.
 
@@ -392,7 +428,7 @@ status: {}
 
 Modify the line `spec.templates.spec.containers.image` to point to the internal registry as shown above
 
-Now, we need to create an image pull secret within the nginx namespace.
+Now, we need to create an image pull secret within the nginx namespace, if it does not already exists from the previous tests
 
 ```sh
 kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
@@ -404,6 +440,19 @@ Finally, create the deployment
 kubectl apply -f nginx.yaml
 ```
 
+Crap, now we get a different failure
+
+```sh
+error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request:
+- vulnerabilities violates rule with properties { max-severity:medium } in container(s) "nginx" (block).
+```
+
+It tells us, that there are too many vulnerabilities. You can check on the console for this event as well. If you don't get the above error, then the image got fixed in the meanwhile :-).
+
+For now, we simply switch to log events for vulnerabilities.
+
+If you retry the last command you will be able to deploy our nginx.
+
 #### Demo Namespace Exclusions
 
 Ensure to have the block rule `Images that are not scanned` applied to your Container Control policy, as above,
@@ -411,7 +460,7 @@ Ensure to have the block rule `Images that are not scanned` applied to your Cont
 Create a namespace for a different pod and try to deploy it
 
 ```sh
-export TARGET_IMAGE=nginx
+export TARGET_IMAGE=busybox
 export TARGET_IMAGE_TAG=latest
 
 kubectl create ns ${TARGET_IMAGE}
@@ -426,7 +475,29 @@ If you want to exclude a namespace from admission control, label it
 kubectl label ns ${TARGET_IMAGE} ignoreAdmissionControl=true --overwrite
 
 kubectl get ns --show-labels
+```
 
+You should see:
+
+```sh
+NAME                 STATUS   AGE     LABELS
+busybox              Active   15s     ignoreAdmissionControl=true
+container-security   Active   9m32s   <none>
+default              Active   15m     <none>
+ingress-nginx        Active   15m     app.kubernetes.io/instance=ingress-nginx,app.kubernetes.io/name=ingress-nginx
+kube-node-lease      Active   15m     <none>
+kube-public          Active   15m     <none>
+kube-system          Active   15m     ignoreAdmissionControl=ignore
+local-path-storage   Active   15m     <none>
+metallb-system       Active   15m     app=metallb,ignoreAdmissionControl=ignore
+nginx                Active   8m58s   <none>
+registry             Active   14m     <none>
+smartcheck           Active   14m     ignoreAdmissionControl=ignore
+```
+
+Now rerun the run command
+
+```sh
 kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
 ```
 
@@ -447,6 +518,42 @@ admission-controller-container-security-trendmicro-container-se   1          8m1
 
 ```sh
 kubectl edit ValidatingWebhookConfiguration admission-controller-container-security-trendmicro-container-se
+```
 
+Inspect the yaml
+
+```yaml
+...
+  name: trendmicro-admission-controller.container-security.svc
+  namespaceSelector:
+    matchExpressions:
+    - key: ignoreAdmissionControl
+      operator: DoesNotExist
+  objectSelector: {}
+  rules:
+  - apiGroups:
+    - '*'
+    apiVersions:
+    - '*'
+    operations:
+    - '*'
+    resources:
+    - pods
+    - pods/ephemeralcontainers
+    - replicasets
+    - replicationcontrollers
+    - deployments
+    - statefulsets
+    - daemonsets
+    - jobs
+    - cronjobs
+    scope: Namespaced
+  sideEffects: None
+  timeoutSeconds: 30
+```
+
+To see all the available configuration options you can query the helm chart with
+
+```sh
 helm inspect values https://github.com/trendmicro/cloudone-admission-controller-helm/archive/master.tar.gz
 ```
