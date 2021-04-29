@@ -4,6 +4,7 @@
   - [Requirements](#requirements)
   - [Configure](#configure)
   - [Start Linux](#start-linux)
+- [If you want to deploy Container Security, run](#if-you-want-to-deploy-container-security-run)
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
   - [Tests](#tests)
@@ -171,10 +172,10 @@ sudo systemctl restart docker
 ./deploy-proxy.sh
 ```
 
-If you want to deploy Container Security, run
+# If you want to deploy Container Security, run
 
 ```sh
-./deploy-container-security.sh
+# ./deploy-container-security.sh
 ```
 
 > If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer
