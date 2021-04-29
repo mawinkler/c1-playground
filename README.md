@@ -4,7 +4,6 @@
   - [Requirements](#requirements)
   - [Configure](#configure)
   - [Start Linux](#start-linux)
-- [If you want to deploy Container Security, run](#if-you-want-to-deploy-container-security-run)
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
   - [Tests](#tests)
@@ -98,12 +97,6 @@ chmod +x ./kind
 sudo mv kind /usr/local/bin/
 ```
 
-Since the disk size in Cloud9 environments is limited, you need to increase the size of the local volume to 20GB, execute:
-
-```sh
-./resize.sh
-```
-
 </details>
 
 ## Configure
@@ -125,6 +118,12 @@ Typically you don't need to change anything here besides setting your api key fo
     "activation_key": "YOUR KEY HERE"
 }
 ```
+
+> If running on a Cloud9, you now need to resize the disk of the EC2 instance20GB, execute:
+> 
+    ```sh
+    ./resize.sh
+    ```
 
 The `up.sh` script will deploy a load balancer amongst others. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
 
@@ -170,12 +169,6 @@ sudo systemctl restart docker
 ./up.sh
 ./deploy-smartcheck.sh
 ./deploy-proxy.sh
-```
-
-# If you want to deploy Container Security, run
-
-```sh
-# ./deploy-container-security.sh
 ```
 
 > If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer
