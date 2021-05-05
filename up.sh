@@ -187,7 +187,7 @@ function create_ingress_controller {
 # flush logfile
 echo > up.log
 
-create_host_registry
+# create_host_registry
 
 if [ "${OS}" == 'Linux' ]; then
   create_cluster_linux
@@ -196,7 +196,7 @@ if [ "${OS}" == 'Darwin' ]; then
   create_cluster_darwin
 fi
 
-configure_host_registry
+# configure_host_registry
 create_load_balancer
 create_ingress_controller
 
