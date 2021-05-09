@@ -48,7 +48,7 @@ prometheus:
   prometheusSpec:
     additionalScrapeConfigs:
     - job_name: api-collector
-      scrape_interval: 10s
+      scrape_interval: 60s
       metrics_path: /
       static_configs:
       - targets: ['api-collector:8000']
