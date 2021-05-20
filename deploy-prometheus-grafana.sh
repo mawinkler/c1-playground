@@ -49,6 +49,8 @@ prometheus:
     additionalScrapeConfigs:
     - job_name: api-collector
       scrape_interval: 60s
+      scrape_timeout: 30s
+      scheme: http
       metrics_path: /
       static_configs:
       - targets: ['api-collector:8000']
@@ -69,3 +71,8 @@ EOF
 create_prometheus_namespace
 whitelist_namsspaces
 deploy_prometheus
+
+if [ "${OS}" == 'Linux' ]; then
+  ./deploy-proxy-prometheus.sh
+  ./deploy-proxy-grafana.sh
+fi
