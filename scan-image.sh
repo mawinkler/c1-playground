@@ -30,7 +30,7 @@ docker pull ${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 docker tag ${TARGET_IMAGE}:${TARGET_IMAGE_TAG} ${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 docker push ${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 
-docker run -v /var/run/docker.sock:/var/run/docker.sock --network host \
+docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/docker.sock --network host \
   deepsecurity/smartcheck-scan-action \
   --image-name "${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}" \
   --smartcheck-host="$SC_SERVICE" \
@@ -46,6 +46,6 @@ docker run --network host mawinkler/scan-report:dev -O \
   --image_tag "${TARGET_IMAGE_TAG}" \
   --service "${SC_SERVICE}" \
   --username "${SC_USERNAME}" \
-  --password "${SC_PASSWORD}" > report_${TARGET_IMAGE}.pdf
+  --password "${SC_PASSWORD}" > report_${TARGET_IMAGE//\//_}.pdf
 
 printf '%s\n' "report report_${TARGET_IMAGE}.pdf created"
