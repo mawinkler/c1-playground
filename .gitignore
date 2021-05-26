@@ -1,7 +1,9 @@
 auth
 certs
 overrides
-.pdf
+report_*.pdf
 .DS_Store
 config.json
-up.log
+*.log
+promvalues.yaml
+nginx.yaml

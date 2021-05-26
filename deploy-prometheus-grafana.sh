@@ -41,6 +41,13 @@ prometheusOperator:
   enabled: true
   service:
     type: LoadBalancer
+  namespaces:
+    releaseNamespace: true
+    additional:
+    - kube-system
+    - smartcheck
+    - container-security
+    - registry
 prometheus:
   enabled: true
   service:
@@ -54,6 +61,13 @@ prometheus:
       metrics_path: /
       static_configs:
       - targets: ['api-collector:8000']
+    - job_name: smartcheck-metrics
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      scheme: http
+      metrics_path: /metrics
+      static_configs:
+      - targets: ['metrics.smartcheck:8082']
 EOF
 
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

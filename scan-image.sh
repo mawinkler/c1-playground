@@ -48,4 +48,4 @@ docker run --network host mawinkler/scan-report:dev -O \
   --username "${SC_USERNAME}" \
   --password "${SC_PASSWORD}" > report_${TARGET_IMAGE//\//_}.pdf
 
-printf '%s\n' "report report_${TARGET_IMAGE}.pdf created"
+printf '%s\n' "report report_${TARGET_IMAGE//\//_}.pdf created"
