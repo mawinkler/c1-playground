@@ -6,13 +6,14 @@
   - [Start Linux](#start-linux)
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
-  - [Tests](#tests)
+  - [Add-On: Falco](#add-on-falco)
+  - [Play with the Playground](#play-with-the-playground)
     - [Cluster Registry](#cluster-registry)
     - [Create a Deployment on Kubernetes - Echo Server #1](#create-a-deployment-on-kubernetes---echo-server-1)
     - [Create a Deployment on Kubernetes - Echo Server #2](#create-a-deployment-on-kubernetes---echo-server-2)
-    - [Container Security](#container-security)
-      - [Demo Namespace Exclusions](#demo-namespace-exclusions)
-      - [Explore](#explore)
+  - [Play with Container Security](#play-with-container-security)
+    - [Namespace Exclusions](#namespace-exclusions)
+    - [Explore](#explore)
 
 Ultra fast and slim kubernetes playground
 
@@ -212,7 +213,62 @@ Access Smart Check with browser `https://localhost:1443`
 ./down.sh
 ```
 
-## Tests
+## Add-On: Falco
+
+The deployment of Falco runtime security is very straigt forward with the playground. Simply execute the following steps, everything else is prepared.
+
+```sh
+helm repo add falcosecurity https://falcosecurity.github.io/charts
+helm repo update
+kubectl create ns falco
+
+cat <<EOF > overrides-falco.yaml
+jsonOutput: true
+jsonIncludeOutputProperty: true
+httpOutput:
+  enabled: true
+  url: "http://falcosidekick:2801/"
+EOF
+
+#helm -n falco --set ebpf.enabled=true install falco falcosecurity/falco
+helm -n falco install falco \
+  falcosecurity/falco \
+  --set falcosidekick.enabled=true \
+  --set falcosidekick.webui.enabled=true \
+  --set falcosidekick.webui.service.type=LoadBalancer
+```
+
+To access the Falco UI run the deploy-proxy script with
+
+```sh
+./deploy-proxy.sh falco
+```
+
+The web-ui should be available on <http://HOSTNAME:8082/ui>
+
+Relevant kind configuration already done:
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+  - hostPath: /dev
+    containerPath: /dev
+```
+
+```json
+        {
+            "name": "falco",
+            "namespace": "falco",
+            "proxy_service_name": "falco-falcosidekick-ui",
+            "proxy_service_port": "2802",
+            "proxy_listen_port": "8082"
+        },
+```
+
+## Play with the Playground
 
 ### Cluster Registry
 
@@ -318,7 +374,7 @@ echo Try: curl $(kubectl --namespace default get svc echo \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
 ```
 
-### Container Security
+## Play with Container Security
 
 First, deploy Cloud One Container Security
 
@@ -447,7 +503,7 @@ For now, we simply switch to log events for vulnerabilities.
 
 If you retry the last command you will be able to deploy our nginx.
 
-#### Demo Namespace Exclusions
+### Namespace Exclusions
 
 Ensure to have the block rule `Images that are not scanned` applied to your Container Control policy, as above,
 
@@ -497,7 +553,7 @@ kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
 
 This should now work, because Container Control is ignoring the labeled namespace.
 
-#### Explore
+### Explore
 
 The potentially most interesting part on your cluster (in reagards Container Control) is the ValidatingWebhookConfiguration. Review and understand it.
 
