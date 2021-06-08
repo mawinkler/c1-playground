@@ -1,45 +1,67 @@
 {
     "cluster_name": "playground",
-    "host_registry_name": "playground-host-registry",
-    "host_registry_port": "5001",
-
-    "registry_namespace": "registry",
-    "registry_name": "playground-registry",
-    "registry_size": "10Gi",
-    "registry_port": "5000",
-    "registry_username": "admin",
-    "registry_password": "trendmicro",
-    "registry_hostname": "registry.localdomain",
-
-    "grafana_namespace": "prometheus",
-    "grafana_username": "admin",
-    "grafana_password": "trendmicro",
-    "grafana_proxy_service_name": "prometheus-grafana",
-    "grafana_proxy_service_port": "80",
-    "grafana_proxy_listen_port": "8080",
-
-    "prometheus_namespace": "prometheus",
-    "prometheus_username": "admin",
-    "prometheus_password": "trendmicro",
-    "prometheus_proxy_service_name": "prometheus-kube-prometheus-prometheus",
-    "prometheus_proxy_service_port": "9090",
-    "prometheus_proxy_listen_port": "8081",
-
-    "smartcheck_namespace": "smartcheck",
-    "smartcheck_username": "admin",
-    "smartcheck_password": "trendmicro",
-    "smartcheck_hostname": "smartcheck",
-    "smartcheck_reg_username": "admin",
-    "smartcheck_reg_password": "trendmicro",
-    "smartcheck_reg_hostname": "smartcheck-registry",
-    "smartcheck_proxy_service_name": "smartcheck",
-    "smartcheck_proxy_service_port": "443",
-    "smartcheck_proxy_listen_port": "8443",
-
-    "container_security_policy_name": "relaxed_playground",
-    "container_security_policy_mode": "block",
-    "container_security_namespace": "container-security",
-
-    "api_key": "YOUR KEY HERE",
-    "activation_key": "YOUR KEY HERE"
+    "services": [
+        {
+            "name": "playground-registry",
+            "namespace": "registry",
+            "size": "10Gi",
+            "port": "5000",
+            "username": "admin",
+            "password": "trendmicro",
+            "hostname": "registry.localdomain"
+        },
+        {
+            "name": "playground-host-registry",
+            "port": "5001"
+        },
+        {
+            "name": "grafana",
+            "namespace": "prometheus",
+            "username": "admin",
+            "password": "trendmicro",
+            "proxy_service_name": "prometheus-grafana",
+            "proxy_service_port": "80",
+            "proxy_listen_port": "8080"
+        },
+        {
+            "name": "prometheus",
+            "namespace": "prometheus",
+            "username": "admin",
+            "password": "trendmicro",
+            "proxy_service_name": "prometheus-kube-prometheus-prometheus",
+            "proxy_service_port": "9090",
+            "proxy_listen_port": "8081"
+        },
+        {
+            "name": "falco",
+            "namespace": "falco",
+            "proxy_service_name": "falco-falcosidekick-ui",
+            "proxy_service_port": "2802",
+            "proxy_listen_port": "8082"
+        },
+        {
+            "name": "smartcheck",
+            "namespace": "smartcheck",
+            "username": "admin",
+            "password": "trendmicro",
+            "hostname": "smartcheck",
+            "reg_username": "admin",
+            "reg_password": "trendmicro",
+            "reg_hostname": "smartcheck-registry",
+            "proxy_service_name": "proxy",
+            "proxy_service_port": "443",
+            "proxy_listen_port": "8443"
+        },
+        {
+            "name": "container_security",
+            "policy_name": "relaxed_playground",
+            "policy_mode": "block",
+            "namespace": "container-security"
+        },
+        {
+            "name": "cloudone",
+            "api_key": "YOUR KEY HERE",
+            "activation_key": "YOUR KEY HERE"
+        }
+    ]
 }

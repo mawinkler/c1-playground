@@ -2,13 +2,12 @@
 
 set -e
 
-REG_NAMESPACE="$(jq -r '.registry_namespace' config.json)"
-REG_NAME="$(jq -r '.registry_name' config.json)"
-REG_HOSTNAME="$(jq -r '.registry_hostname' config.json)"
-REG_SIZE="$(jq -r '.registry_size' config.json)"
-REG_USERNAME="$(jq -r '.registry_username' config.json)"
-REG_PASSWORD="$(jq -r '.registry_password' config.json)"
-REG_HOSTNAME="$(jq -r '.registry_hostname' config.json)"
+REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
+REG_NAME=playground-registry
+REG_HOSTNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
+REG_SIZE="$(jq -r '.services[] | select(.name=="playground-registry") | .size' config.json)"
+REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
 OS="$(uname)"
 
 function create_namespace_service {

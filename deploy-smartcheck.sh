@@ -2,14 +2,14 @@
 
 set -e
 
-SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
-SC_USERNAME="$(jq -r '.smartcheck_username' config.json)"
-SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
-SC_HOSTNAME="$(jq -r '.smartcheck_hostname' config.json)"
-SC_REG_USERNAME="$(jq -r '.smartcheck_reg_username' config.json)"
-SC_REG_PASSWORD="$(jq -r '.smartcheck_reg_password' config.json)"
-SC_REG_HOSTNAME="$(jq -r '.smartcheck_reg_hostname' config.json)"
-SC_AC="$(jq -r '.activation_key' config.json)"
+SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
+SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' config.json)"
+SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' config.json)"
+SC_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' config.json)"
+SC_REG_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_username' config.json)"
+SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' config.json)"
+SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
+SC_AC="$(jq -r '.services[] | select(.name=="cloudone") | .activation_key' config.json)"
 OS="$(uname)"
 
 function create_namespace {
@@ -309,7 +309,7 @@ helm upgrade --namespace ${SC_NAMESPACE} \
 if [ "${OS}" == 'Linux' ]; then
   echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
   echo "Smart check UI on: https://${SC_HOST}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
-  ./deploy-proxy-smartcheck.sh
+  ./deploy-proxy.sh smartcheck
 fi
 if [ "${OS}" == 'Darwin' ]; then
   create_ingress

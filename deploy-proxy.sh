@@ -1,11 +1,9 @@
 #!/bin/bash
-
-SERVICE_NAME="$(jq -r '.smartcheck_proxy_service_name' config.json)"
-SERVICE_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
-SERVICE_PORT="$(jq -r '.smartcheck_proxy_service_port' config.json)"
-LISTEN_PORT="$(jq -r '.smartcheck_proxy_listen_port' config.json)"
-USERNAME="$(jq -r '.smartcheck_username' config.json)"
-PASSWORD="$(jq -r '.smartcheck_password' config.json)"
+SERVICE=$1
+SERVICE_NAME="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .proxy_service_name' config.json)"
+SERVICE_NAMESPACE="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .namespace' config.json)"
+SERVICE_PORT="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .proxy_service_port' config.json)"
+LISTEN_PORT="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .proxy_listen_port' config.json)"
 OS="$(uname)"
 
 function create_proxy_configuration {
@@ -13,14 +11,14 @@ function create_proxy_configuration {
   SERVICE_HOST=''
   while [ "$SERVICE_HOST" == '' ]
   do
-    SERVICE_HOST=$(kubectl get svc -n ${SERVICE_NAMESPACE} proxy \
+    SERVICE_HOST=$(kubectl get svc -n ${SERVICE_NAMESPACE} ${SERVICE_NAME} \
                 -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     sleep 2
   done
 
   # sudo unlink /etc/nginx/sites-enabled/default
 
-  printf '%s\n' "Configure ssl passthrough for ${SERVICE_NAME}"
+  printf '%s\n' "Configure passthrough for ${SERVICE_NAME}"
 
   LINE="include /etc/nginx/passthrough.conf;"
   FILE='/etc/nginx/nginx.conf'
@@ -52,5 +50,7 @@ sudo service nginx restart
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 if [ "${OS}" == 'Linux' ]; then
-  echo "Smart check UI on: https://${HOST_IP}:${LISTEN_PORT} w/ ${USERNAME}/${PASSWORD}"
+  echo "Service ${SERVICE} on: http://${HOST_IP}:${LISTEN_PORT}"
 fi
+
+cat /etc/nginx/passthrough.conf

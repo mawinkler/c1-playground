@@ -2,10 +2,10 @@
 set -o errexit
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
-HOST_REGISTRY_NAME="$(jq -r '.host_registry_name' config.json)"
-HOST_REGISTRY_PORT="$(jq -r '.host_registry_port' config.json)"
-REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
-REGISTRY_PORT="$(jq -r '.registry_port' config.json)"
+HOST_REGISTRY_NAME=playground-host-registry
+HOST_REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-host-registry") | .port' config.json)"
+REGISTRY_NAME=playground-registry
+REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
 OS="$(uname)"
 
 printf '%s\n' "Target environment ${OS}"
@@ -58,6 +58,9 @@ apiVersion: kind.x-k8s.io/v1alpha4
 name: ${CLUSTER_NAME}
 nodes:
 - role: control-plane
+  extraMounts:
+  - hostPath: /dev
+    containerPath: /dev
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration

@@ -3,11 +3,11 @@
 set -e
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
-CS_POLICY_NAME="$(jq -r '.container_security_policy_name' config.json)"
-CS_POLICY_MODE="$(jq -r '.container_security_policy_mode' config.json)"
-CS_NAMESPACE="$(jq -r '.container_security_namespace' config.json)"
-SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
-API_KEY="$(jq -r '.api_key' config.json)"
+CS_POLICY_NAME="$(jq -r '.services[] | select(.name=="container_security") | .policy_name' config.json)"
+CS_POLICY_MODE="$(jq -r '.services[] | select(.name=="container_security") | .policy_mode' config.json)"
+CS_NAMESPACE="$(jq -r '.services[] | select(.name=="container_security") | .namespace' config.json)"
+SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
+API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
 
 function create_namespace {
   printf '%s' "Create container security namespace"

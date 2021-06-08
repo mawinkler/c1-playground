@@ -3,7 +3,8 @@
 set -e
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
-HOMEASSISTANT_API_KEY="$(jq -r '.homeassistant_api_key' config.json)"
+HOMEASSISTANT_API_KEY="$(jq -r '.services[] | select(.name=="hass") | .api_key' config.json)"
+OS="$(uname)"
 
 function create_prometheus_namespace {
   printf '%s' "Create Prometheus namespace"
@@ -96,6 +97,6 @@ whitelist_namsspaces
 deploy_prometheus
 
 if [ "${OS}" == 'Linux' ]; then
-  ./deploy-proxy-prometheus.sh
-  ./deploy-proxy-grafana.sh
+  ./deploy-proxy.sh prometheus
+  ./deploy-proxy.sh grafana
 fi
