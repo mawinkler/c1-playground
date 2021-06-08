@@ -172,6 +172,8 @@ function cluster_policy {
       }
     }" |
       jq -r ".id")
+  else
+    printf '%s\n' "policy ${CS_POLICY_NAME} existing"
   fi
 }
 

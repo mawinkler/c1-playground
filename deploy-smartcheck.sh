@@ -309,6 +309,7 @@ helm upgrade --namespace ${SC_NAMESPACE} \
 if [ "${OS}" == 'Linux' ]; then
   echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
   echo "Smart check UI on: https://${SC_HOST}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
+  ./deploy-proxy-smartcheck.sh
 fi
 if [ "${OS}" == 'Darwin' ]; then
   create_ingress

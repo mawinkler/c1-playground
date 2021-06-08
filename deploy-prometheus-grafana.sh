@@ -3,6 +3,7 @@
 set -e
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
+HOMEASSISTANT_API_KEY="$(jq -r '.homeassistant_api_key' config.json)"
 
 function create_prometheus_namespace {
   printf '%s' "Create Prometheus namespace"
@@ -68,6 +69,14 @@ prometheus:
       metrics_path: /metrics
       static_configs:
       - targets: ['metrics.smartcheck:8082']
+    - job_name: home-assistant
+      scrape_interval: 30s
+      scrape_timeout: 10s
+      scheme: http
+      bearer_token: ${HOMEASSISTANT_API_KEY}
+      metrics_path: /api/prometheus
+      static_configs:
+      - targets: ['192.168.1.115:8123']
 EOF
 
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

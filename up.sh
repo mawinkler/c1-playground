@@ -20,6 +20,9 @@ apiVersion: kind.x-k8s.io/v1alpha4
 name: ${CLUSTER_NAME}
 nodes:
 - role: control-plane
+  extraMounts:
+  - hostPath: /dev
+    containerPath: /dev
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
