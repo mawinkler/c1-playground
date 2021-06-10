@@ -222,56 +222,13 @@ Access Smart Check with browser `https://localhost:1443`
 
 ## Add-On: Falco
 
-The deployment of Falco runtime security is very straigt forward with the playground. Simply execute the following steps, everything else is prepared.
+The deployment of Falco runtime security is very straigt forward with the playground. Simply execute the script `deploy-falco.sh`, everything else is prepared.
 
 ```sh
-helm repo add falcosecurity https://falcosecurity.github.io/charts
-helm repo update
-kubectl create ns falco
-
-cat <<EOF > overrides/overrides-falco.yaml
-# jsonOutput: true
-# jsonIncludeOutputProperty: true
-# httpOutput:
-#   enabled: true
-#   url: "http://falcosidekick:2801/"
-auditLog:
-  enabled: true
-falcosidekick:
-  enabled: true
-  webui:
-    enabled: true
-    service:
-      type: LoadBalancer
-EOF
-
-# Install Falco
-helm install falco --values=overrides/overrides-falco.yaml falcosecurity/falco
-
-# Create NodePort Service to enable K8s Audit
-cat <<EOF | kubectl apply -f -
-kind: Service
-apiVersion: v1
-metadata:
-  name: falco-np
-spec:
-  selector:
-    app: falco
-  ports:
-  - protocol: TCP
-    port: 8765
-    nodePort: 32765
-  type: NodePort
-EOF
+./deploy-falco.sh
 ```
 
-To access the Falco UI run the deploy-proxy script with
-
-```sh
-./deploy-proxy.sh falco
-```
-
-The web-ui is available on <http://HOSTNAME:8082/ui>
+The web-ui is available on <http://HOSTNAME:8082/ui> (default)
 
 To test the k8s auditing try to create a configmap:
 
