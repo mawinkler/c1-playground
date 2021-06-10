@@ -7,3 +7,5 @@ config.json
 *.log
 promvalues.yaml
 nginx.yaml
+audit/audit-policy copy.yaml
+audit/audit-webhook.yaml

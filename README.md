@@ -15,7 +15,15 @@
     - [Namespace Exclusions](#namespace-exclusions)
     - [Explore](#explore)
 
-Ultra fast and slim kubernetes playground
+Ultra fast and slim kubernetes playground.
+
+Currently, the following services are integrated:
+
+- Prometheus & Grafana
+- Container Security
+  - Smart Check
+  - Deployment Admission Control, Continuous Compliance
+- Falco Runtime Security including Kubernetes Auditing
 
 ## Requirements
 
@@ -221,20 +229,40 @@ helm repo add falcosecurity https://falcosecurity.github.io/charts
 helm repo update
 kubectl create ns falco
 
-cat <<EOF > overrides-falco.yaml
-jsonOutput: true
-jsonIncludeOutputProperty: true
-httpOutput:
+cat <<EOF > overrides/overrides-falco.yaml
+# jsonOutput: true
+# jsonIncludeOutputProperty: true
+# httpOutput:
+#   enabled: true
+#   url: "http://falcosidekick:2801/"
+auditLog:
   enabled: true
-  url: "http://falcosidekick:2801/"
+falcosidekick:
+  enabled: true
+  webui:
+    enabled: true
+    service:
+      type: LoadBalancer
 EOF
 
-#helm -n falco --set ebpf.enabled=true install falco falcosecurity/falco
-helm -n falco install falco \
-  falcosecurity/falco \
-  --set falcosidekick.enabled=true \
-  --set falcosidekick.webui.enabled=true \
-  --set falcosidekick.webui.service.type=LoadBalancer
+# Install Falco
+helm install falco --values=overrides/overrides-falco.yaml falcosecurity/falco
+
+# Create NodePort Service to enable K8s Audit
+cat <<EOF | kubectl apply -f -
+kind: Service
+apiVersion: v1
+metadata:
+  name: falco-np
+spec:
+  selector:
+    app: falco
+  ports:
+  - protocol: TCP
+    port: 8765
+    nodePort: 32765
+  type: NodePort
+EOF
 ```
 
 To access the Falco UI run the deploy-proxy script with
@@ -243,29 +271,28 @@ To access the Falco UI run the deploy-proxy script with
 ./deploy-proxy.sh falco
 ```
 
-The web-ui should be available on <http://HOSTNAME:8082/ui>
+The web-ui is available on <http://HOSTNAME:8082/ui>
 
-Relevant kind configuration already done:
+To test the k8s auditing try to create a configmap:
 
-```yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraMounts:
-  - hostPath: /dev
-    containerPath: /dev
+```sh
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+data:
+  ui.properties: |
+    color.good=purple
+    color.bad=yellow
+    allow.textmode=true
+  access.properties: |
+    aws_access_key_id = AKIAXXXXXXXXXXXXXXXX
+    aws_secret_access_key = 1CHPXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+kind: ConfigMap
+metadata:
+  name: awscfg
+EOF
 ```
 
-```json
-        {
-            "name": "falco",
-            "namespace": "falco",
-            "proxy_service_name": "falco-falcosidekick-ui",
-            "proxy_service_port": "2802",
-            "proxy_listen_port": "8082"
-        },
-```
+Relevant kind configuration is already done within the `up.sh` script.
 
 ## Play with the Playground
 

@@ -9,28 +9,95 @@ REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .po
 OS="$(uname)"
 
 printf '%s\n' "Target environment ${OS}"
+echo > up.log
+mkdir -p overrides
 
 function create_cluster_linux {
   # create a cluster with the local registry enabled in containerd
 
+  # Falco and Kubernetes Auditing
+  printf '%s\n' "Create K8s Audit Webhook (linux)"
+  cat <<EOF >audit/audit-webhook.yaml
+apiVersion: v1
+kind: Config
+clusters:
+- name: ${CLUSTER_NAME}
+  cluster:
+    # certificate-authority: /path/to/ca.crt # for https
+    server: http://127.0.0.1:32765/k8s-audit
+contexts:
+- context:
+    cluster: ${CLUSTER_NAME}
+    user: ""
+  name: default-context
+current-context: default-context
+preferences: {}
+users: []
+EOF
+
   printf '%s\n' "Create cluster (linux)"
   cat <<EOF | kind create cluster --config=-
+#
+# Cluster Configuration
+#
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: ${CLUSTER_NAME}
 nodes:
+#
+# Control Plane
+#
 - role: control-plane
   extraMounts:
+
+  # Falco
   - hostPath: /dev
     containerPath: /dev
+
+  # Kube Audit
+  - hostPath: /var/log/
+    containerPath: /var/log/
+  - hostPath: /home/markus/projects/opensource/playground/audit/
+    containerPath: /var/lib/k8s-audit/
+
   kubeadmConfigPatches:
+
+  # Ingress
   - |
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
+
+# Workers
 # - role: worker
 # - role: worker
+
+#
+# Kube Audit
+#
+kubeadmConfigPatches:
+- |
+  kind: ClusterConfiguration
+  apiServer:
+    extraArgs:
+      # audit-log-max-backups: "1"
+      # audit-log-max-size: "10"
+      audit-log-path: "/var/log/k8s-audit.log"
+      audit-policy-file: "/var/lib/k8s-audit/audit-policy.yaml"
+      # audit-webhook-batch-max-wait: "5s"
+      audit-webhook-config-file: "/var/lib/k8s-audit/audit-webhook.yaml"
+    extraVolumes:
+    - name: audit
+      hostPath: /var/log/
+      mountPath: /var/log/
+    - name: auditcfg
+      hostPath: /var/lib/k8s-audit/
+      mountPath: /var/lib/k8s-audit/
+
+#
+# Host Registry
+#
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri"]
