@@ -197,7 +197,6 @@ Support for MacOS is still in progress.
 
 ```sh
 ./up.sh
-./deploy-registry.sh
 ./deploy-smartcheck.sh
 ```
 

@@ -2,17 +2,29 @@
 # ##############################################################################
 # Pulls an image, initiates a scan with Smart Check and creates a PDF report
 # ##############################################################################
+
+# Test for command line parameter
+if [ -n ${1} ]; then
+  TARGET_IMAGE=${1}
+  TARGET_IMAGE_TAG=${2}
+fi
+
+# If no parameter was given and TARGET_IMAGE is not set in env, default to rhel7
 TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7}
 TARGET_IMAGE_TAG=${TARGET_IMAGE_TAG:-latest}
 
-SC_NAMESPACE="$(jq -r '.smartcheck_namespace' config.json)"
-SC_USERNAME="$(jq -r '.smartcheck_username' config.json)"
-SC_PASSWORD="$(jq -r '.smartcheck_password' config.json)"
-REG_USERNAME="$(jq -r '.registry_username' config.json)"
-REG_PASSWORD="$(jq -r '.registry_password' config.json)"
-REG_NAMESPACE="$(jq -r '.registry_namespace' config.json)"
-REG_NAME="$(jq -r '.registry_name' config.json)"
-REG_PORT="$(jq -r '.registry_port' config.json)"
+echo "Scanning Image ${TARGET_IMAGE} with tag ${TARGET_IMAGE_TAG}"
+
+SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
+SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' config.json)"
+SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' config.json)"
+SC_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' config.json)"
+
+REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
+REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
+REG_NAME=playground-registry
+REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
 
 SC_REGISTRY_PORT="5000"
 SC_API_PORT="443"
@@ -37,15 +49,5 @@ docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/dock
   --smartcheck-user="$SC_USERNAME" \
   --smartcheck-password="$SC_PASSWORD" \
   --image-pull-auth=\''{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'\' \
-  --findings-threshold "{\"malware\":0,\"vulnerabilities\":{\"defcon1\":0,\"critical\":100,\"high\":100},\"contents\":{\"defcon1\":0,\"critical\":0,\"high\":1},\"checklists\":{\"defcon1\":0,\"critical\":0,\"high\":0}}" \
   --insecure-skip-tls-verify \
-  --insecure-skip-registry-tls-verify
-
-docker run --network host mawinkler/scan-report:dev -O \
-  --name "${TARGET_IMAGE}" \
-  --image_tag "${TARGET_IMAGE_TAG}" \
-  --service "${SC_SERVICE}" \
-  --username "${SC_USERNAME}" \
-  --password "${SC_PASSWORD}" > report_${TARGET_IMAGE//\//_}.pdf
-
-printf '%s\n' "report report_${TARGET_IMAGE//\//_}.pdf created"
+  --insecure-skip-registry-tls-verify || true

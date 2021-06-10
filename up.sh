@@ -185,7 +185,7 @@ function create_ingress_controller {
     --for=condition=ready pod \
     --selector=app.kubernetes.io/component=controller \
     --timeout=90s \
-    -o yaml | cat >> up2.log
+    -o yaml | cat >> up.log
     
   printf '\n%s\n' "Cluster and ingress controller ready 🍾"
 }
