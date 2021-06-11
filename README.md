@@ -6,6 +6,7 @@
   - [Start Linux](#start-linux)
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
+  - [Add-On: Prometheus & Grafana](#add-on-prometheus--grafana)
   - [Add-On: Falco](#add-on-falco)
   - [Play with the Playground](#play-with-the-playground)
     - [Cluster Registry](#cluster-registry)
@@ -220,6 +221,18 @@ Access Smart Check with browser `https://localhost:1443`
 ./down.sh
 ```
 
+## Add-On: Prometheus & Grafana
+
+By running `deploy-prometheus-grafana.sh` you'll get a fully functional and preconfigured Prometheus and Grafana instance on the playground.
+
+The following additional scrapers are configured:
+
+- [api-collector](https://github.com/mawinkler/api-collector)
+- [Falco]((#add-on-falco))
+- smartcheck-metrics
+
+By default, the Prometheus UI is on port 8081, Grafana on port 8080.
+
 ## Add-On: Falco
 
 The deployment of Falco runtime security is very straigt forward with the playground. Simply execute the script `deploy-falco.sh`, everything else is prepared.
@@ -250,6 +263,11 @@ EOF
 ```
 
 Relevant kind configuration is already done within the `up.sh` script.
+
+Falco is integrated with Prometheus and Grafana as well. A Dashboard is available for import with the ID 11914.
+
+![alt text](images/falco-grafana.png "Grafana Dashboard")
+
 
 ## Play with the Playground
 

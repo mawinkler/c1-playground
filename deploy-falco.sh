@@ -40,6 +40,10 @@ auditLog:
 falco:
   jsonOutput: true
   jsonIncludeOutputProperty: true
+  grpc:
+    enabled: true
+  grpcOutput:
+    enabled: true
 falcosidekick:
   enabled: true
   webui:
@@ -101,17 +105,20 @@ customRules:
       output: "Locate command run in container (user=%user.name %container.info parent=%proc.pname cmdline=%proc.cmdline)"
       priority: WARNING
 
-    # ubuntu
-    - macro: app_ubuntu
-      condition: container.image contains "ubuntu"
+    # kshell
+    # To easily run kshell, you can set an alias to
+    # alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --rm -- /bin/bash'
+    # kshell will spawn an ubuntu based bash in the current namespace
+    - macro: app_kshell
+      condition: k8s.pod.name contains "kshell" and container.image contains "ubuntu"
 
-    - list: ubuntu_allowed_processes
-      items: [ curl ]
+    - list: kshell_allowed_processes
+      items: [ curl, apt, grep, sort, sed, dpkg, dpkg-deb, tar ]
 
-    - rule: Unexpected Spawned Process Ubuntu
-      desc: Detect a process started in a ubuntu container outside of an expected set
-      condition: spawned_process and not proc.name in (ubuntu_allowed_processes) and app_ubuntu
-      output: Unexpected process spawned in ubuntu container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
+    - rule: Unexpected Spawned Process kshell
+      desc: Detect a process started in a kshell container outside of an expected set
+      condition: spawned_process and not proc.name in (kshell_allowed_processes) and app_kshell
+      output: Unexpected process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
       priority: NOTICE
 EOF
 
@@ -125,6 +132,10 @@ EOF
     -f overrides/custom-rules.yaml \
     falcosecurity/falco
 
+  helm -n ${NAMESPACE} upgrade \
+    falco-exporter \
+    --install \
+    falcosecurity/falco-exporter
 
   # Create NodePort Service to enable K8s Audit
   cat <<EOF | kubectl -n ${NAMESPACE} apply -f -

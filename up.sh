@@ -16,6 +16,10 @@ function create_cluster_linux {
   # create a cluster with the local registry enabled in containerd
 
   # Falco and Kubernetes Auditing
+  # To enable Kubernetes audit logs, you need to change the arguments to the
+  # kube-apiserver process to add --audit-policy-file and
+  # --audit-webhook-config-file arguments and provide files that implement an
+  # audit policy/webhook configuration.
   printf '%s\n' "Create K8s Audit Webhook (linux)"
   cat <<EOF >audit/audit-webhook.yaml
 apiVersion: v1

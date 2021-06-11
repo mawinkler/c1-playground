@@ -3,6 +3,7 @@
 set -e
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
+NAMESPACE="$(jq -r '.services[] | select(.name=="prometheus") | .namespace' config.json)"
 HOMEASSISTANT_API_KEY="$(jq -r '.services[] | select(.name=="hass") | .api_key' config.json)"
 OS="$(uname)"
 
@@ -15,7 +16,7 @@ function create_prometheus_namespace {
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: prometheus
+  name: ${NAMESPACE}
 EOF
   printf '%s\n' " 🍼"
 }
@@ -24,7 +25,8 @@ function whitelist_namsspaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespaces
-  kubectl label namespace prometheus --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace ${NAMESPACE} --overwrite network=green
 }
 
 # helm show values prometheus-community/kube-prometheus-stack
@@ -50,6 +52,7 @@ prometheusOperator:
     - smartcheck
     - container-security
     - registry
+    - falco
 prometheus:
   enabled: true
   service:
@@ -63,21 +66,20 @@ prometheus:
       metrics_path: /
       static_configs:
       - targets: ['api-collector:8000']
+    - job_name: falco
+      scrape_interval: 15s
+      scrape_timeout: 5s
+      scheme: http
+      metrics_path: /metrics
+      static_configs:
+      - targets: ['falco-exporter.falco:9376']
     - job_name: smartcheck-metrics
       scrape_interval: 15s
-      scrape_timeout: 10s
+      scrape_timeout: 5s
       scheme: http
       metrics_path: /metrics
       static_configs:
       - targets: ['metrics.smartcheck:8082']
-    - job_name: home-assistant
-      scrape_interval: 30s
-      scrape_timeout: 10s
-      scheme: http
-      bearer_token: ${HOMEASSISTANT_API_KEY}
-      metrics_path: /api/prometheus
-      static_configs:
-      - targets: ['192.168.1.115:8123']
 EOF
 
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -87,7 +89,7 @@ EOF
   helm upgrade \
     prometheus \
     --values overrides/overrides-prometheus.yml \
-    --namespace prometheus \
+    --namespace ${NAMESPACE} \
     --install \
     prometheus-community/kube-prometheus-stack
 }
