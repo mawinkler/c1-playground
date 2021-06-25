@@ -42,7 +42,7 @@ docker pull ${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 docker tag ${TARGET_IMAGE}:${TARGET_IMAGE_TAG} ${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 docker push ${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 
-docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/docker.sock --network host \
+eval docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/docker.sock --network host \
   deepsecurity/smartcheck-scan-action \
   --image-name "${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}" \
   --smartcheck-host="$SC_SERVICE" \
@@ -50,4 +50,4 @@ docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/dock
   --smartcheck-password="$SC_PASSWORD" \
   --image-pull-auth=\''{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'\' \
   --insecure-skip-tls-verify \
-  --insecure-skip-registry-tls-verify || true
+  --insecure-skip-registry-tls-verify &>/dev/null & disown || true
