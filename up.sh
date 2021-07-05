@@ -59,9 +59,9 @@ nodes:
     containerPath: /dev
 
   # Kube Audit
-  - hostPath: /var/log/
+  - hostPath: $(pwd)/log/
     containerPath: /var/log/
-  - hostPath: /home/markus/projects/opensource/playground/audit/
+  - hostPath: $(pwd)/audit/
     containerPath: /var/lib/k8s-audit/
 
   kubeadmConfigPatches:

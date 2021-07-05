@@ -6,4 +6,4 @@ kind delete clusters playground
 # docker stop ${REGISTRY_NAME}
 # docker rm ${REGISTRY_NAME}
 
-rm -Rf auth certs overrides /tmp/passthrough.conf
+rm -Rf auth certs overrides audit/audit-webhook.yaml /tmp/passthrough.conf

