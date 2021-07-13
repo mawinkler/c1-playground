@@ -211,6 +211,8 @@ cloudOne:
     enabled: false
     apiKey: ${AP_KEY}
     secret: ${AP_SECRET}
+  oversight:
+    syncPeriod: 600s
 EOF
 
   helm upgrade \
