@@ -108,7 +108,7 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 
 # kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
 chmod +x ./kind
 sudo mv kind /usr/local/bin/
 ```
@@ -125,7 +125,7 @@ cd c1-playground
 cp config.json.sample config.json
 ```
 
-Typically you don't need to change anything here besides setting your api key for C1 and an activation key for smart check.
+Typically you don't need to change anything here besides setting your api key for C1. If you're planning to use Cloud One Container Security you don't need an activation key for smart check, the api key is then sufficient.
 
 ```json
 {
@@ -329,7 +329,6 @@ root@playground-control-plane:/#
 ```
 
 Doing this takes advantage of a well known security exploit in Kubernetes.
-
 
 ## Play with the Playground
 

@@ -52,5 +52,3 @@ HOST_IP=$(hostname -I | awk '{print $1}')
 if [ "${OS}" == 'Linux' ]; then
   echo "Service ${SERVICE} on: http://${HOST_IP}:${LISTEN_PORT}"
 fi
-
-cat /etc/nginx/passthrough.conf

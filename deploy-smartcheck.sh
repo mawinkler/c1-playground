@@ -33,7 +33,7 @@ function create_smartcheck_overrides {
   cat <<EOF >overrides/overrides-image-security.yml
   ##
   ## Default value: (none)
-  activationCode: '${SC_AC}'
+  # activationCode: '${SC_AC}'
   auth:
     ## secretSeed is used as part of the password generation process for
     ## all auto-generated internal passwords, ensuring that each installation of
