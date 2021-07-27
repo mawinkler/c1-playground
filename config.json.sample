@@ -59,6 +59,14 @@
             "namespace": "container-security"
         },
         {
+            "name": "trivy",
+            "namespace": "trivy"
+        },
+        {
+            "name": "starboard",
+            "namespace": "starboard"
+        },
+        {
             "name": "cloudone",
             "api_key": "YOUR KEY HERE",
             "activation_key": "YOUR KEY HERE"

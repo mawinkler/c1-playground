@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SIZE=${1:-20}
+SIZE=${1:-30}
 INSTANCEID=$(curl http://169.254.169.254/latest/meta-data//instance-id)
 VOLUMEID=$(aws ec2 describe-instances \
   --instance-id $INSTANCEID \

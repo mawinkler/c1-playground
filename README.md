@@ -10,6 +10,8 @@
   - [Add-On: Falco](#add-on-falco)
     - [Generate some events](#generate-some-events)
     - [Fun with privileged mode](#fun-with-privileged-mode)
+  - [Add-On: Krew](#add-on-krew)
+  - [Add-On: Starboard](#add-on-starboard)
   - [Play with the Playground](#play-with-the-playground)
     - [Cluster Registry](#cluster-registry)
     - [Create a Deployment on Kubernetes - Echo Server #1](#create-a-deployment-on-kubernetes---echo-server-1)
@@ -39,37 +41,51 @@ Install required packages if not available. **After the installation continue in
 
 ```sh
 # install packages
-sudo apt update
-sudo apt install -y jq apt-transport-https gnupg2 curl nginx
+sudo apt update && \
+  sudo apt install -y jq apt-transport-https gnupg2 curl nginx
 
 # install docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-ME=$(whoami)
-sudo usermod -aG docker ${ME}
+curl -fsSL https://get.docker.com -o get-docker.sh && \
+  sudo sh get-docker.sh && \
+  ME=$(whoami) && \
+  sudo usermod -aG docker ${ME}
 
 # kubectl
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update
-sudo apt-get install -y kubectl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
+  echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list && \
+  sudo apt-get update && \
+  sudo apt-get install -y kubectl
 
 # kustomize
-curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
-sudo mv ~/kustomize /usr/local/bin
+curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && \
+  sudo mv ~/kustomize /usr/local/bin
 
 # helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && \
+  chmod 700 get_helm.sh && \
+  ./get_helm.sh
 
 # kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-chmod +x ./kind
-sudo mv kind /usr/local/bin/
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64 && \
+  chmod +x ./kind && \
+  sudo mv kind /usr/local/bin/
+
+# krew
+curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz" -o ./krew.tar.gz && \
+  tar zxvf ./krew.tar.gz && \
+  KREW=./krew-"$(uname | tr '[:upper:]' '[:lower:]')_$(uname -m | sed -e 's/x86_64/amd64/' -e 's/arm.*$/arm/')" && \
+  "$KREW" install krew && \
+  rm -f ./krew.tar.gz ./krew-* && \
+  echo 'export PATH=~/.krew/bin:$PATH' >> ~/.bashrc
+
+# kubebox
+curl -Lo kubebox https://github.com/astefanutti/kubebox/releases/download/v0.9.0/kubebox-linux && \
+  chmod +x kubebox && \
+  sudo mv kubebox /usr/local/bin/kubebox 
 ```
 
 **IMPORTANT: Proceed in a new shell!**
+
 </details>
 
 <details>
@@ -329,6 +345,50 @@ root@playground-control-plane:/#
 ```
 
 Doing this takes advantage of a well known security exploit in Kubernetes.
+
+## Add-On: Krew
+
+Krew is a tool that makes it easy to use kubectl plugins. Krew helps you discover plugins, install and manage them on your machine. It is similar to tools like apt, dnf or brew. Today, over 130 kubectl plugins are available on Krew.
+
+Eample usage:
+
+```sh
+kubectl krew install tree
+```
+
+The tree command is a kubectl plugin to browse Kubernetes object hierarchies as a tree.
+
+```sh
+kubectl tree node playground-control-plane -A
+```
+
+## Add-On: Starboard
+
+Fundamentally, Starboard gathers security data from various Kubernetes security tools into Kubernetes Custom Resource Definitions (CRD). These extend the Kubernetes APIs so that users can manage and access security reports through the Kubernetes interfaces, like kubectl.
+
+```sh
+kubectl logs -f -n starboard deployment/starboard-starboard-operator
+```
+
+Workload Scanning
+
+```sh
+kubectl get job -n starboard
+kubectl get vulnerabilityreports --all-namespaces -o wide
+kubectl get configauditreports --all-namespaces -o wide
+```
+
+Infrastructure Scanning - The operator discovers also Kubernetes nodes and runs CIS Kubernetes Benchmark checks on each of them. The results are stored as CISKubeBenchReport objects.
+
+```sh
+kubectl get ciskubebenchreports -o wide
+```
+
+Inspect any of the reports run something like this
+
+```sh
+kubectl describe vulnerabilityreport -n kube-system daemonset-kindnet-kindnet-cni
+```
 
 ## Play with the Playground
 

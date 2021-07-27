@@ -117,6 +117,9 @@ containerdConfigPatches:
         [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
           insecure_skip_verify = true
 EOF
+
+  # cadvisor
+  kubectl apply -f https://raw.githubusercontent.com/astefanutti/kubebox/master/cadvisor.yaml
 }
 
 function create_cluster_darwin {
@@ -159,6 +162,9 @@ containerdConfigPatches:
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."smartcheck-registry.localdomain:443"]
           endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
 EOF
+
+  # cadvisor
+  kubectl apply -f https://raw.githubusercontent.com/astefanutti/kubebox/master/cadvisor.yaml
 }
 
 function create_host_registry {
