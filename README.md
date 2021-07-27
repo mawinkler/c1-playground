@@ -6,6 +6,7 @@
   - [Start Linux](#start-linux)
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
+  - [Add-On: Cloud One Container Security](#add-on-cloud-one-container-security)
   - [Add-On: Prometheus & Grafana](#add-on-prometheus--grafana)
   - [Add-On: Falco](#add-on-falco)
     - [Generate some events](#generate-some-events)
@@ -40,48 +41,7 @@ Currently, the following services are integrated:
 Install required packages if not available. **After the installation continue in a new shell.**
 
 ```sh
-# install packages
-sudo apt update && \
-  sudo apt install -y jq apt-transport-https gnupg2 curl nginx
-
-# install docker
-curl -fsSL https://get.docker.com -o get-docker.sh && \
-  sudo sh get-docker.sh && \
-  ME=$(whoami) && \
-  sudo usermod -aG docker ${ME}
-
-# kubectl
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
-  echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list && \
-  sudo apt-get update && \
-  sudo apt-get install -y kubectl
-
-# kustomize
-curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && \
-  sudo mv ~/kustomize /usr/local/bin
-
-# helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && \
-  chmod 700 get_helm.sh && \
-  ./get_helm.sh
-
-# kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64 && \
-  chmod +x ./kind && \
-  sudo mv kind /usr/local/bin/
-
-# krew
-curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz" -o ./krew.tar.gz && \
-  tar zxvf ./krew.tar.gz && \
-  KREW=./krew-"$(uname | tr '[:upper:]' '[:lower:]')_$(uname -m | sed -e 's/x86_64/amd64/' -e 's/arm.*$/arm/')" && \
-  "$KREW" install krew && \
-  rm -f ./krew.tar.gz ./krew-* && \
-  echo 'export PATH=~/.krew/bin:$PATH' >> ~/.bashrc
-
-# kubebox
-curl -Lo kubebox https://github.com/astefanutti/kubebox/releases/download/v0.9.0/kubebox-linux && \
-  chmod +x kubebox && \
-  sudo mv kubebox /usr/local/bin/kubebox 
+./tools.sh
 ```
 
 **IMPORTANT: Proceed in a new shell!**
@@ -199,11 +159,38 @@ sudo systemctl restart docker
 
 ```sh
 ./up.sh
-./deploy-smartcheck.sh
-./deploy-proxy.sh
 ```
 
-> If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer
+## Start MacOS (in progress)
+
+Support for MacOS is still in progress.
+
+```sh
+./up.sh
+```
+
+```sh
+kubectl port-forward -n smartcheck svc/proxy 1443:443
+```
+
+Access Smart Check with browser `https://localhost:1443`
+
+## Tear Down
+
+```sh
+./down.sh
+```
+
+## Add-On: Cloud One Container Security
+
+To deploy Container Security run:
+
+```sh
+./deploy-smartcheck.sh
+./deploy-container-security.sh
+```
+
+> Note: If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer
 
 <details>
 <summary>Share Smart Check over the internet </summary>
@@ -222,26 +209,19 @@ You should now be able to connect to Smart Check on the public ip of your Cloud9
 
 </details>
 
-## Start MacOS (in progress)
-
-Support for MacOS is still in progress.
+The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
 
 ```sh
-./up.sh
-./deploy-smartcheck.sh
+./scan-image.sh nginx latest
 ```
+
+starts a scan of the latest version of nginx.
 
 ```sh
-kubectl port-forward -n smartcheck svc/proxy 1443:443
+./scan-namespace.sh
 ```
 
-Access Smart Check with browser `https://localhost:1443`
-
-## Tear Down
-
-```sh
-./down.sh
-```
+scans all used images within the current namespace. Maybe do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
 
 ## Add-On: Prometheus & Grafana
 
@@ -366,6 +346,12 @@ kubectl tree node playground-control-plane -A
 
 Fundamentally, Starboard gathers security data from various Kubernetes security tools into Kubernetes Custom Resource Definitions (CRD). These extend the Kubernetes APIs so that users can manage and access security reports through the Kubernetes interfaces, like kubectl.
 
+To deploy it, run
+
+```sh
+./deploy-starboard.sh
+```
+
 ```sh
 kubectl logs -f -n starboard deployment/starboard-starboard-operator
 ```
@@ -397,11 +383,11 @@ kubectl describe vulnerabilityreport -n kube-system daemonset-kindnet-kindnet-cn
 ```sh
 # pull hello-app:1.0 from Google and push it to the cluster registry
 # verify w/ curl
-REGISTRY_NAME="$(jq -r '.registry_name' config.json)"
-REGISTRY_NAMESPACE="$(jq -r '.registry_namespace' config.json)"
-REGISTRY_USERNAME="$(jq -r '.registry_username' config.json)"
-REGISTRY_PASSWORD="$(jq -r '.registry_password' config.json)"
-REGISTRY_PORT="$(jq -r '.registry_port' config.json)"
+REGISTRY_NAME=playground-registry
+REGISTRY_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
+REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
+REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
 REGISTRY_IP=$(kubectl get svc -n ${REGISTRY_NAMESPACE} ${REGISTRY_NAME} \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
@@ -463,7 +449,7 @@ spec:
         app: hello-server
     spec:
       containers:
-      - image: ${REGISTRY_IP}:${REGISTRY_PORT}/hello-app:1.0
+      - image: ${REGISTRY_IP}:${REGISTRY_PORT}/gcr.io/google-samples/hello-app:1.0
         name: hello-app
         ports:
         - containerPort: 8080

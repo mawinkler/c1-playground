@@ -53,10 +53,17 @@ trivy:
   debugMode: true
 EOF
 
+  # image:
+  #   registry: docker.io
+  #   repository: aquasec/trivy
+  #   tag: 0.18.3
+  #   pullPolicy: IfNotPresent
+  #   pullSecret: ""
+  IMAGEREF=$(helm show values aquasecurity/trivy --jsonpath='{.image.registry}/{.image.repository}:{.image.tag}')
   cat <<EOF >overrides/overrides-starboard.yml
 targetNamespaces: ""
 trivy:
-  # imageRef: docker.io/aquasec/trivy:0.18.3
+  imageRef: ${IMAGEREF}
   mode: ClientServer
   serverURL: http://trivy.trivy:4954
 EOF

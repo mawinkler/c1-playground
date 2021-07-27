@@ -38,6 +38,7 @@ printf '%s\n' "Cluster registry is on ${REGISTRY_HOST}"
 
 SC_SERVICE="${SERVICE_HOST}:${SC_API_PORT}"
 
+echo ${REG_PASSWORD} | docker login ${REGISTRY_HOST}:${REG_PORT} --username ${REG_USERNAME} --password-stdin
 docker pull ${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 docker tag ${TARGET_IMAGE}:${TARGET_IMAGE_TAG} ${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
 docker push ${REGISTRY_HOST}:${REG_PORT}/${TARGET_IMAGE}:${TARGET_IMAGE_TAG}
