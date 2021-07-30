@@ -73,31 +73,7 @@ When it comes up, customize the environment by closing the welcome tab and lower
 Install required packages if not available. **After the installation continue in a new shell.**
 
 ```sh
-# install packages
-sudo apt update
-sudo apt install -y jq apt-transport-https gnupg2 curl nginx
-
-# install docker
-# curl -fsSL https://get.docker.com -o get-docker.sh
-# sudo sh get-docker.sh
-# ME=$(whoami)
-# sudo usermod -aG docker ${ME}
-
-# kubectl
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update
-sudo apt-get install -y kubectl
-
-# helm
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
-# kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-chmod +x ./kind
-sudo mv kind /usr/local/bin/
+./tools.sh
 ```
 
 </details>
