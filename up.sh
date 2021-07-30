@@ -46,6 +46,9 @@ EOF
 #
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true # disable kindnet
+  podSubnet: 192.168.0.0/16 # set to Calico's default subnet
 name: ${CLUSTER_NAME}
 nodes:
 #
@@ -278,6 +281,16 @@ fi
 if [ "${OS}" == 'Darwin' ]; then
   create_cluster_darwin
 fi
+
+# Deploy calico
+kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+
+# By default, Calico pods fail if the Kernel's Reverse Path Filtering (RPF) check
+# is not enforced. This is a security measure to prevent endpoints from spoofing
+# their IP address.
+# The RPF check is not enforced in Kind nodes. Thus, we need to disable the
+# Calico check by setting an environment variable in the calico-node DaemonSet
+kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 
 # configure_host_registry
 create_load_balancer
