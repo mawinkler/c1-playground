@@ -7,10 +7,19 @@
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
   - [Add-On: Cloud One Container Security](#add-on-cloud-one-container-security)
+    - [Access Smart Check (Linux)](#access-smart-check-linux)
+    - [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
+    - [Access Smartcheck (MacOS)](#access-smartcheck-macos)
   - [Add-On: Prometheus & Grafana](#add-on-prometheus--grafana)
+    - [Access Prometheus & Grafana (Linux)](#access-prometheus--grafana-linux)
+    - [Access Prometheus & Grafana (Cloud9)](#access-prometheus--grafana-cloud9)
+    - [Access Prometheus & Grafana (MacOS)](#access-prometheus--grafana-macos)
   - [Add-On: Falco](#add-on-falco)
     - [Generate some events](#generate-some-events)
     - [Fun with privileged mode](#fun-with-privileged-mode)
+    - [Access Falco UI (Linux)](#access-falco-ui-linux)
+    - [Access Falco UI (Cloud9)](#access-falco-ui-cloud9)
+    - [Access Falco UI (MacOS)](#access-falco-ui-macos)
   - [Add-On: Krew](#add-on-krew)
   - [Add-On: Starboard](#add-on-starboard)
   - [Play with the Playground](#play-with-the-playground)
@@ -18,6 +27,7 @@
     - [Create a Deployment on Kubernetes - Echo Server #1](#create-a-deployment-on-kubernetes---echo-server-1)
     - [Create a Deployment on Kubernetes - Echo Server #2](#create-a-deployment-on-kubernetes---echo-server-2)
   - [Play with Container Security](#play-with-container-security)
+    - [Continuous Compliance](#continuous-compliance)
     - [Namespace Exclusions](#namespace-exclusions)
     - [Explore](#explore)
 
@@ -26,10 +36,11 @@ Ultra fast and slim kubernetes playground.
 Currently, the following services are integrated:
 
 - Prometheus & Grafana
+- Starboard
+- Falco Runtime Security including Kubernetes Auditing
 - Container Security
   - Smart Check
   - Deployment Admission Control, Continuous Compliance
-- Falco Runtime Security including Kubernetes Auditing
 
 ## Requirements
 
@@ -169,12 +180,6 @@ Support for MacOS is still in progress.
 ./up.sh
 ```
 
-```sh
-kubectl port-forward -n smartcheck svc/proxy 1443:443
-```
-
-Access Smart Check with browser `https://localhost:1443`
-
 ## Tear Down
 
 ```sh
@@ -189,6 +194,24 @@ To deploy Container Security run:
 ./deploy-smartcheck.sh
 ./deploy-container-security.sh
 ```
+
+The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
+
+```sh
+./scan-image.sh nginx latest
+```
+
+starts a scan of the latest version of nginx.
+
+```sh
+./scan-namespace.sh
+```
+
+scans all used images within the current namespace. Maybe do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
+
+### Access Smart Check (Linux)
+
+### Access Smart Check (Cloud9)
 
 > Note: If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer
 
@@ -209,19 +232,13 @@ You should now be able to connect to Smart Check on the public ip of your Cloud9
 
 </details>
 
-The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
+### Access Smartcheck (MacOS)
 
 ```sh
-./scan-image.sh nginx latest
+kubectl port-forward -n smartcheck svc/proxy 1443:443
 ```
 
-starts a scan of the latest version of nginx.
-
-```sh
-./scan-namespace.sh
-```
-
-scans all used images within the current namespace. Maybe do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
+Access Smart Check with browser `https://localhost:1443`
 
 ## Add-On: Prometheus & Grafana
 
@@ -233,7 +250,13 @@ The following additional scrapers are configured:
 - [Falco]((#add-on-falco))
 - smartcheck-metrics
 
+### Access Prometheus & Grafana (Linux)
+
 By default, the Prometheus UI is on port 8081, Grafana on port 8080.
+
+### Access Prometheus & Grafana (Cloud9)
+
+### Access Prometheus & Grafana (MacOS)
 
 ## Add-On: Falco
 
@@ -325,6 +348,12 @@ root@playground-control-plane:/#
 ```
 
 Doing this takes advantage of a well known security exploit in Kubernetes.
+
+### Access Falco UI (Linux)
+
+### Access Falco UI (Cloud9)
+
+### Access Falco UI (MacOS)
 
 ## Add-On: Krew
 
@@ -449,7 +478,7 @@ spec:
         app: hello-server
     spec:
       containers:
-      - image: ${REGISTRY_IP}:${REGISTRY_PORT}/gcr.io/google-samples/hello-app:1.0
+      - image: ${REGISTRY_IP}:${REGISTRY_PORT}/hello-app:1.0
         name: hello-app
         ports:
         - containerPort: 8080
@@ -496,10 +525,12 @@ kubectl -n container-security get pods
 
 ```sh
 NAME                                               READY   STATUS             RESTARTS   AGE
-trendmicro-admission-controller-c6587bf86-v999w    1/1     Running            0          94s
+trendmicro-admission-controller-67bd7d947c-xk275   1/1     Running        0          2d18h
+trendmicro-oversight-controller-c7ff9954b-qzfnk    2/2     Running        0          2d18h
+trendmicro-usage-controller-678b76fc4b-vgrsb       2/2     Running        0          2d18h
 ```
 
-What you've now got is a running instance of the trendmicro-admission-controller within the namespace container-security. The admission controller is already bound to your Smart Check instance whereby a pretty scrict policy is asssigned.
+What you've now got is running instances of the admission-, oversight- and usage-controllers within the namespace container-security. The admission controller is already bound to your Smart Check instance whereby a pretty scrict policy is asssigned.
 
 Try it:
 
@@ -512,17 +543,14 @@ kubectl create deployment --image=nginx --namespace nginx nginx
 You will get an error in return, which tells you that the nginx image is unscanned and therefore not allowed to be deployed on your cluster.
 
 ```sh
-error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request:
+error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request: 
 - unscannedImage violated in container(s) "nginx" (block).
 ```
 
 Do trigger a scan of the image
 
 ```sh
-export TARGET_IMAGE=nginx
-export TARGET_IMAGE_TAG=latest
-
-./scan-image.sh
+./scan-image.sh nginx latest
 ```
 
 The script above downloads the `nginx`, pushes it to our internal cluster registry and initiates a regular scan (not a pre-registry-scan).
@@ -584,24 +612,24 @@ spec:
 status: {}
 ```
 
-Modify the line `spec.templates.spec.containers.image` to point to the internal registry as shown above
+Modify the line `spec.templates.spec.containers.image` to point to the internal registry as shown above. Additionally add the `spec.templates.spec.imagePullSecrets`block.
 
 Now, we need to create an image pull secret within the nginx namespace, if it does not already exists from the previous tests
 
 ```sh
-kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
+kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com --namespace nginx
 ```
 
 Finally, create the deployment
 
 ```sh
-kubectl apply -f nginx.yaml
+kubectl -n nginx apply -f nginx.yaml
 ```
 
 Crap, now we get a different failure
 
 ```sh
-error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request:
+Error from server: error when creating "nginx.yaml": admission webhook "trendmicro-admission-controller.container-security.svc" denied the request: 
 - vulnerabilities violates rule with properties { max-severity:medium } in container(s) "nginx" (block).
 ```
 
@@ -610,6 +638,93 @@ It tells us, that there are too many vulnerabilities. You can check on the conso
 For now, we simply switch to log events for vulnerabilities.
 
 If you retry the last command you will be able to deploy our nginx.
+
+Now, create a service and try, if we can reach the nginx
+
+```sh
+kubectl -n nginx expose deployment nginx --type=LoadBalancer --name=nginx --port 80
+
+kubectl -n nginx get service
+```
+
+```sh
+NAME    TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+nginx   LoadBalancer   10.96.194.46   172.18.255.10   80:32168/TCP   79s
+```
+
+```sh
+curl 172.18.255.10
+```
+
+Your should get some html in return.
+
+### Continuous Compliance
+
+We do know, that our nginx is vulnerable (at least, mostly it is). So, we have it running now which is a good chance to try out our continuous compliance functionality. Container Security is rescanning the compliance state every five minutes according to our overrides file.
+
+```yaml
+cloudOne:
+  oversight:
+    syncPeriod: 600s
+```
+
+Let's configure the continuous policy in cloud one to isolate vulnerable images.
+
+For this, go to the continuous section of our playground policy and set
+
+***Isolate images with vulnerabilities whose severity is high or higher***
+
+Then, go to the deployment section and set
+
+***Block images with vulnerabilities whose severity is high or higher***
+
+After less or equal than five minutes, container security should have created an isolating network policy which you can display with
+
+```sh
+kubectl -n nginx get networkpolicies
+```
+
+```sh
+NAME                                  POD-SELECTOR                   AGE
+trendmicro-oversight-isolate-policy   trendmicro-cloud-one=isolate   25s
+```
+
+```sh
+kubectl -n nginx edit networkpolicies trendmicro-oversight-isolate-policy
+```
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: "2021-07-30T13:31:40Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: container-security
+  name: trendmicro-oversight-isolate-policy
+  namespace: nginx
+  resourceVersion: "7665"
+  uid: 2825fcb6-f09c-40f5-84e9-f3404fbe2dd9
+spec:
+  podSelector:
+    matchLabels:
+      trendmicro-cloud-one: isolate
+  policyTypes:
+  - Ingress
+  - Egress
+```
+
+An "empty" Ingress / Egress definition basically isolates the resource.
+
+If you now repeat the previous curl
+
+```sh
+curl 172.18.255.10
+```
+
+It should time out.
+
+> Note: The isolation of workload on a kubernetes cluster requires a pod network, which does support network policies. Neither the default cni `kindnet` on kind clusters nor `flannel` do support that. That's the reason why the playground uses `calico` as the pod network.
 
 ### Namespace Exclusions
 
@@ -632,25 +747,14 @@ If you want to exclude a namespace from admission control, label it
 ```sh
 kubectl label ns ${TARGET_IMAGE} ignoreAdmissionControl=true --overwrite
 
-kubectl get ns --show-labels
+kubectl get ns --show-labels ${TARGET_IMAGE}
 ```
 
 You should see:
 
 ```sh
-NAME                 STATUS   AGE     LABELS
-busybox              Active   15s     ignoreAdmissionControl=true
-container-security   Active   9m32s   <none>
-default              Active   15m     <none>
-ingress-nginx        Active   15m     app.kubernetes.io/instance=ingress-nginx,app.kubernetes.io/name=ingress-nginx
-kube-node-lease      Active   15m     <none>
-kube-public          Active   15m     <none>
-kube-system          Active   15m     ignoreAdmissionControl=ignore
-local-path-storage   Active   15m     <none>
-metallb-system       Active   15m     app=metallb,ignoreAdmissionControl=ignore
-nginx                Active   8m58s   <none>
-registry             Active   14m     <none>
-smartcheck           Active   14m     ignoreAdmissionControl=ignore
+NAME      STATUS   AGE   LABELS
+busybox   Active   23s   ignoreAdmissionControl=true,kubernetes.io/metadata.name=busybox
 ```
 
 Now rerun the run command
@@ -670,18 +774,31 @@ kubectl get ValidatingWebhookConfiguration
 ```
 
 ```sh
-NAME                                                              WEBHOOKS   AGE
-admission-controller-container-security-trendmicro-container-se   1          8m1s
+NAME                                                 WEBHOOKS   AGE
+admission-controller-trendmicro-container-security   1          8m1s
 ```
 
 ```sh
-kubectl edit ValidatingWebhookConfiguration admission-controller-container-security-trendmicro-container-se
+kubectl edit ValidatingWebhookConfiguration admission-controller-trendmicro-container-security
 ```
 
 Inspect the yaml
 
 ```yaml
 ...
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FUR...0tLQo=
+    service:
+      name: trendmicro-admission-controller
+      namespace: container-security
+      path: /api/validate
+      port: 443
+  failurePolicy: Ignore
+  matchPolicy: Equivalent
   name: trendmicro-admission-controller.container-security.svc
   namespaceSelector:
     matchExpressions:
@@ -709,6 +826,14 @@ Inspect the yaml
   sideEffects: None
   timeoutSeconds: 30
 ```
+
+A little explanation for the above:
+
+- `clientConfig` defines, which service endpoint is contacted by kubernetes.
+- `namespaceSelector` specifies the label, which when set on a namespace, skips the admission validation
+- `rules` defines, for which apiGroups, apiVersions, operations and resources kubernetes will query our admission controller
+
+So, if everything matches, kubernetes will query our service which will then send a request to Cloud One where the request is checked against the configured policy for this cluster. More or less, we're only responding with an `allow` or `deny` and a little context which includes the reason for our decission.
 
 To see all the available configuration options you can query the helm chart with
 
