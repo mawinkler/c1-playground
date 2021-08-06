@@ -8,7 +8,7 @@
             "port": "5000",
             "username": "admin",
             "password": "trendmicro",
-            "hostname": "registry.localdomain"
+            "hostname": "playground-registry"
         },
         {
             "name": "playground-host-registry",
@@ -19,6 +19,7 @@
             "namespace": "prometheus",
             "username": "admin",
             "password": "trendmicro",
+            "hostname": "grafana",
             "proxy_service_name": "prometheus-grafana",
             "proxy_service_port": "80",
             "proxy_listen_port": "8080"
@@ -28,6 +29,7 @@
             "namespace": "prometheus",
             "username": "admin",
             "password": "trendmicro",
+            "hostname": "prometheus",
             "proxy_service_name": "prometheus-kube-prometheus-prometheus",
             "proxy_service_port": "9090",
             "proxy_listen_port": "8081"
@@ -35,6 +37,7 @@
         {
             "name": "falco",
             "namespace": "falco",
+            "hostname": "falco",
             "proxy_service_name": "falco-falcosidekick-ui",
             "proxy_service_port": "2802",
             "proxy_listen_port": "8082"
