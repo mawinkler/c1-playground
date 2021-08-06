@@ -6,6 +6,7 @@ SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' c
 SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' config.json)"
 SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' config.json)"
 SC_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' config.json)"
+SC_LISTEN_PORT="$(jq -r '.services[] | select(.name=="smartcheck") | .proxy_listen_port' config.json)"
 SC_REG_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_username' config.json)"
 SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' config.json)"
 SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
@@ -164,31 +165,6 @@ EOF
   printf '%s\n' " 🍵"
 }
 
-# function password_change_linux {
-#   # initial password change
-  
-#   printf '%s' "Executing initial password change (linux)"
-#   SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-#                 -H "Content-Type: application/json" \
-#                 -H "Api-Version: 2018-05-01" \
-#                 -H "cache-control: no-cache" \
-#                 -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-#                   jq '.user.id' | tr -d '"'  2>/dev/null)
-#   SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-#                     -H "Content-Type: application/json" \
-#                     -H "Api-Version: 2018-05-01" \
-#                     -H "cache-control: no-cache" \
-#                     -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-#                       jq '.token' | tr -d '"'  2>/dev/null)
-#   X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
-#         -H "Content-Type: application/json" \
-#         -H "Api-Version: 2018-05-01" \
-#         -H "cache-control: no-cache" \
-#         -H "authorization: Bearer ${SC_BEARERTOKEN}" \
-#         -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
-#   printf '%s\n' " 🎀"
-# }
-
 function password_change {
   # initial password change
   
@@ -284,8 +260,9 @@ if [ "${OS}" == 'Linux' ]; then
   create_ssl_certificate_linux
   upgrade_smartcheck
   ./deploy-proxy.sh smartcheck
-  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
-  echo "Smart check UI on: https://${SC_HOST}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
+  HOST_IP=$(hostname -I | awk '{print $1}')
+  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
+  echo "Smart check UI on: https://${HOST_IP}:${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
 fi
 if [ "${OS}" == 'Darwin' ]; then
   SERVICE_TYPE='ClusterIP'
@@ -297,6 +274,6 @@ if [ "${OS}" == 'Darwin' ]; then
   password_change
   create_ssl_certificate_darwin
   upgrade_smartcheck
-  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin"
-  echo "Smart check UI on: https://${SC_HOSTNAME}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
+  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" >> services
+  echo "Smart check UI on: https://${SC_HOSTNAME}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
 fi

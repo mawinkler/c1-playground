@@ -153,14 +153,15 @@ if [ "${OS}" == 'Linux' ]; then
   deploy_prometheus
   ./deploy-proxy.sh prometheus
   ./deploy-proxy.sh grafana
-  echo "Prometheus UI on: http://<HOST IP>:${PROMETHEUS_LISTEN_PORT}"
-  echo "Grafana UI on: http://<HOST IP>:${GRAFANA_LISTEN_PORT} w/ admin/${GRAFANA_PASSWORD}"
+  HOST_IP=$(hostname -I | awk '{print $1}')
+  echo "Prometheus UI on: http://${HOST_IP}:${PROMETHEUS_LISTEN_PORT}" >> services
+  echo "Grafana UI on: http://${HOST_IP}:${GRAFANA_LISTEN_PORT} w/ admin/${GRAFANA_PASSWORD}" >> services
 fi
 
 if [ "${OS}" == 'Darwin' ]; then
   SERVICE_TYPE='ClusterIP'
   deploy_prometheus
   create_ingress
-  echo "Prometheus UI on: http://${PROMETHEUS_HOSTNAME}"
-  echo "Grafana UI on: http://${GRAFANA_HOSTNAME} w/ admin/${GRAFANA_PASSWORD}"
+  echo "Prometheus UI on: http://${PROMETHEUS_HOSTNAME}" >> services
+  echo "Grafana UI on: http://${GRAFANA_HOSTNAME} w/ admin/${GRAFANA_PASSWORD}" >> services
 fi

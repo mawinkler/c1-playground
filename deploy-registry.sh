@@ -250,21 +250,23 @@ EOF
 # echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME} --username ${REG_USERNAME} --password-stdin"
 # exit 0
 
-create_namespace_service
-create_auth_secret
 
 if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
+  create_namespace_service
+  create_auth_secret
   create_tls_secret_linux
   create_deployment
-  echo "Registry login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:${REG_PORT} --username ${REG_USERNAME} --password-stdin"
+  HOST_IP=$(hostname -I | awk '{print $1}')
+  echo "Registry login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:${REG_PORT} --username ${REG_USERNAME} --password-stdin" >> services
 fi
 
 if [ "${OS}" == 'Darwin' ]; then
   SERVICE_TYPE='ClusterIP'
-  # SERVICE_TYPE='LoadBalancer'
-  # create_tls_secret_darwin
-  # create_deployment
+  create_namespace_service
+  create_auth_secret
+  create_tls_secret_darwin
+  create_deployment
   create_ingress
-  echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME}:443 --username ${REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME}:443 --username ${REG_USERNAME} --password-stdin" >> services
 fi

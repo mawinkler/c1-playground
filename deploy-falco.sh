@@ -3,6 +3,7 @@
 set -e
 
 NAMESPACE="$(jq -r '.services[] | select(.name=="falco") | .namespace' config.json)"
+LISTEN_PORT="$(jq -r '.services[] | select(.name=="falco") | .proxy_listen_port' config.json)"
 OS="$(uname)"
 
 function create_namespace {
@@ -161,3 +162,6 @@ deploy_falco
 if [ "${OS}" == 'Linux' ]; then
   ./deploy-proxy.sh falco
 fi
+
+HOST_IP=$(hostname -I | awk '{print $1}')
+echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" >> services
