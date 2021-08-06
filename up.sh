@@ -124,53 +124,6 @@ EOF
 
 function create_cluster_darwin {
   # create a cluster with the local registry enabled in containerd
-
-  printf '%s\n' "Create cluster (darwin)"
-  cat <<EOF | kind create cluster --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: ${CLUSTER_NAME}
-nodes:
-- role: control-plane
-  extraMounts:
-  - hostPath: /dev
-    containerPath: /dev
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 443
-    hostPort: 443
-    listenAddress: "0.0.0.0"
-    protocol: tcp
-  - containerPort: 80
-    hostPort: 80
-    listenAddress: "0.0.0.0"
-    protocol: TCP
-  - containerPort: 5000
-    hostPort: 5000
-    listenAddress: "0.0.0.0"
-    protocol: TCP
-# - role: worker
-# - role: worker
-containerdConfigPatches:
-- |-
-  [plugins."io.containerd.grpc.v1.cri"]
-    [plugins."io.containerd.grpc.v1.cri".registry]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${HOST_REGISTRY_PORT}"]
-          endpoint = ["http://${HOST_REGISTRY_NAME}:${HOST_REGISTRY_PORT}"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."smartcheck-registry.localdomain:443"]
-          endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
-EOF
-}
-
-function create_cluster_darwin2 {
-  # create a cluster with the local registry enabled in containerd
-
   printf '%s\n' "Create cluster (darwin)"
   cat <<EOF | kind create cluster --config=-
 kind: Cluster
@@ -394,23 +347,23 @@ function deploy_calico {
 
 # flush logfile
 echo > up.log
-
-# create_host_registry
+# flush services
+echo > services
 
 if [ "${OS}" == 'Linux' ]; then
+  # create_host_registry
   create_cluster_linux
   deploy_cadvisor
   deploy_calico
   # configure_host_registry
   create_load_balancer
+  create_ingress_controller
 fi
 if [ "${OS}" == 'Darwin' ]; then
-  create_cluster_darwin2
+  # create_host_registry
+  create_cluster_darwin
   deploy_cadvisor
   deploy_calico
   # configure_host_registry
   create_ingress_controller
 fi
-
-
-# ./deploy-registry.sh
