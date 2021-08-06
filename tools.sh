@@ -16,7 +16,7 @@ if [ "${OS}" == 'Darwin' ]; then
     printf '%s\n' "installing brew on darwin"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   else
-    printf '%s\n' "brew already installed"
+    printf '%s\n' "brew already installed, updating packages"
     brew update
     brew upgrade
   fi

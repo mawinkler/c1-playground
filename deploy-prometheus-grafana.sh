@@ -3,6 +3,11 @@
 set -e
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
+PROMETHEUS_HOSTNAME="$(jq -r '.services[] | select(.name=="prometheus") | .hostname' config.json)"
+PROMETHEUS_LISTEN_PORT="$(jq -r '.services[] | select(.name=="prometheus") | .proxy_listen_port' config.json)"
+GRAFANA_HOSTNAME="$(jq -r '.services[] | select(.name=="grafana") | .hostname' config.json)"
+GRAFANA_LISTEN_PORT="$(jq -r '.services[] | select(.name=="grafana") | .proxy_listen_port' config.json)"
+GRAFANA_PASSWORD="$(jq -r '.services[] | select(.name=="grafana") | .password' config.json)"
 NAMESPACE="$(jq -r '.services[] | select(.name=="prometheus") | .namespace' config.json)"
 HOMEASSISTANT_API_KEY="$(jq -r '.services[] | select(.name=="hass") | .api_key' config.json)"
 OS="$(uname)"
@@ -21,7 +26,7 @@ EOF
   printf '%s\n' " 🍼"
 }
 
-function whitelist_namsspaces {
+function whitelist_namespaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespaces
@@ -38,13 +43,13 @@ function deploy_prometheus {
   cat <<EOF >overrides/overrides-prometheus.yml
 grafana:
   enabled: true
-  adminPassword: operator
+  adminPassword: ${GRAFANA_PASSWORD}
   service:
-    type: LoadBalancer
+    type: ${SERVICE_TYPE}
 prometheusOperator:
   enabled: true
   service:
-    type: LoadBalancer
+    type: ${SERVICE_TYPE}
   namespaces:
     releaseNamespace: true
     additional:
@@ -56,7 +61,7 @@ prometheusOperator:
 prometheus:
   enabled: true
   service:
-    type: LoadBalancer
+    type: ${SERVICE_TYPE}
   prometheusSpec:
     additionalScrapeConfigs:
     - job_name: api-collector
@@ -94,11 +99,68 @@ EOF
     prometheus-community/kube-prometheus-stack
 }
 
+function create_ingress {
+    # create ingress for prometheus and grafana
+
+  printf '%s\n' "Create prometheus and grafana ingress"
+  echo "---" >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+  name: prometheus-grafana
+  namespace: ${NAMESPACE}
+spec:
+  # tls:
+  # - hosts:
+  #   - ${PROMETHEUS_HOSTNAME}
+  #   - ${GRAFANA_HOSTNAME}
+  #   # secretName: k8s-certificate
+  rules:
+    - host: ${PROMETHEUS_HOSTNAME}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: prometheus-kube-prometheus-prometheus
+              port:
+                number: 9090
+    - host: ${GRAFANA_HOSTNAME}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: prometheus-grafana
+              port:
+                number: 80                
+EOF
+  printf '%s\n' "Prometheus and grafana ingress created 🍻"
+}
+
+
 create_prometheus_namespace
-whitelist_namsspaces
-deploy_prometheus
+whitelist_namespaces
 
 if [ "${OS}" == 'Linux' ]; then
+  SERVICE_TYPE='LoadBalancer'
+  deploy_prometheus
   ./deploy-proxy.sh prometheus
   ./deploy-proxy.sh grafana
+  echo "Prometheus UI on: http://<HOST IP>:${PROMETHEUS_LISTEN_PORT}"
+  echo "Grafana UI on: http://<HOST IP>:${GRAFANA_LISTEN_PORT} w/ admin/${GRAFANA_PASSWORD}"
+fi
+
+if [ "${OS}" == 'Darwin' ]; then
+  SERVICE_TYPE='ClusterIP'
+  deploy_prometheus
+  create_ingress
+  echo "Prometheus UI on: http://${PROMETHEUS_HOSTNAME}"
+  echo "Grafana UI on: http://${GRAFANA_HOSTNAME} w/ admin/${GRAFANA_PASSWORD}"
 fi

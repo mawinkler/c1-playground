@@ -150,7 +150,31 @@ sudo systemctl restart docker
 
 ## Start MacOS (in progress)
 
-Support for MacOS is still in progress.
+***Support for MacOS is still in progress***
+
+> Tested Add-Ons:
+>
+> - Prometheus
+> - Grafana
+> - Starboard
+> - Smart Check
+> - Container Security
+>
+> Note: Falco is currently unsupported on MacOS
+
+First, modify your local `hosts`-file. Change the line for 127.0.0.1 from
+
+```txt
+127.0.0.1 localhost
+```
+
+to
+
+```txt
+127.0.0.1 localhost playground-registry smartcheck smartcheck-registry grafana prometheus
+```
+
+Then run
 
 ```sh
 ./up.sh

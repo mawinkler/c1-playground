@@ -120,9 +120,6 @@ containerdConfigPatches:
         [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
           insecure_skip_verify = true
 EOF
-
-  # cadvisor
-  kubectl apply -f https://raw.githubusercontent.com/astefanutti/kubebox/master/cadvisor.yaml
 }
 
 function create_cluster_darwin {
@@ -153,6 +150,10 @@ nodes:
     hostPort: 80
     listenAddress: "0.0.0.0"
     protocol: TCP
+  - containerPort: 5000
+    hostPort: 5000
+    listenAddress: "0.0.0.0"
+    protocol: TCP
 # - role: worker
 # - role: worker
 containerdConfigPatches:
@@ -165,9 +166,112 @@ containerdConfigPatches:
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."smartcheck-registry.localdomain:443"]
           endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
 EOF
+}
 
-  # cadvisor
-  kubectl apply -f https://raw.githubusercontent.com/astefanutti/kubebox/master/cadvisor.yaml
+function create_cluster_darwin2 {
+  # create a cluster with the local registry enabled in containerd
+
+  printf '%s\n' "Create cluster (darwin)"
+  cat <<EOF | kind create cluster --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+#   apiServerAddress: "127.0.0.1"
+#   apiServerPort: 6443
+  disableDefaultCNI: true # disable kindnet
+  podSubnet: 192.168.0.0/16 # set to Calico's default subnet
+#   serviceSubnet: "10.0.0.0/16"
+name: ${CLUSTER_NAME}
+nodes:
+- role: control-plane
+  # extraMounts:
+
+  # # Falco
+  # - hostPath: /dev
+  #   containerPath: /dev
+
+  # # Kube Audit
+  # - hostPath: $(pwd)/log/
+  #   containerPath: /var/log/
+  # - hostPath: $(pwd)/audit/
+  #   containerPath: /var/lib/k8s-audit/
+
+  kubeadmConfigPatches:
+
+  # Ingress
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  
+  # Port Mappings
+  extraPortMappings:
+  - containerPort: 443
+    hostPort: 443
+    # listenAddress: "0.0.0.0"
+    # listenAddress: "127.0.0.1"
+    protocol: tcp
+  - containerPort: 80
+    hostPort: 80
+    # listenAddress: "0.0.0.0"
+    # listenAddress: "127.0.0.1"
+    protocol: TCP
+  # Cluster Registry
+  - containerPort: 5000
+    hostPort: 5000
+    protocol: TCP
+  # # Grafana
+  # - containerPort: 80
+  #   hostPort: 8080
+  #   protocol: TCP
+  # # Prometheus
+  # - containerPort: 9090
+  #   hostPort: 8081
+  #   protocol: TCP
+  # # Falco
+  # - containerPort: 2802
+  #   hostPort: 8082
+  #   protocol: TCP
+  # # Smart Check
+  # - containerPort: 443
+  #   hostPort: 8443
+  #   protocol: TCP
+# - role: worker
+# - role: worker
+
+#
+# Kube Audit
+#
+kubeadmConfigPatches:
+- |
+  kind: ClusterConfiguration
+  # apiServer:
+  #   extraArgs:
+  #     # audit-log-max-backups: "1"
+  #     # audit-log-max-size: "10"
+  #     audit-log-path: "/var/log/k8s-audit.log"
+  #     audit-policy-file: "/var/lib/k8s-audit/audit-policy.yaml"
+  #     # audit-webhook-batch-max-wait: "5s"
+  #     audit-webhook-config-file: "/var/lib/k8s-audit/audit-webhook.yaml"
+  #   extraVolumes:
+  #   - name: audit
+  #     hostPath: /var/log/
+  #     mountPath: /var/log/
+  #   - name: auditcfg
+  #     hostPath: /var/lib/k8s-audit/
+  #     mountPath: /var/lib/k8s-audit/
+
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${HOST_REGISTRY_PORT}"]
+          endpoint = ["http://${HOST_REGISTRY_NAME}:${HOST_REGISTRY_PORT}"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."smartcheck-registry.localdomain:443"]
+          endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
+EOF
 }
 
 function create_host_registry {
@@ -226,6 +330,9 @@ function create_load_balancer {
     jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | \
     sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|')
 
+  # Darwin
+  # ADDRESS_POOL=127.0.0.240/28
+
   echo "---" >> up.log
   cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log 
 apiVersion: v1
@@ -246,10 +353,8 @@ EOF
 
 function create_ingress_controller {
   # ingress nginx
-  # original manifest: 
-  # https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
   printf '%s\n' "Create ingress controller"
-  kubectl apply -f ingress-nginx.yaml -o yaml | cat >> up.log
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml -o yaml | cat >> up.log
 
   # wating for the cluster be ready
   printf '%s' "Wating for the cluster be ready"
@@ -270,6 +375,23 @@ function create_ingress_controller {
   printf '\n%s\n' "Cluster and ingress controller ready 🍾"
 }
 
+function deploy_cadvisor {
+  # cadvisor
+  kubectl apply -f https://raw.githubusercontent.com/astefanutti/kubebox/master/cadvisor.yaml
+}
+
+function deploy_calico {
+  # Deploy calico
+  kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+
+  # By default, Calico pods fail if the Kernel's Reverse Path Filtering (RPF) check
+  # is not enforced. This is a security measure to prevent endpoints from spoofing
+  # their IP address.
+  # The RPF check is not enforced in Kind nodes. Thus, we need to disable the
+  # Calico check by setting an environment variable in the calico-node DaemonSet
+  kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+}
+
 # flush logfile
 echo > up.log
 
@@ -277,23 +399,18 @@ echo > up.log
 
 if [ "${OS}" == 'Linux' ]; then
   create_cluster_linux
+  deploy_cadvisor
+  deploy_calico
+  # configure_host_registry
+  create_load_balancer
 fi
 if [ "${OS}" == 'Darwin' ]; then
-  create_cluster_darwin
+  create_cluster_darwin2
+  deploy_cadvisor
+  deploy_calico
+  # configure_host_registry
+  create_ingress_controller
 fi
 
-# Deploy calico
-kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
 
-# By default, Calico pods fail if the Kernel's Reverse Path Filtering (RPF) check
-# is not enforced. This is a security measure to prevent endpoints from spoofing
-# their IP address.
-# The RPF check is not enforced in Kind nodes. Thus, we need to disable the
-# Calico check by setting an environment variable in the calico-node DaemonSet
-kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
-
-# configure_host_registry
-create_load_balancer
-create_ingress_controller
-
-./deploy-registry.sh
+# ./deploy-registry.sh

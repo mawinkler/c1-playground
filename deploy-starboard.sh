@@ -53,6 +53,9 @@ trivy:
   debugMode: true
 EOF
 
+  helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
+  helm repo update
+
   # image:
   #   registry: docker.io
   #   repository: aquasec/trivy
@@ -67,10 +70,6 @@ trivy:
   mode: ClientServer
   serverURL: http://trivy.trivy:4954
 EOF
-
-  helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
-  helm repo update
-  # helm search repo trivy
 
   helm upgrade \
     trivy \

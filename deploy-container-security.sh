@@ -28,7 +28,7 @@ function whitelist_namsspaces {
 
   # whitelist some namespace for container security
   kubectl label namespace kube-system --overwrite ignoreAdmissionControl=ignore
-  kubectl label namespace metallb-system --overwrite ignoreAdmissionControl=ignore
+  # kubectl label namespace metallb-system --overwrite ignoreAdmissionControl=ignore
   kubectl label namespace smartcheck --overwrite ignoreAdmissionControl=ignore
 }
 
@@ -173,7 +173,7 @@ function cluster_policy {
     }" |
       jq -r ".id")
   else
-    printf '%s\n' "policy ${CS_POLICY_NAME} existing"
+    printf '%s\n' "reusing cluster policy with id ${CS_POLICYID}"
   fi
 }
 

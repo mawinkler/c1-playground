@@ -26,9 +26,9 @@ EOF
   printf '%s\n' " 🍼"
 }
 
+SC_TEMPPW='justatemppw'
 function create_smartcheck_overrides {
   printf '%s' "Create smart check overrides"
-  SC_TEMPPW='justatemppw'
   mkdir -p overrides
   cat <<EOF >overrides/overrides-image-security.yml
   ##
@@ -96,10 +96,39 @@ EOF
   printf '%s\n' " 🍳"
 }
 
+function deploy_smartcheck {
+  printf '%s\n' "Install smart check"
+  helm upgrade --namespace ${SC_NAMESPACE} \
+    --values overrides/overrides-image-security.yml \
+    smartcheck \
+    --install \
+    --reuse-values \
+    https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
+
+  printf '%s' "Waiting for smart check to be in active state"
+  SMARTCHECK_DEPLOYMENTS=$(kubectl -n smartcheck get deployments | grep -c "/")
+  while [ $(kubectl -n smartcheck get deployments | grep -cE "1/1|2/2|3/3|4/4|5/5") -ne ${SMARTCHECK_DEPLOYMENTS} ]
+  do
+    printf '%s' "."
+    sleep 2
+  done
+  printf '\n'
+}
+
+function upgrade_smartcheck {
+  printf '%s\n' "upgrade smart check"
+  helm upgrade --namespace ${SC_NAMESPACE} \
+    --values overrides/overrides-image-security-upgrade.yml \
+    smartcheck \
+    --reuse-values \
+    https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
+}
+
 function create_ssl_certificate_linux {
   # create ssl certificate
 
   printf '%s\n' "Create ssl certificate (linux)"
+  mkdir -p certs
   cat <<EOF >certs/req-sc.conf
 [req]
   distinguished_name=req
@@ -119,6 +148,7 @@ function create_ssl_certificate_darwin {
   # create ssl certificate
 
   printf '%s\n' "Create ssl certificate (darwin)"
+  mkdir -p certs
   cat <<EOF >certs/req-sc.conf
 [req]
   distinguished_name=req
@@ -134,90 +164,72 @@ EOF
   printf '%s\n' " 🍵"
 }
 
-function password_change_linux {
-  # initial password change
+# function password_change_linux {
+#   # initial password change
   
-  printf '%s' "Executing initial password change (linux)"
-  SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                -H "Content-Type: application/json" \
-                -H "Api-Version: 2018-05-01" \
-                -H "cache-control: no-cache" \
-                -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-                  jq '.user.id' | tr -d '"'  2>/dev/null)
-  SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                    -H "Content-Type: application/json" \
-                    -H "Api-Version: 2018-05-01" \
-                    -H "cache-control: no-cache" \
-                    -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-                      jq '.token' | tr -d '"'  2>/dev/null)
-  X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
-        -H "Content-Type: application/json" \
-        -H "Api-Version: 2018-05-01" \
-        -H "cache-control: no-cache" \
-        -H "authorization: Bearer ${SC_BEARERTOKEN}" \
-        -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
-  printf '%s\n' " 🎀"
-}
+#   printf '%s' "Executing initial password change (linux)"
+#   SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+#                 -H "Content-Type: application/json" \
+#                 -H "Api-Version: 2018-05-01" \
+#                 -H "cache-control: no-cache" \
+#                 -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
+#                   jq '.user.id' | tr -d '"'  2>/dev/null)
+#   SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+#                     -H "Content-Type: application/json" \
+#                     -H "Api-Version: 2018-05-01" \
+#                     -H "cache-control: no-cache" \
+#                     -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
+#                       jq '.token' | tr -d '"'  2>/dev/null)
+#   X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
+#         -H "Content-Type: application/json" \
+#         -H "Api-Version: 2018-05-01" \
+#         -H "cache-control: no-cache" \
+#         -H "authorization: Bearer ${SC_BEARERTOKEN}" \
+#         -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
+#   printf '%s\n' " 🎀"
+# }
 
-function password_change_darwin {
+function password_change {
   # initial password change
   
-  printf '%s' "Executing initial password change (darwin)"
-  SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                -H "Content-Type: application/json" \
-                -H "Api-Version: 2018-05-01" \
-                -H "cache-control: no-cache" \
-                -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-                  jq '.user.id' | tr -d '"'  2>/dev/null)
-  echo $SC_USERID
-  SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                    -H "Content-Type: application/json" \
-                    -H "Api-Version: 2018-05-01" \
-                    -H "cache-control: no-cache" \
-                    -d "{\"user\":{\"userid\":\"${SC_USERNAME}\",\"password\":\"${SC_TEMPPW}\"}}" | \
-                      jq '.token' | tr -d '"'  2>/dev/null)
-  echo $SC_BEARERTOKEN
+  printf '%s' "Executing initial password change"
+  SC_BEARERTOKEN=""
+  while [[ "${SC_BEARERTOKEN}" == "" ]];do
+    sleep 1
+    SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                  -H "Content-Type: application/json" \
+                  -H "Api-Version: 2018-05-01" \
+                  -H "cache-control: no-cache" \
+                  -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
+                    jq '.user.id' | tr -d '"' 2>/dev/null)
+    SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                      -H "Content-Type: application/json" \
+                      -H "Api-Version: 2018-05-01" \
+                      -H "cache-control: no-cache" \
+                      -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
+                        jq '.token' | tr -d '"' 2>/dev/null)
+  done
   X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
         -H "Content-Type: application/json" \
         -H "Api-Version: 2018-05-01" \
         -H "cache-control: no-cache" \
         -H "authorization: Bearer ${SC_BEARERTOKEN}" \
-        -d "{  \"oldPassword\": \"${SC_TEMPPW}\", \"newPassword\": \"${SC_PASSWORD}\"  }")
-  echo $X
+        -d '{"oldPassword":"'${SC_TEMPPW}'","newPassword":"'${SC_PASSWORD}'"}')
   printf '%s\n' " 🎀"
 }
 
 function create_ingress {
     # create ingress for smart check
-
   printf '%s\n' "Create smart check ingress"
-#   cat <<EOF | kubectl apply -f -
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: smartcheck-ingress
-#   namespace: smartcheck
-# spec:
-#   rules:
-#   - http:
-#       paths:
-#         - pathType: ImplementationSpecific
-#           backend:
-#             service:
-#               name: proxy
-#               port:
-#                 number: 443
-# EOF
-
   echo "---" >> up.log
   cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     #
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     #
     # nginx.ingress.kubernetes.io/proxy-body-size: "0"
     # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
@@ -226,6 +238,8 @@ metadata:
     # nginx.ingress.kubernetes.io/ssl-redirect: "true"
     # nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
     # kubernetes.io/tls-acme: 'true'
+  labels:
+    service: proxy
   name: smartcheck
   namespace: smartcheck
 spec:
@@ -234,85 +248,55 @@ spec:
     - ${SC_HOSTNAME}
     # secretName: k8s-certificate
   rules:
-  - host: ${SC_HOSTNAME}
-    http:
-      paths:
-      - backend:
-          serviceName: proxy
-          servicePort: 443
-        path: /
-  - host: ${SC_REG_HOSTNAME}
-    http:
-      paths:
-      - backend:
-          serviceName: proxy
-          servicePort: 5000
-        path: /
+    - host: ${SC_HOSTNAME}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: proxy
+              port:
+                number: 443
+    - host: ${SC_REG_HOSTNAME}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: proxy
+              port:
+                number: 5000                
 EOF
   printf '%s\n' "Smart check ingress created 🍻"
 }
 
 
-
 if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
-fi
-if [ "${OS}" == 'Darwin' ]; then
-  SERVICE_TYPE='NodePort'
-fi
-
-create_namespace
-
-# printf '%s' "smart check namespace"
-# kubectl create namespace ${SC_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f - > /dev/null
-# printf ' %s\n' "created"
-
-create_smartcheck_overrides
-
-printf '%s\n' "Install smart check"
-helm upgrade --namespace ${SC_NAMESPACE} \
-  --values overrides/overrides-image-security.yml \
-  smartcheck \
-  --install \
-  --reuse-values \
-  https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
-
-printf '%s' "Waiting for smart check to be in active state"
-SMARTCHECK_DEPLOYMENTS=$(kubectl -n smartcheck get deployments | grep -c "/")
-while [ $(kubectl -n smartcheck get deployments | grep -cE "1/1|2/2|3/3|4/4|5/5") -ne ${SMARTCHECK_DEPLOYMENTS} ]
-do
-  printf '%s' "."
-  sleep 2
-done
-printf '\n'
-
-if [ "${OS}" == 'Linux' ]; then
+  create_namespace
+  create_smartcheck_overrides
+  deploy_smartcheck
   SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
             -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-  password_change_linux
+  password_change
   create_ssl_certificate_linux
-fi
-if [ "${OS}" == 'Darwin' ]; then
-  SC_HOST="${SC_HOSTNAME}"
-  password_change_darwin
-  create_ssl_certificate_darwin
-fi
-
-printf '%s\n' "upgrade smart check"
-
-helm upgrade --namespace ${SC_NAMESPACE} \
-  --values overrides/overrides-image-security-upgrade.yml \
-  smartcheck \
-  --reuse-values \
-  https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
-
-if [ "${OS}" == 'Linux' ]; then
+  upgrade_smartcheck
+  ./deploy-proxy.sh smartcheck
   echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${SC_HOST}:5000 --username ${SC_REG_USERNAME} --password-stdin"
   echo "Smart check UI on: https://${SC_HOST}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
-  ./deploy-proxy.sh smartcheck
 fi
 if [ "${OS}" == 'Darwin' ]; then
+  SERVICE_TYPE='ClusterIP'
+  create_namespace
+  create_smartcheck_overrides
+  deploy_smartcheck
+  SC_HOST="${SC_HOSTNAME}"
   create_ingress
+  password_change
+  create_ssl_certificate_darwin
+  upgrade_smartcheck
   echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin"
   echo "Smart check UI on: https://${SC_HOSTNAME}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}"
 fi

@@ -5,6 +5,7 @@ set -e
 REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
 REG_NAME=playground-registry
 REG_HOSTNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
+REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
 REG_SIZE="$(jq -r '.services[] | select(.name=="playground-registry") | .size' config.json)"
 REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
 REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
@@ -204,8 +205,9 @@ function create_ingress {
   printf '%s\n' "Create registry ingress"
 
   echo "---" >> up.log
+  # cat <<EOF
   cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -223,34 +225,46 @@ spec:
   tls:
   - hosts:
     - ${REG_HOSTNAME}
-    #secretName: certs-secret
+    # secretName: certs-secret
   rules:
   - host: ${REG_HOSTNAME}
     http:
       paths:
-      - backend:
-          serviceName: ${REG_NAME}
-          servicePort: 5000
-        path: /
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ${REG_NAME}
+            port:
+              number: 5000
+  # defaultBackend:
+  #   service:
+  #     name: ${REG_NAME}
+  #     port:
+  #       number: 5000
 EOF
   printf '%s\n' "Registry ingress created 🍻"
 }
 
+# create_ingress
+# echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME} --username ${REG_USERNAME} --password-stdin"
+# exit 0
+
+create_namespace_service
+create_auth_secret
+
 if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
-  create_namespace_service
-  create_auth_secret
   create_tls_secret_linux
   create_deployment
-  echo "Registry login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:5000 --username ${REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:${REG_PORT} --username ${REG_USERNAME} --password-stdin"
 fi
 
 if [ "${OS}" == 'Darwin' ]; then
   SERVICE_TYPE='ClusterIP'
-  create_namespace_service
-  create_auth_secret
-  create_tls_secret_darwin
-  create_deployment
+  # SERVICE_TYPE='LoadBalancer'
+  # create_tls_secret_darwin
+  # create_deployment
   create_ingress
-  echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME} --username ${REG_USERNAME} --password-stdin"
+  echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME}:443 --username ${REG_USERNAME} --password-stdin"
 fi
