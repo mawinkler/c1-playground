@@ -170,7 +170,7 @@ function password_change {
   
   printf '%s' "Executing initial password change"
   SC_BEARERTOKEN=""
-  while [[ "${SC_BEARERTOKEN}" == "" ]];do
+  while [[ "${SC_BEARERTOKEN}" == "" ]]; do
     sleep 1
     SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
                   -H "Content-Type: application/json" \

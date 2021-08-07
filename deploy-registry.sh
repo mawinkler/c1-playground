@@ -59,8 +59,13 @@ function create_tls_secret_linux {
 
   printf '%s' "Create registry tls secret (linux)"
 
-  EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  EXTERNAL_IP=""
+  while [[ "${EXTERNAL_IP}" == "" ]]; do
+    sleep 1
+    EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    echo "External IP ${EXTERNAL_IP}"
+  done
 
   mkdir -p certs
   cat <<EOF >certs/req-reg.conf
