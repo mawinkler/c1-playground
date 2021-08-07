@@ -217,13 +217,15 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     # nginx.ingress.kubernetes.io/proxy-body-size: "0"
     # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
     # kubernetes.io/tls-acme: 'true'
+    nginx.ingress.kubernetes.io/proxy-body-size: 1000m
   name: ${REG_NAME}
   namespace: ${REG_NAMESPACE}
 spec:
@@ -242,18 +244,9 @@ spec:
             name: ${REG_NAME}
             port:
               number: 5000
-  # defaultBackend:
-  #   service:
-  #     name: ${REG_NAME}
-  #     port:
-  #       number: 5000
 EOF
   printf '%s\n' "Registry ingress created 🍻"
 }
-
-# create_ingress
-# echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME} --username ${REG_USERNAME} --password-stdin"
-# exit 0
 
 
 if [ "${OS}" == 'Linux' ]; then
