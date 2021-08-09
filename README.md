@@ -6,10 +6,14 @@
   - [Start Linux](#start-linux)
   - [Start MacOS (in progress)](#start-macos-in-progress)
   - [Tear Down](#tear-down)
+  - [Add-On: Registry](#add-on-registry)
+    - [Access Registry (Linux)](#access-registry-linux)
+    - [Access Registry (MacOS)](#access-registry-macos)
   - [Add-On: Cloud One Container Security](#add-on-cloud-one-container-security)
     - [Access Smart Check (Linux)](#access-smart-check-linux)
     - [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
     - [Access Smartcheck (MacOS)](#access-smartcheck-macos)
+  - [Add-On: Scan-Image and Scan-Namespace](#add-on-scan-image-and-scan-namespace)
   - [Add-On: Prometheus & Grafana](#add-on-prometheus--grafana)
     - [Access Prometheus & Grafana (Linux)](#access-prometheus--grafana-linux)
     - [Access Prometheus & Grafana (Cloud9)](#access-prometheus--grafana-cloud9)
@@ -186,6 +190,30 @@ Then run
 ./down.sh
 ```
 
+## Add-On: Registry
+
+To deploy the registry run:
+
+```sh
+./deploy-registry.sh
+```
+
+### Access Registry (Linux)
+
+A file called `services` is either created or updated with the link and the credentials to connect to the registry.
+
+Example:
+
+- `Registry login with: echo trendmicro | docker login https://172.18.255.1:5000 --username admin --password-stdin`
+
+### Access Registry (MacOS)
+
+A file called `services` is either created or updated with the link and the credentials to connect to the registry.
+
+Example:
+
+- `Registry login with: echo trendmicro | docker login https://playground-registry:443 --username admin --password-stdin`
+
 ## Add-On: Cloud One Container Security
 
 To deploy Container Security run:
@@ -195,21 +223,13 @@ To deploy Container Security run:
 ./deploy-container-security.sh
 ```
 
-The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
-
-```sh
-./scan-image.sh nginx latest
-```
-
-starts a scan of the latest version of nginx.
-
-```sh
-./scan-namespace.sh
-```
-
-scans all used images within the current namespace. Maybe do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
-
 ### Access Smart Check (Linux)
+
+A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+
+Example:
+
+- `Smart check UI on: https://192.168.1.121:8443 w/ admin/trendmicro`
 
 ### Access Smart Check (Cloud9)
 
@@ -234,11 +254,29 @@ You should now be able to connect to Smart Check on the public ip of your Cloud9
 
 ### Access Smartcheck (MacOS)
 
+A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+
+Example:
+
+- `Smart check UI on: https://smartcheck:443 w/ admin/trendmicro`
+
+## Add-On: Scan-Image and Scan-Namespace
+
+The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
+
 ```sh
-kubectl port-forward -n smartcheck svc/proxy 1443:443
+./scan-image.sh nginx:latest
 ```
 
-Access Smart Check with browser `https://localhost:1443`
+starts an asynchronous scan of the latest version of nginx. The scan will run on Smart Check, but you are immedeately back in the shell. To access the scan results either use the UI or API of Smart Check.
+
+If you add the flag `-s` the scan will be synchronous, so you get the scan results directly in your shell.
+
+```sh
+./scan-namespace.sh
+```
+
+scans all used images within the current namespace. Maybe do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
 
 ## Add-On: Prometheus & Grafana
 
@@ -254,9 +292,25 @@ The following additional scrapers are configured:
 
 By default, the Prometheus UI is on port 8081, Grafana on port 8080.
 
+A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+
+Examplea:
+
+- `Prometheus UI on: http://192.168.1.121:8081`
+- `Grafana UI on: http://192.168.1.121:8080 w/ admin/trendmicro`
+
 ### Access Prometheus & Grafana (Cloud9)
 
+See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
+
 ### Access Prometheus & Grafana (MacOS)
+
+A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+
+Example:
+
+- `Prometheus UI on: http://prometheus`
+- `Grafana UI on: http://grafana w/ admin/trendmicro`
 
 ## Add-On: Falco
 
@@ -351,9 +405,21 @@ Doing this takes advantage of a well known security exploit in Kubernetes.
 
 ### Access Falco UI (Linux)
 
+By default, the Falco UI is on port 8082.
+
+A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+
+Examplea:
+
+- `Falco UI on: http://192.168.1.121:8082/ui/#/`
+
 ### Access Falco UI (Cloud9)
 
+See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
+
 ### Access Falco UI (MacOS)
+
+***Not supported currently***
 
 ## Add-On: Krew
 
