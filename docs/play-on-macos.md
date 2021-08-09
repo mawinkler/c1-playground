@@ -21,6 +21,11 @@ REGISTRY_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") 
 REGISTRY_HOST="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
 REGISTRY_PORT=443 # ingress
 
+REGISTRY_HOST_CLUSTER=$(kubectl --namespace ${REGISTRY_NAMESPACE} get svc ${REGISTRY_NAME} \
+                    -o jsonpath='{.spec.clusterIP}')
+REGISTRY_PORT_CLUSTER="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
+
+
 echo ${REGISTRY_PASSWORD} | docker login https://${REGISTRY_HOST}:${REGISTRY_PORT} --username ${REGISTRY_USERNAME} --password-stdin
 
 docker pull gcr.io/google-samples/hello-app:1.0
@@ -39,7 +44,7 @@ You should get
 
 ```sh
 # create a pull secret and deployment
-kubectl create secret docker-registry regcred --docker-server=${REGISTRY_HOST}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
+kubectl create secret docker-registry regcred --docker-server=${REGISTRY_HOST_CLUSTER}:${REGISTRY_PORT_CLUSTER} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -79,7 +84,7 @@ spec:
         app: hello-server
     spec:
       containers:
-      - image: ${REGISTRY_HOST}:${REGISTRY_PORT}/hello-app:1.0
+      - image: ${REGISTRY_HOST_CLUSTER}:${REGISTRY_PORT_CLUSTER}/hello-app:1.0
         name: hello-app
         ports:
         - containerPort: 8080
@@ -89,6 +94,27 @@ EOF
 
 ***CONTINUE ADAPTING TO MACOS HERE***
 
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+  name: hello-server
+spec:
+  rules:
+    - host: hello-server
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: hello-server
+              port:
+                number: 8080              
+EOF
 
 echo Try: curl $(kubectl --namespace default get svc hello-server \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080

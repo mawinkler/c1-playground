@@ -89,17 +89,25 @@ function create_tls_secret_darwin {
 
   printf '%s' "create tls secret (darwin)"
 
+  CLUSTER_IP=""
+  while [[ "${CLUSTER_IP}" == "" ]]; do
+    sleep 1
+    CLUSTER_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                  -o jsonpath='{.spec.clusterIP}')
+    echo "Cluster IP ${CLUSTER_IP}"
+  done
+
   mkdir -p certs
   cat <<EOF >certs/req-reg.conf
 [req]
   distinguished_name=req
 [san]
-  subjectAltName=DNS:${REG_HOSTNAME}
+  subjectAltName=DNS:${REG_HOSTNAME}:IP:${CLUSTER_IP}
 EOF
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
-    -subj "/CN=${REG_HOSTNAME}" -extensions san -config certs/req-reg.conf &> /dev/null
+    -subj "/CN=${CLUSTER_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
   echo "---" >> up.log
   kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key \
     -o yaml | cat >> up.log
