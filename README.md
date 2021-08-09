@@ -3,27 +3,19 @@
 - [Playground](#playground)
   - [Requirements](#requirements)
   - [Configure](#configure)
-  - [Start Linux](#start-linux)
-  - [Start MacOS (in progress)](#start-macos-in-progress)
+  - [Start](#start)
   - [Tear Down](#tear-down)
   - [Add-On: Registry](#add-on-registry)
-    - [Access Registry (Linux)](#access-registry-linux)
-    - [Access Registry (MacOS)](#access-registry-macos)
+    - [Access Registry](#access-registry)
   - [Add-On: Cloud One Container Security](#add-on-cloud-one-container-security)
-    - [Access Smart Check (Linux)](#access-smart-check-linux)
-    - [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
-    - [Access Smartcheck (MacOS)](#access-smartcheck-macos)
+    - [Access Smart Check](#access-smart-check)
   - [Add-On: Scan-Image and Scan-Namespace](#add-on-scan-image-and-scan-namespace)
   - [Add-On: Prometheus & Grafana](#add-on-prometheus--grafana)
-    - [Access Prometheus & Grafana (Linux)](#access-prometheus--grafana-linux)
-    - [Access Prometheus & Grafana (Cloud9)](#access-prometheus--grafana-cloud9)
-    - [Access Prometheus & Grafana (MacOS)](#access-prometheus--grafana-macos)
+    - [Access Prometheus & Grafana](#access-prometheus--grafana)
   - [Add-On: Falco](#add-on-falco)
     - [Generate some events](#generate-some-events)
     - [Fun with privileged mode](#fun-with-privileged-mode)
-    - [Access Falco UI (Linux)](#access-falco-ui-linux)
-    - [Access Falco UI (Cloud9)](#access-falco-ui-cloud9)
-    - [Access Falco UI (MacOS)](#access-falco-ui-macos)
+    - [Access Falco UI](#access-falco-ui)
   - [Add-On: Krew](#add-on-krew)
   - [Add-On: Starboard](#add-on-starboard)
   - [Play with the Playground](#play-with-the-playground)
@@ -48,10 +40,25 @@ Currently, the following services are integrated:
 
 ## Requirements
 
-*Tested on Ubuntu Bionic+ only, MacOS 10+ in progress*
+***Tested on Ubuntu Bionic+, MacOS 10+ in progress***
+
+In all of the three possible environments you're going to run a script called `tools.sh`. This will ensure you have the latest versions of
+
+- `brew` (MacOS only),
+- `docker` or `Docker for Mac`.
+- `kubectl`,
+- `kustomize`,
+- `helm`,
+- `kind`,
+- `krew` and
+- `kubebox`
+
+installed.
+
+Follow the steps for your platform below.
 
 <details>
-<summary>Ubuntu</summary>
+<summary>Linux</summary>
 
 Install required packages if not available. **After the installation continue in a new shell.**
 
@@ -64,7 +71,22 @@ Install required packages if not available. **After the installation continue in
 </details>
 
 <details>
-<summary>Cloud9 w/ Ubuntu</summary>
+<summary>MacOS</summary>
+
+Install required packages if not available. **After the installation continue in a new shell.**
+
+```sh
+./tools.sh
+```
+
+Then, go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker.
+
+**IMPORTANT: Proceed in a new shell!**
+
+</details>
+
+<details>
+<summary>Cloud9</summary>
 
 - Select Create Cloud9 environment
 - Give it a name
@@ -84,7 +106,7 @@ Install required packages if not available. **After the installation continue in
 
 ## Configure
 
-After cloning the repo to your machine create your personal configuration file.
+First step is to clone the repo to your machine and second you create your personal configuration file.
 
 ```sh
 git clone https://github.com/mawinkler/c1-playground.git
@@ -102,13 +124,18 @@ Typically you don't need to change anything here besides setting your api key fo
 }
 ```
 
-> If running on a Cloud9, you now need to resize the disk of the EC2 instance20GB, execute:
-> 
-    ```sh
-    ./resize.sh
-    ```
+Follow the steps for your platform below.
 
-The `up.sh` script will deploy a load balancer amongst others. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
+<details>
+<summary>Linux</summary>
+
+> If running on a Cloud9, you now need to resize the disk of the EC2 instance20GB, execute:
+>  
+> ```sh
+> ./resize.sh
+> ```
+
+The `up.sh` script later on will deploy a load balancer amongst other cluster components. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
 
 To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
 
@@ -122,12 +149,9 @@ Finally restart the docker daemon.
 sudo systemctl restart docker
 ```
 
-In the following step, you'll create the cluster. The last line of the output shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
+In the following step [Start](#start), you'll create the cluster, typically followed by creating the cluster registry. The last line of the output from `./deploy-registry.sh` shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
 
-<details>
-<summary>IP fix</summary>
-
-At this point we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
+If it failed, we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
 
 ```sh
 kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
@@ -146,27 +170,11 @@ sudo systemctl restart docker
 
 </details>
 
-## Start Linux
+<details>
+<summary>MacOS</summary>
+Due to the fact, that there is no `docker0` bridge on MacOS, we need to use ingresses to enable access to services running on our cluster. To make this work, you need to modify your local `hosts`-file.
 
-```sh
-./up.sh
-```
-
-## Start MacOS (in progress)
-
-***Support for MacOS is still in progress***
-
-> Tested Add-Ons:
->
-> - Prometheus
-> - Grafana
-> - Starboard
-> - Smart Check
-> - Container Security
->
-> Note: Falco is currently unsupported on MacOS
-
-First, modify your local `hosts`-file. Change the line for 127.0.0.1 from
+Change the line for 127.0.0.1 from
 
 ```txt
 127.0.0.1 localhost
@@ -175,10 +183,58 @@ First, modify your local `hosts`-file. Change the line for 127.0.0.1 from
 to
 
 ```txt
-127.0.0.1 localhost playground-registry smartcheck smartcheck-registry grafana prometheus
+127.0.0.1 localhost playground-registry smartcheck grafana prometheus
 ```
 
-Then run
+</details>
+
+<details>
+<summary>Cloud9</summary>
+
+You now need to resize the disk of the EC2 instance to 30GB, execute:
+
+```sh
+./resize.sh
+```
+
+The `up.sh` script later on will deploy a load balancer amongst other cluster components. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
+
+To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
+
+```json
+{"insecure-registries": ["172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000"]}
+```
+
+Finally restart the docker daemon.
+
+```sh
+sudo systemctl restart docker
+```
+
+In the following step [Start](#start), you'll create the cluster, typically followed by creating the cluster registry. The last line of the output from `./deploy-registry.sh` shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
+
+If it failed, we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
+
+```sh
+kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
+```
+
+```sh
+172.18.0.2
+```
+
+Adapt the file `/etc/docker/daemon.json` accordingly. Then
+
+```sh
+./stop.sh
+sudo systemctl restart docker
+```
+
+</details>
+
+## Start
+
+Simply run
 
 ```sh
 ./up.sh
@@ -198,7 +254,12 @@ To deploy the registry run:
 ./deploy-registry.sh
 ```
 
-### Access Registry (Linux)
+### Access Registry 
+
+Follow the steps for your platform below.
+
+<details>
+<summary>Linux</summary>
 
 A file called `services` is either created or updated with the link and the credentials to connect to the registry.
 
@@ -206,13 +267,29 @@ Example:
 
 - `Registry login with: echo trendmicro | docker login https://172.18.255.1:5000 --username admin --password-stdin`
 
-### Access Registry (MacOS)
+</details>
+
+<details>
+<summary>MacOS</summary>
 
 A file called `services` is either created or updated with the link and the credentials to connect to the registry.
 
 Example:
 
 - `Registry login with: echo trendmicro | docker login https://playground-registry:443 --username admin --password-stdin`
+
+</details>
+
+<details>
+<summary>Cloud9</summary>
+
+A file called `services` is either created or updated with the link and the credentials to connect to the registry.
+
+Example:
+
+- `Registry login with: echo trendmicro | docker login https://172.18.255.1:5000 --username admin --password-stdin`
+
+</details>
 
 ## Add-On: Cloud One Container Security
 
@@ -223,7 +300,12 @@ To deploy Container Security run:
 ./deploy-container-security.sh
 ```
 
-### Access Smart Check (Linux)
+### Access Smart Check
+
+Follow the steps for your platform below.
+
+<details>
+<summary>Linux</summary>
 
 A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
 
@@ -231,12 +313,23 @@ Example:
 
 - `Smart check UI on: https://192.168.1.121:8443 w/ admin/trendmicro`
 
-### Access Smart Check (Cloud9)
-
-> Note: If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer
+</details>
 
 <details>
-<summary>Share Smart Check over the internet </summary>
+<summary>MacOS</summary>
+
+A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+
+Example:
+
+- `Smart check UI on: https://smartcheck:443 w/ admin/trendmicro`
+
+</details>
+
+<details>
+<summary>Cloud9</summary>
+
+If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer. To share Smart Check over the internet, follow the steps below.
 
 1. Query the public IP of your Cloud9 instance with
    ```sh
@@ -251,14 +344,6 @@ Example:
 You should now be able to connect to Smart Check on the public ip of your Cloud9 with your configured port.
 
 </details>
-
-### Access Smartcheck (MacOS)
-
-A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
-
-Example:
-
-- `Smart check UI on: https://smartcheck:443 w/ admin/trendmicro`
 
 ## Add-On: Scan-Image and Scan-Namespace
 
@@ -304,22 +389,26 @@ The following additional scrapers are configured:
 - [Falco]((#add-on-falco))
 - smartcheck-metrics
 
-### Access Prometheus & Grafana (Linux)
+### Access Prometheus & Grafana
+
+Follow the steps for your platform below.
+
+<details>
+<summary>Linux</summary>
 
 By default, the Prometheus UI is on port 8081, Grafana on port 8080.
 
 A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
 
-Examplea:
+Example:
 
 - `Prometheus UI on: http://192.168.1.121:8081`
 - `Grafana UI on: http://192.168.1.121:8080 w/ admin/trendmicro`
 
-### Access Prometheus & Grafana (Cloud9)
+</details>
 
-See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
-
-### Access Prometheus & Grafana (MacOS)
+<details>
+<summary>MacOS</summary>
 
 A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
 
@@ -328,9 +417,20 @@ Example:
 - `Prometheus UI on: http://prometheus`
 - `Grafana UI on: http://grafana w/ admin/trendmicro`
 
+</details>
+
+<details>
+<summary>Cloud9</summary>
+
+See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
+
+</details>
+
 ## Add-On: Falco
 
 The deployment of Falco runtime security is very straigt forward with the playground. Simply execute the script `deploy-falco.sh`, everything else is prepared.
+
+> Note for MacOS: Falco is currently unsupported on MacOS
 
 ```sh
 ./deploy-falco.sh
@@ -419,23 +519,36 @@ root@playground-control-plane:/#
 
 Doing this takes advantage of a well known security exploit in Kubernetes.
 
-### Access Falco UI (Linux)
+### Access Falco UI
+
+Follow the steps for your platform below.
+
+<details>
+<summary>Linux</summary>
 
 By default, the Falco UI is on port 8082.
 
 A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
 
-Examplea:
+Example:
 
 - `Falco UI on: http://192.168.1.121:8082/ui/#/`
 
-### Access Falco UI (Cloud9)
+</details>
+
+<details>
+<summary>MacOS</summary>
+
+***Currently not supported***
+
+</details>
+
+<details>
+<summary>Cloud9</summary>
 
 See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
 
-### Access Falco UI (MacOS)
-
-***Not supported currently***
+</details>
 
 ## Add-On: Krew
 
@@ -444,6 +557,7 @@ Krew is a tool that makes it easy to use kubectl plugins. Krew helps you discove
 Eample usage:
 
 ```sh
+kubectl krew list
 kubectl krew install tree
 ```
 

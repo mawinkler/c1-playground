@@ -261,7 +261,7 @@ if [ "${OS}" == 'Linux' ]; then
   upgrade_smartcheck
   ./deploy-proxy.sh smartcheck
   HOST_IP=$(hostname -I | awk '{print $1}')
-  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
+  # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
   echo "Smart check UI on: https://${HOST_IP}:${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
 fi
 
@@ -275,6 +275,6 @@ if [ "${OS}" == 'Darwin' ]; then
   password_change
   create_ssl_certificate_darwin
   upgrade_smartcheck
-  echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" >> services
+  # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" >> services
   echo "Smart check UI on: https://${SC_HOSTNAME}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
 fi
