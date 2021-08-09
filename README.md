@@ -273,6 +273,22 @@ starts an asynchronous scan of the latest version of nginx. The scan will run on
 If you add the flag `-s` the scan will be synchronous, so you get the scan results directly in your shell.
 
 ```sh
+./scan-image.sh -s nginx:latest
+```
+
+```json
+...
+{ critical: 6,
+  high: 39,
+  medium: 40,
+  low: 13,
+  negligible: 2,
+  unknown: 3 }
+```
+
+The script
+
+```sh
 ./scan-namespace.sh
 ```
 

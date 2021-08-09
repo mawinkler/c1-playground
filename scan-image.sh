@@ -23,7 +23,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "Scanning Image ${SYNC} - ${TARGET_IMAGE}"
+echo "Scanning Image ${TARGET_IMAGE}"
 
 
 function setup {
