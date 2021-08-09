@@ -100,5 +100,3 @@ printf '%s\n' "Cluster registry is on ${REG_HOST}:${REG_PORT}"
 
 pullpush
 scan
-
-

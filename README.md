@@ -478,7 +478,7 @@ kubectl describe vulnerabilityreport -n kube-system daemonset-kindnet-kindnet-cn
 ```sh
 # pull hello-app:1.0 from Google and push it to the cluster registry
 # verify w/ curl
-REGISTRY_NAME=playground-registry
+REGISTRY_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
 REGISTRY_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
 REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
 REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
