@@ -40,8 +40,6 @@ You should get
 
 ## Create a Deployment on Kubernetes - Echo Server #1
 
-***CONTINUE ADAPTING TO MACOS HERE***
-
 ```sh
 # create a pull secret and deployment
 kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
@@ -130,6 +128,8 @@ Hostname: hello-server-6488746978-vvtdx
 ```
 
 ## Create a Deployment on Kubernetes - Echo Server #2
+
+***CONTINUE ADAPTING TO MACOS HERE***
 
 ```sh
 # instant deployment and scale an echo-server

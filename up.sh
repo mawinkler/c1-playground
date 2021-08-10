@@ -170,10 +170,10 @@ nodes:
     # listenAddress: "0.0.0.0"
     # listenAddress: "127.0.0.1"
     protocol: TCP
-  # Cluster Registry
-  - containerPort: 5000
-    hostPort: 5000
-    protocol: TCP
+  # # Cluster Registry
+  # - containerPort: 5000
+  #   hostPort: 5000
+  #   protocol: TCP
   # # Grafana
   # - containerPort: 80
   #   hostPort: 8080
