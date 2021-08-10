@@ -14,24 +14,22 @@
 ```sh
 # pull hello-app:1.0 from Google and push it to the cluster registry
 # verify w/ curl
-REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
-REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
 REGISTRY_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
 REGISTRY_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
-REGISTRY_HOST="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
-REGISTRY_PORT=443 # ingress
+REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
+REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
+REGISTRY_IP=$(kubectl get svc -n ${REGISTRY_NAMESPACE} ${REGISTRY_NAME} \
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+REGISTRY_HOST_INGRESS="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
+REGISTRY_PORT_INGRESS=443 # ingress
 
-REGISTRY_HOST_CLUSTER=$(kubectl --namespace ${REGISTRY_NAMESPACE} get svc ${REGISTRY_NAME} \
-                    -o jsonpath='{.spec.clusterIP}')
-REGISTRY_PORT_CLUSTER="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
-
-
-echo ${REGISTRY_PASSWORD} | docker login https://${REGISTRY_HOST}:${REGISTRY_PORT} --username ${REGISTRY_USERNAME} --password-stdin
+echo ${REGISTRY_PASSWORD} | docker login https://${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS} --username ${REGISTRY_USERNAME} --password-stdin
 
 docker pull gcr.io/google-samples/hello-app:1.0
-docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_HOST}:${REGISTRY_PORT}/hello-app:1.0
-docker push ${REGISTRY_HOST}:${REGISTRY_PORT}/hello-app:1.0
-curl -k https://${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}@${REGISTRY_HOST}:${REGISTRY_PORT}/v2/_catalog
+docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
+docker push ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
+curl -k https://${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}@${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/v2/_catalog
 ```
 
 You should get
@@ -42,9 +40,11 @@ You should get
 
 ## Create a Deployment on Kubernetes - Echo Server #1
 
+***CONTINUE ADAPTING TO MACOS HERE***
+
 ```sh
 # create a pull secret and deployment
-kubectl create secret docker-registry regcred --docker-server=${REGISTRY_HOST_CLUSTER}:${REGISTRY_PORT_CLUSTER} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
+kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -84,16 +84,18 @@ spec:
         app: hello-server
     spec:
       containers:
-      - image: ${REGISTRY_HOST_CLUSTER}:${REGISTRY_PORT_CLUSTER}/hello-app:1.0
+      - image: ${REGISTRY_IP}:${REGISTRY_PORT}/hello-app:1.0
         name: hello-app
         ports:
         - containerPort: 8080
       imagePullSecrets:
       - name: regcred
 EOF
+```
 
-***CONTINUE ADAPTING TO MACOS HERE***
+Now, we need to prepare our ingress. For this add `hello-server` to your `/etc/hosts`-file as before. Then create the ingress:
 
+```sh
 cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -116,8 +118,7 @@ spec:
                 number: 8080              
 EOF
 
-echo Try: curl $(kubectl --namespace default get svc hello-server \
-              -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
+echo Try: curl hello-server
 ```
 
 You should get

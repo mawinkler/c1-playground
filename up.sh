@@ -224,6 +224,12 @@ containerdConfigPatches:
           endpoint = ["http://${HOST_REGISTRY_NAME}:${HOST_REGISTRY_PORT}"]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."smartcheck-registry.localdomain:443"]
           endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.1:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.2:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
+          insecure_skip_verify = true
 EOF
 }
 
@@ -365,5 +371,6 @@ if [ "${OS}" == 'Darwin' ]; then
   deploy_cadvisor
   deploy_calico
   # configure_host_registry
+  create_load_balancer
   create_ingress_controller
 fi

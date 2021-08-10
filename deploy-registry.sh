@@ -89,12 +89,12 @@ function create_tls_secret_darwin {
 
   printf '%s' "create tls secret (darwin)"
 
-  CLUSTER_IP=""
-  while [[ "${CLUSTER_IP}" == "" ]]; do
+  EXTERNAL_IP=""
+  while [[ "${EXTERNAL_IP}" == "" ]]; do
     sleep 1
-    CLUSTER_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                  -o jsonpath='{.spec.clusterIP}')
-    echo "Cluster IP ${CLUSTER_IP}"
+    EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    echo "External IP ${EXTERNAL_IP}"
   done
 
   mkdir -p certs
@@ -102,12 +102,12 @@ function create_tls_secret_darwin {
 [req]
   distinguished_name=req
 [san]
-  subjectAltName=DNS:${REG_HOSTNAME}:IP:${CLUSTER_IP}
+  subjectAltName=DNS:${REG_HOSTNAME},IP:${EXTERNAL_IP}
 EOF
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
-    -subj "/CN=${CLUSTER_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
+    -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
   echo "---" >> up.log
   kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key \
     -o yaml | cat >> up.log
@@ -268,7 +268,7 @@ if [ "${OS}" == 'Linux' ]; then
 fi
 
 if [ "${OS}" == 'Darwin' ]; then
-  SERVICE_TYPE='ClusterIP'
+  SERVICE_TYPE='LoadBalancer'
   create_namespace_service
   create_auth_secret
   create_tls_secret_darwin
