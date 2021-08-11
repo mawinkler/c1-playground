@@ -4,8 +4,6 @@ set -o errexit
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 HOST_REGISTRY_NAME=playground-host-registry
 HOST_REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-host-registry") | .port' config.json)"
-REGISTRY_NAME=playground-registry
-REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
 OS="$(uname)"
 
 printf '%s\n' "Target environment ${OS}"
@@ -103,7 +101,7 @@ kubeadmConfigPatches:
       mountPath: /var/lib/k8s-audit/
 
 #
-# Host Registry
+# Registries
 #
 containerdConfigPatches:
 - |-
@@ -124,30 +122,58 @@ EOF
 
 function create_cluster_darwin {
   # create a cluster with the local registry enabled in containerd
+
+  # Falco and Kubernetes Auditing
+  # To enable Kubernetes audit logs, you need to change the arguments to the
+  # kube-apiserver process to add --audit-policy-file and
+  # --audit-webhook-config-file arguments and provide files that implement an
+  # audit policy/webhook configuration.
+  printf '%s\n' "Create K8s Audit Webhook (linux)"
+  cat <<EOF >audit/audit-webhook.yaml
+apiVersion: v1
+kind: Config
+clusters:
+- name: ${CLUSTER_NAME}
+  cluster:
+    # certificate-authority: /path/to/ca.crt # for https
+    server: http://127.0.0.1:32765/k8s-audit
+contexts:
+- context:
+    cluster: ${CLUSTER_NAME}
+    user: ""
+  name: default-context
+current-context: default-context
+preferences: {}
+users: []
+EOF
+
   printf '%s\n' "Create cluster (darwin)"
   cat <<EOF | kind create cluster --config=-
+#
+# Cluster Configuration
+#
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
-#   apiServerAddress: "127.0.0.1"
-#   apiServerPort: 6443
   disableDefaultCNI: true # disable kindnet
   podSubnet: 192.168.0.0/16 # set to Calico's default subnet
-#   serviceSubnet: "10.0.0.0/16"
 name: ${CLUSTER_NAME}
 nodes:
+#
+# Control Plane
+#
 - role: control-plane
-  # extraMounts:
+  extraMounts:
 
-  # # Falco
-  # - hostPath: /dev
-  #   containerPath: /dev
+  # Falco
+  - hostPath: /dev
+    containerPath: /dev
 
-  # # Kube Audit
-  # - hostPath: $(pwd)/log/
-  #   containerPath: /var/log/
-  # - hostPath: $(pwd)/audit/
-  #   containerPath: /var/lib/k8s-audit/
+  # Kube Audit
+  - hostPath: $(pwd)/log/
+    containerPath: /var/log/
+  - hostPath: $(pwd)/audit/
+    containerPath: /var/lib/k8s-audit/
 
   kubeadmConfigPatches:
 
@@ -170,26 +196,9 @@ nodes:
     # listenAddress: "0.0.0.0"
     # listenAddress: "127.0.0.1"
     protocol: TCP
-  # # Cluster Registry
-  # - containerPort: 5000
-  #   hostPort: 5000
-  #   protocol: TCP
-  # # Grafana
-  # - containerPort: 80
-  #   hostPort: 8080
-  #   protocol: TCP
-  # # Prometheus
-  # - containerPort: 9090
-  #   hostPort: 8081
-  #   protocol: TCP
-  # # Falco
-  # - containerPort: 2802
-  #   hostPort: 8082
-  #   protocol: TCP
-  # # Smart Check
-  # - containerPort: 443
-  #   hostPort: 8443
-  #   protocol: TCP
+
+
+# Workers
 # - role: worker
 # - role: worker
 
@@ -199,22 +208,25 @@ nodes:
 kubeadmConfigPatches:
 - |
   kind: ClusterConfiguration
-  # apiServer:
-  #   extraArgs:
-  #     # audit-log-max-backups: "1"
-  #     # audit-log-max-size: "10"
-  #     audit-log-path: "/var/log/k8s-audit.log"
-  #     audit-policy-file: "/var/lib/k8s-audit/audit-policy.yaml"
-  #     # audit-webhook-batch-max-wait: "5s"
-  #     audit-webhook-config-file: "/var/lib/k8s-audit/audit-webhook.yaml"
-  #   extraVolumes:
-  #   - name: audit
-  #     hostPath: /var/log/
-  #     mountPath: /var/log/
-  #   - name: auditcfg
-  #     hostPath: /var/lib/k8s-audit/
-  #     mountPath: /var/lib/k8s-audit/
+  apiServer:
+    extraArgs:
+      # audit-log-max-backups: "1"
+      # audit-log-max-size: "10"
+      audit-log-path: "/var/log/k8s-audit.log"
+      audit-policy-file: "/var/lib/k8s-audit/audit-policy.yaml"
+      # audit-webhook-batch-max-wait: "5s"
+      audit-webhook-config-file: "/var/lib/k8s-audit/audit-webhook.yaml"
+    extraVolumes:
+    - name: audit
+      hostPath: /var/log/
+      mountPath: /var/log/
+    - name: auditcfg
+      hostPath: /var/lib/k8s-audit/
+      mountPath: /var/lib/k8s-audit/
 
+#
+# Registries
+#
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri"]
@@ -222,8 +234,7 @@ containerdConfigPatches:
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${HOST_REGISTRY_PORT}"]
           endpoint = ["http://${HOST_REGISTRY_NAME}:${HOST_REGISTRY_PORT}"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."smartcheck-registry.localdomain:443"]
-          endpoint = ["https://${REGISTRY_NAME}:${REGISTRY_PORT}"]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
         [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.1:5000".tls]
           insecure_skip_verify = true
         [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.2:5000".tls]
@@ -234,6 +245,11 @@ EOF
 }
 
 function create_host_registry {
+  # Here, we're creating a registry, running on the docker host directly. It
+  # will be accessibble from the host and the cluster. Since the current setup is
+  # is not using this registry, it will not be deployed. An authenticated
+  # registry running on the cluster is used instead.
+
   # create registry container unless it already exists
   printf '%s\n' "Create host registry"
 
@@ -288,9 +304,6 @@ function create_load_balancer {
   ADDRESS_POOL=$(kubectl get nodes -o json | \
     jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | \
     sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|')
-
-  # Darwin
-  # ADDRESS_POOL=127.0.0.240/28
 
   echo "---" >> up.log
   cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log 
@@ -365,6 +378,7 @@ if [ "${OS}" == 'Linux' ]; then
   create_load_balancer
   create_ingress_controller
 fi
+
 if [ "${OS}" == 'Darwin' ]; then
   # create_host_registry
   create_cluster_darwin

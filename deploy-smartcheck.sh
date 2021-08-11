@@ -204,16 +204,8 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
-    #
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-    #
-    # nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
-    # kubernetes.io/tls-acme: 'true'
   labels:
     service: proxy
   name: smartcheck

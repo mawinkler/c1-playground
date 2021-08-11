@@ -3,7 +3,7 @@
 set -e
 
 REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
-REG_NAME=playground-registry
+REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
 REG_HOSTNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
 REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
 REG_SIZE="$(jq -r '.services[] | select(.name=="playground-registry") | .size' config.json)"
@@ -196,25 +196,6 @@ EOF
 
 function create_ingress {
   # create ingress for registry
-
-  # cat <<EOF | kubectl apply -f -
-  # apiVersion: networking.k8s.io/v1
-  # kind: Ingress
-  # metadata:
-  #   name: registry
-  #   namespace: registry
-  # spec:
-  #   rules:
-  #   - http:
-  #       paths:
-  #         - pathType: ImplementationSpecific
-  #           backend:
-  #             service:
-  #               name: playground-registry
-  #               port:
-  #                 number: 5000
-  # EOF
-
   printf '%s\n' "Create registry ingress"
 
   echo "---" >> up.log
@@ -226,13 +207,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-    # nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
-    # kubernetes.io/tls-acme: 'true'
     nginx.ingress.kubernetes.io/proxy-body-size: 1000m
   name: ${REG_NAME}
   namespace: ${REG_NAMESPACE}

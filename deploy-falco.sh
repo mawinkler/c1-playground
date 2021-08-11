@@ -3,6 +3,8 @@
 set -e
 
 NAMESPACE="$(jq -r '.services[] | select(.name=="falco") | .namespace' config.json)"
+HOSTNAME="$(jq -r '.services[] | select(.name=="falco") | .hostname' config.json)"
+SERVICE_NAME="$(jq -r '.services[] | select(.name=="falco") | .proxy_service_name' config.json)"
 LISTEN_PORT="$(jq -r '.services[] | select(.name=="falco") | .proxy_listen_port' config.json)"
 OS="$(uname)"
 
@@ -27,6 +29,20 @@ function whitelist_namsspace {
   kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
   kubectl label namespace ${NAMESPACE} --overwrite network=green
 }
+
+###
+# Falco on Darwin
+# 1. Install the driver on the host machine
+# Clone the Falco project and checkout the tag corresponding to the same Falco version used within the helm chart (0.29.1 in my case), then:
+
+# git checkout 0.29.1
+# mkdir build
+# cd build
+# brew install yaml-cpp grpc
+# export OPENSSL_ROOT_DIR=/usr/local/opt/openssl
+# cmake ..
+# sudo make install_driver
+###
 
 function deploy_falco {
   ## deploy falco
@@ -155,13 +171,50 @@ spec:
 EOF
 }
 
+function create_ingress {
+    # create ingress for prometheus and grafana
+
+  printf '%s\n' "Create prometheus and grafana ingress"
+  echo "---" >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+  name: ${SERVICE_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  rules:
+    - host: ${HOSTNAME}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: ${SERVICE_NAME}
+              port:
+                number: ${LISTEN_PORT}
+EOF
+  printf '%s\n' "Prometheus and grafana ingress created 🍻"
+}
+
+if [ "${OS}" == 'Darwin' ]; then
+  echo "*** Falco currently not supported on MacOS ***"
+  exit 0
+fi
+
 create_namespace
 whitelist_namsspace
 deploy_falco
 
 if [ "${OS}" == 'Linux' ]; then
   ./deploy-proxy.sh falco
+  HOST_IP=$(hostname -I | awk '{print $1}')
+  echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" >> services
 fi
-
-HOST_IP=$(hostname -I | awk '{print $1}')
-echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" >> services
+if [ "${OS}" == 'Darwin' ]; then
+  create_ingress
+fi

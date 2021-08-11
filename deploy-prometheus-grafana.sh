@@ -118,7 +118,6 @@ spec:
   # - hosts:
   #   - ${PROMETHEUS_HOSTNAME}
   #   - ${GRAFANA_HOSTNAME}
-  #   # secretName: k8s-certificate
   rules:
     - host: ${PROMETHEUS_HOSTNAME}
       http:

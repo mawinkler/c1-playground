@@ -186,7 +186,7 @@ function create_cluster_object {
       --header "api-secret-key: ${API_KEY}" \
       --header 'api-version: v1' \
       --data-raw "{
-      \"name\": \"${CLUSTER_NAME}\",
+      \"name\": \"${CLUSTER_NAME//-/_}\",
       \"description\": \"Playground Cluster\",
       \"policyID\": \"${CS_POLICYID}\",
       \"runtimeEnabled\": false
@@ -232,7 +232,7 @@ function create_scanner {
       --header "api-secret-key: ${API_KEY}" \
       --header 'api-version: v1' \
       --data-raw "{
-      \"name\": \"${CLUSTER_NAME}\",
+      \"name\": \"${CLUSTER_NAME//-/_}\",
       \"description\": \"Playground Image Scanner\"
     }"
   )
