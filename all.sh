@@ -5,6 +5,7 @@ set -o errexit
 ./deploy-registry.sh
 ./deploy-falco.sh
 ./deploy-prometheus-grafana.sh
+./deploy-opa.sh
 ./deploy-smartcheck.sh
 ./deploy-container-security.sh
 ./deploy-starboard.sh

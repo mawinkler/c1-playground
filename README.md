@@ -18,6 +18,8 @@
     - [Access Falco UI](#access-falco-ui)
   - [Add-On: Krew](#add-on-krew)
   - [Add-On: Starboard](#add-on-starboard)
+  - [Add-On: Open Policy Agent](#add-on-open-policy-agent)
+    - [Example Policy: Registry Whitelisting](#example-policy-registry-whitelisting)
   - [Play with the Playground](#play-with-the-playground)
 
 Ultra fast and slim kubernetes playground.
@@ -547,7 +549,7 @@ See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
 
 Krew is a tool that makes it easy to use kubectl plugins. Krew helps you discover plugins, install and manage them on your machine. It is similar to tools like apt, dnf or brew. Today, over 130 kubectl plugins are available on Krew.
 
-Eample usage:
+Example usage:
 
 ```sh
 kubectl krew list
@@ -593,6 +595,28 @@ Inspect any of the reports run something like this
 ```sh
 kubectl describe vulnerabilityreport -n kube-system daemonset-kindnet-kindnet-cni
 ```
+
+## Add-On: Open Policy Agent
+
+The Open Policy Agent (OPA, pronounced “oh-pa”) is an open source, general-purpose policy engine that unifies policy enforcement across the stack. OPA provides a high-level declarative language that lets you specify policy as code and simple APIs to offload policy decision-making from your software. You can use OPA to enforce policies in microservices, Kubernetes, CI/CD pipelines, API gateways, and more.
+
+### Example Policy: Registry Whitelisting
+
+```sh
+cat <<EOF >opa/registry-whitelist.rego
+package kubernetes.admission
+
+deny[msg] {
+  input.request.kind.kind == "Pod"
+  image := input.request.object.spec.containers[_].image
+  not startswith(image, "172.18.255.1/")
+  msg := sprintf("Image is not from our trusted cluster registry: %v", [image])
+}
+EOF
+
+kubectl -n opa create configmap registry-whitelist --from-file=opa/registry-whitelist.rego
+```
+
 
 ## Play with the Playground
 
