@@ -139,6 +139,13 @@ customRules:
       priority: NOTICE
 EOF
 
+  # If there is a file called `additional_rules.yaml`, we append it to the custom-rules.yaml
+  if [ -f "additional_rules.yaml" ]; then
+    printf '%s\n' "Additional rules file found"
+    echo "  additional_rules.yaml: |-" >> overrides/custom-rules.yaml
+    cat additional_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+  fi
+
   # helm delete falco && kubectl delete svc falco-np && rm /tmp/passthrough.conf && sleep 2 && ./deploy-falco.sh 
 
   # Install Falco
