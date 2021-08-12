@@ -617,6 +617,25 @@ EOF
 kubectl -n opa create configmap registry-whitelist --from-file=opa/registry-whitelist.rego
 ```
 
+Try to create a deployment
+
+```sh
+kubectl create deployment echo --image=inanimate/echo-server
+```
+
+If you now run a `kubectl get pods`, the echo-server should ***NOT*** show up.
+
+Access the logs from OPA
+
+```sh
+kubectl -n opa logs -l app=opa -c opa -f
+```
+
+There should be something like
+
+```json
+"message": "Error creating: admission webhook \"validating-webhook.openpolicyagent.org\" denied the request: Image is not from our trusted cluster registry: inanimate/echo-server",
+```
 
 ## Play with the Playground
 

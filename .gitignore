@@ -1,6 +1,7 @@
 auth
 certs
 overrides
+opa
 report_*.pdf
 .DS_Store
 config.json

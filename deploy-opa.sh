@@ -56,7 +56,7 @@ EOF
 
   openssl genrsa -out opa/webhook-server-tls.key 2048
   openssl req -new -key opa/webhook-server-tls.key -out opa/webhook-server-tls.csr -config opa/webhook-server-tls.conf
-  openssl x509 -req -in opa/webhook-server-tls.csr -CA opa/admission-ca.crt -CAkey opa/admission-ca.key -out opa/webhook-server-tls.crt -days 100000 -extensions v3_req -extfile opa/webhook-server-tls.conf
+  openssl x509 -req -in opa/webhook-server-tls.csr -CA opa/admission-ca.crt -CAkey opa/admission-ca.key -CAcreateserial -out opa/webhook-server-tls.crt -days 100000 -extensions v3_req -extfile opa/webhook-server-tls.conf
 
   kubectl -n opa create secret tls opa-server --cert=opa/webhook-server-tls.crt --key=opa/webhook-server-tls.key
 
