@@ -9,3 +9,4 @@ set -o errexit
 ./deploy-smartcheck.sh
 ./deploy-container-security.sh
 ./deploy-starboard.sh
+./whitelist_playground_ns.sh

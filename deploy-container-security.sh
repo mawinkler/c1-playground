@@ -27,9 +27,8 @@ function whitelist_namsspaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespace for container security
-  kubectl label namespace kube-system --overwrite ignoreAdmissionControl=ignore
-  # kubectl label namespace metallb-system --overwrite ignoreAdmissionControl=ignore
   kubectl label namespace smartcheck --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace kube-system --overwrite ignoreAdmissionControl=ignore
 }
 
 function cluster_policy {

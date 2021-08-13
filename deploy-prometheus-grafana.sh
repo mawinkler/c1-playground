@@ -31,7 +31,6 @@ function whitelist_namespaces {
 
   # whitelist some namespaces
   kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
-  kubectl label namespace ${NAMESPACE} --overwrite network=green
 }
 
 # helm show values prometheus-community/kube-prometheus-stack

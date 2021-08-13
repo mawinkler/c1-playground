@@ -27,7 +27,6 @@ function whitelist_namsspace {
 
   # whitelist namespace for falco
   kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
-  kubectl label namespace ${NAMESPACE} --overwrite network=green
 }
 
 ###

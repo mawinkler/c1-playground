@@ -37,9 +37,7 @@ function whitelist_namsspaces {
 
   # whitelist some namespaces
   kubectl label namespace ${NAMESPACE_TRIVY} --overwrite ignoreAdmissionControl=ignore
-  kubectl label namespace ${NAMESPACE_TRIVY} --overwrite network=green
   kubectl label namespace ${NAMESPACE_STARBOARD} --overwrite ignoreAdmissionControl=ignore
-  kubectl label namespace ${NAMESPACE_STARBOARD} --overwrite network=green
 }
 
 # helm show values aquasecurity/trivy
