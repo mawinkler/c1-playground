@@ -32,6 +32,7 @@ Currently, the following services are integrated:
 - Container Security
   - Smart Check
   - Deployment Admission Control, Continuous Compliance
+- Open Policy Agent
 
 ## Requirements
 
@@ -452,11 +453,27 @@ metadata:
 EOF
 ```
 
-Relevant kind configuration is already done within the `up.sh` script.
-
 Falco is integrated with Prometheus and Grafana as well. A Dashboard is available for import with the ID 11914.
 
 ![alt text](images/falco-grafana.png "Grafana Dashboard")
+
+If you want to test out own falco rules, create a file called `additional_rules.yaml` write your rules. It will be included when running `deploy-falco.sh`.
+
+Example:
+
+```yaml
+- macro: container
+  condition: container.id != host
+
+- macro: spawned_process
+  condition: evt.type = execve and evt.dir=<
+
+- rule: (AR) Run shell in container
+  desc: a shell was spawned by a non-shell program in a container. Container entrypoints are excluded.
+  condition: container and proc.name = bash and spawned_process and proc.pname exists and not proc.pname in (bash, docker)
+  output: "Shell spawned in a container other than entrypoint (user=%user.name container_id=%container.id container_name=%container.name shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)"
+  priority: WARNING
+```
 
 ### Generate some events
 

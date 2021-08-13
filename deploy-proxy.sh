@@ -27,15 +27,22 @@ function create_proxy_configuration {
   if [ ! -f /tmp/passthrough.conf ]; then
     cp templates/passthrough.conf /tmp/passthrough.conf
   fi
-  FRAGMENT=$(cat templates/passthrough-fragment.conf)
 
-  sed -i "s|###|${FRAGMENT}|" /tmp/passthrough.conf
+  if grep -Fq "upstream ${SERVICE_NAME} " /tmp/passthrough.conf
+  then
+    printf '%s\n' "Proxy already configured for ${SERVICE_NAME}"
+    exit 0
+  else
+    FRAGMENT=$(cat templates/passthrough-fragment.conf)
 
-  sed -i "s|_SERVICE|${SERVICE_NAME}|g" /tmp/passthrough.conf
-  sed -i "s|_DESTINATION_HOST|${SERVICE_HOST}|" /tmp/passthrough.conf
-  sed -i "s|_DESTINATION_PORT|${SERVICE_PORT}|" /tmp/passthrough.conf
-  sed -i "s|_LISTEN_PORT|${LISTEN_PORT}|" /tmp/passthrough.conf
-  sudo cp /tmp/passthrough.conf /etc/nginx/passthrough.conf
+    sed -i "s|###|${FRAGMENT}|" /tmp/passthrough.conf
+
+    sed -i "s|_SERVICE|${SERVICE_NAME}|g" /tmp/passthrough.conf
+    sed -i "s|_DESTINATION_HOST|${SERVICE_HOST}|" /tmp/passthrough.conf
+    sed -i "s|_DESTINATION_PORT|${SERVICE_PORT}|" /tmp/passthrough.conf
+    sed -i "s|_LISTEN_PORT|${LISTEN_PORT}|" /tmp/passthrough.conf
+    sudo cp /tmp/passthrough.conf /etc/nginx/passthrough.conf
+  fi
 }
 
 create_proxy_configuration
