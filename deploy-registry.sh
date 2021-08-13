@@ -94,7 +94,6 @@ function create_tls_secret_darwin {
     sleep 1
     EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
                   -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    echo "External IP ${EXTERNAL_IP}"
   done
 
   mkdir -p certs

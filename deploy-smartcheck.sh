@@ -128,7 +128,7 @@ function upgrade_smartcheck {
 function create_ssl_certificate_linux {
   # create ssl certificate
 
-  printf '%s\n' "Create ssl certificate (linux)"
+  printf '%s' "Create ssl certificate (linux)"
   mkdir -p certs
   cat <<EOF >certs/req-sc.conf
 [req]
@@ -148,7 +148,7 @@ EOF
 function create_ssl_certificate_darwin {
   # create ssl certificate
 
-  printf '%s\n' "Create ssl certificate (darwin)"
+  printf '%s' "Create ssl certificate (darwin)"
   mkdir -p certs
   cat <<EOF >certs/req-sc.conf
 [req]

