@@ -74,6 +74,14 @@
             "namespace": "opa"
         },
         {
+            "name": "kube-system",
+            "namespace": "kube-system"
+        },
+        {
+            "name": "cadvisor",
+            "namespace": "cadvisor"
+        },
+        {
             "name": "cloudone",
             "api_key": "YOUR KEY HERE",
             "activation_key": "YOUR KEY HERE"
