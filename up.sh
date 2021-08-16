@@ -289,7 +289,7 @@ EOF
 
 function create_load_balancer {
   # load balancer
-  printf '%s' "Create load balancer"
+  printf '%s\n' "Create load balancer"
 
   echo "---" >> up.log && \
     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml \
