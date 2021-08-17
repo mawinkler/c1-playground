@@ -64,7 +64,7 @@ function pullpush {
 function scan {
   if [ "${OS}" == 'Darwin' ]; then
     REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                    -o jsonpath='{.spec.clusterIP}')
+                    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
     printf '%s\n' "Cluster registry is on ${REG_HOST}:${REG_PORT}"
   fi

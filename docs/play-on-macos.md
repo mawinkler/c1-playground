@@ -11,6 +11,8 @@
 
 ## Cluster Registry
 
+Ensure to have run `up.sh` and `deploy-registry.sh`.
+
 ```sh
 # pull hello-app:1.0 from Google and push it to the cluster registry
 # verify w/ curl
@@ -24,7 +26,7 @@ REGISTRY_IP=$(kubectl get svc -n ${REGISTRY_NAMESPACE} ${REGISTRY_NAME} \
 REGISTRY_HOST_INGRESS="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
 REGISTRY_PORT_INGRESS=443 # ingress
 
-echo ${REGISTRY_PASSWORD} | docker login https://${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS} --username ${REGISTRY_USERNAME} --password-stdin
+echo ${REGISTRY_PASSWORD} | docker login ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS} --username ${REGISTRY_USERNAME} --password-stdin
 
 docker pull gcr.io/google-samples/hello-app:1.0
 docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
@@ -129,8 +131,6 @@ Hostname: hello-server-6488746978-vvtdx
 
 ## Create a Deployment on Kubernetes - Echo Server #2
 
-***CONTINUE ADAPTING TO MACOS HERE***
-
 ```sh
 # instant deployment and scale an echo-server
 kubectl create deployment echo --image=inanimate/echo-server
@@ -140,6 +140,34 @@ kubectl expose deployment echo --port=8080 --type LoadBalancer
 
 echo Try: curl $(kubectl --namespace default get svc echo \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
+```
+
+Now, we need to prepare our ingress. For this add `echo` to your `/etc/hosts`-file as before. Then create the ingress:
+
+```sh
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+  name: echo
+spec:
+  rules:
+    - host: echo
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: echo
+              port:
+                number: 8080              
+EOF
+
+echo Try: curl echo
 ```
 
 ## Play with Container Security Admission Control
@@ -156,10 +184,10 @@ kubectl -n container-security get pods
 ```
 
 ```sh
-NAME                                               READY   STATUS             RESTARTS   AGE
-trendmicro-admission-controller-67bd7d947c-xk275   1/1     Running        0          2d18h
-trendmicro-oversight-controller-c7ff9954b-qzfnk    2/2     Running        0          2d18h
-trendmicro-usage-controller-678b76fc4b-vgrsb       2/2     Running        0          2d18h
+NAME                                              READY   STATUS    RESTARTS   AGE
+trendmicro-admission-controller-d98785b5c-9cfj6   1/1     Running   0          67s
+trendmicro-oversight-controller-8cb9ffc65-tv7zv   2/2     Running   0          67s
+trendmicro-usage-controller-668d8b84bc-6jhsl      2/2     Running   0          67s
 ```
 
 What you've now got is running instances of the admission-, oversight- and usage-controllers within the namespace container-security. The admission controller is already bound to your Smart Check instance whereby a pretty scrict policy is asssigned.
@@ -249,7 +277,7 @@ Modify the line `spec.templates.spec.containers.image` to point to the internal 
 Now, we need to create an image pull secret within the nginx namespace, if it does not already exists from the previous tests
 
 ```sh
-kubectl create secret docker-registry regcred --docker-server=${REGISTRY_HOST}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com --namespace nginx
+kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com --namespace nginx
 ```
 
 Finally, create the deployment
@@ -280,12 +308,39 @@ kubectl -n nginx get service
 ```
 
 ```sh
-NAME    TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
-nginx   LoadBalancer   10.96.194.46   172.18.255.10   80:32168/TCP   79s
+NAME    TYPE           CLUSTER-IP    EXTERNAL-IP    PORT(S)        AGE
+nginx   LoadBalancer   10.96.90.85   172.18.255.3   80:30675/TCP   5s
+```
+
+Now, our ingress again... (don't forget the `hosts`-file)
+
+```sh
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+  name: nginx
+  namespace: nginx
+spec:
+  rules:
+    - host: nginx
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: nginx
+              port:
+                number: 80              
+EOF
 ```
 
 ```sh
-curl 172.18.255.10
+curl nginx
 ```
 
 Your should get some html in return.
@@ -310,7 +365,7 @@ Then, go to the deployment section and set
 
 ***Block images with vulnerabilities whose severity is high or higher***
 
-After less or equal than five minutes, container security should have created an isolating network policy which you can display with
+After typically less or equal five minutes, container security should have created an isolating network policy which you can display with
 
 ```sh
 kubectl -n nginx get networkpolicies
@@ -351,7 +406,7 @@ An "empty" Ingress / Egress definition basically isolates the resource.
 If you now repeat the previous curl
 
 ```sh
-curl 172.18.255.10
+curl nginx
 ```
 
 It should time out.
