@@ -11,3 +11,5 @@ audit/audit-webhook.yaml
 overrides-falco.yaml
 additional_rules.yaml
 services
+busybox.yaml
+nginx.yaml

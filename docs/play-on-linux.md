@@ -281,7 +281,7 @@ Then, go to the deployment section and set
 
 ***Block images with vulnerabilities whose severity is high or higher***
 
-After less or equal than five minutes, container security should have created an isolating network policy which you can display with
+After typically less or equal five minutes, container security should have created an isolating network policy which you can display with
 
 ```sh
 kubectl -n nginx get networkpolicies
