@@ -86,7 +86,7 @@ Then, go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`
 
 - Select Create Cloud9 environment
 - Give it a name
-- Choose “m5.large” or better for instance type and
+- Choose “t3.xlarge” or better for instance type and
 - Ubuntu Server 18.04 LTS as the platform.
 - For the rest take all default values and click Create environment
 

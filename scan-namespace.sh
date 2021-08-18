@@ -5,5 +5,4 @@
 kubectl get pods -o jsonpath="{..image}" | \
   tr -s "[[:space:]]" "\n" | \
   sort -u | \
-  tr -s ":" " " | \
-  xargs -L 1 ./scan-image.sh
+  xargs -L 1 -t /bin/bash ./scan-image.sh
