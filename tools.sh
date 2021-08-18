@@ -61,7 +61,7 @@ if ! command -v kustomize &>/dev/null; then
   if [ "${OS}" == 'Linux' ]; then
     printf '%s\n' "installing kustomize on linux"
     curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && \
-      sudo mv ~/kustomize /usr/local/bin
+      sudo mv ./kustomize /usr/local/bin
   fi
   if [ "${OS}" == 'Darwin' ]; then
     printf '%s\n' "installing kustomize on darwin"
