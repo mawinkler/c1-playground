@@ -9,9 +9,9 @@
   - [Namespace Exclusions](#namespace-exclusions)
   - [Explore](#explore)
 
-## Cluster Registry
+Ensure to have run `up.sh` and `deploy-registry.sh` according to the [README.md](../README.md). If you already deployed additional components, please restart from scratch (`down.sh`, `up.sh`, `deploy-registry.sh`).
 
-Ensure to have run `up.sh` and `deploy-registry.sh`.
+## Cluster Registry
 
 ```sh
 # pull hello-app:1.0 from Google and push it to the cluster registry

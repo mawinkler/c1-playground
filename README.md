@@ -418,7 +418,16 @@ Example:
 <details>
 <summary>Cloud9</summary>
 
-See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
+See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9), but use the `proxy_listen_port`s configured in your config.json (default: 8080 (grafana) and 8081 (prometheus)) and choose Source Anywhere. Don't forget to check your inbound rules to allow these ports.
+
+Alternatively, you can get the configured port for the service with `cat services`.
+
+Access to the services should then be possible with the public ip of your Cloud9 instance with your configured port(s).
+
+Example:
+
+- Grafana: <http://YOUR-CLOUD9-PUBLIC-IP:8080>
+- Prometheus: <http://YOUR-CLOUD9-PUBLIC-IP:8081>
 
 </details>
 
@@ -571,7 +580,15 @@ Example:
 <details>
 <summary>Cloud9</summary>
 
-See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9)
+See: [Access Smart Check (Cloud9)](#access-smart-check-cloud9), but use the `proxy_listen_port`s configured in your config.json (default: 8082) and choose Source Anywhere. Don't forget to check your inbound rules to allow the port.
+
+Alternatively, you can get the configured port for the service with `cat services`.
+
+Access to the services should then be possible with the public ip of your Cloud9 instance with your configured port(s).
+
+Examle
+
+- Falco UI: <http://YOUR-CLOUD9-PUBLIC-IP:8082/ui/#/>
 
 </details>
 
