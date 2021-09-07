@@ -13,7 +13,7 @@ function create_namespace {
   printf '%s' "Create container security namespace"
 
   echo "---" >>up.log
-  # create service
+  # create namespace
   cat <<EOF | kubectl apply -f - -o yaml | cat >>up.log
 apiVersion: v1
 kind: Namespace

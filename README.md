@@ -20,6 +20,8 @@
   - [Add-On: Starboard](#add-on-starboard)
   - [Add-On: Open Policy Agent](#add-on-open-policy-agent)
     - [Example Policy: Registry Whitelisting](#example-policy-registry-whitelisting)
+  - [Add-On: Gatekeeper](#add-on-gatekeeper)
+    - [Example Policy: Namespace Label Mandates](#example-policy-namespace-label-mandates)
   - [Play with the Playground](#play-with-the-playground)
 
 Ultra fast and slim kubernetes playground.
@@ -33,6 +35,7 @@ Currently, the following services are integrated:
   - Smart Check
   - Deployment Admission Control, Continuous Compliance
 - Open Policy Agent
+- Gatekeeper
 
 ## Requirements
 
@@ -647,6 +650,8 @@ kubectl describe vulnerabilityreport -n kube-system daemonset-kindnet-kindnet-cn
 
 The Open Policy Agent (OPA, pronounced “oh-pa”) is an open source, general-purpose policy engine that unifies policy enforcement across the stack. OPA provides a high-level declarative language that lets you specify policy as code and simple APIs to offload policy decision-making from your software. You can use OPA to enforce policies in microservices, Kubernetes, CI/CD pipelines, API gateways, and more.
 
+You don’t have to write policies on your own at the beginning of your journey, OPA and Gatekeeper both have excellent community libraries. You can have a look, fork them, and use them in your organization from here, [OPA](https://github.com/open-policy-agent/library), and [Gatekeeper](https://github.com/open-policy-agent/gatekeeper-library) libraries.
+
 ### Example Policy: Registry Whitelisting
 
 ```sh
@@ -682,6 +687,70 @@ There should be something like
 
 ```json
 "message": "Error creating: admission webhook \"validating-webhook.openpolicyagent.org\" denied the request: Image is not from our trusted cluster registry: inanimate/echo-server",
+```
+
+## Add-On: Gatekeeper
+
+Gatekeeper is a customizable admission webhook for Kubernetes that dynamically enforces policies executed by the OPA. Gatekeeper uses CustomResourceDefinitions internally and allows us to define ConstraintTemplates and Constraints to enforce policies on Kubernetes resources such as Pods, Deployments, Jobs.
+
+OPA/Gatekeeper uses its own declarative language called Rego, a query language. You define rules in Rego which, if invalid or returned a false expression, will trigger a constraint violation and blocks the ongoing process of creating/updating/deleting the resource.
+
+***ConstraintTemplate***
+
+A ConstraintTemplate consists of both the Rego logic that enforces the Constraint and the schema for the Constraint, which includes the schema of the CRD and the parameters that can be passed into a Constraint.
+
+***Constraint***
+
+Constraint is an object that says on which resources are the policies applicable, and also what parameters are to be queried and checked to see if they are available in the resource manifest the user is trying to apply in your Kubernetes cluster. Simply put, it is a declaration that its author wants the system to meet a given set of requirements.
+
+### Example Policy: Namespace Label Mandates
+
+There is an example within the gatekeeper directory which you can apply by doing
+
+```sh
+kubectl apply -f gatekeeper/constrainttemplate.yaml
+kubectl apply -f gatekeeper/constraints.yaml
+```
+
+From now on, any new namespace being created requires labels set for `stage`, `status` and `zone`.
+
+To test it, run
+
+```sh
+kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f -
+```
+
+```sh
+Error from server ([label-check] 
+
+DENIED. 
+Reason: Our org policy mandates the following labels: 
+You must provide these labels: {"stage", "status", "zone"}): error when creating "STDIN": admission webhook "validation.gatekeeper.sh" denied the request: [label-check] 
+
+DENIED. 
+Reason: Our org policy mandates the following labels: 
+You must provide these labels: {"stage", "status", "zone"}
+```
+
+A valid namespace definition could look like the following:
+
+```sh
+cat <<EOF | kubectl apply -f - -o yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx
+  labels:
+    zone: eu-central-1
+    stage: dev
+    status: ready
+EOF
+```
+
+A subsequent nginx deployment can be done via:
+
+```sh
+kubectl create deployment --image=nginx --namespace nginx nginx
 ```
 
 ## Play with the Playground

@@ -78,6 +78,10 @@
             "namespace": "kube-system"
         },
         {
+            "name": "gatekeeper",
+            "namespace": "gatekeeper-system"
+        },
+        {
             "name": "cadvisor",
             "namespace": "cadvisor"
         },
