@@ -10,7 +10,6 @@ for NAMESPACE in $(cat config.json | jq -r '.services[].namespace'); do
       kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
       kubectl label namespace ${NAMESPACE} --overwrite network=green
       kubectl label namespace ${NAMESPACE} --overwrite openpolicyagent.org/webhook=ignore
-      kubectl label namespace ${NAMESPACE} --overwrite admission.gatekeeper.sh/ignore=ignore
     fi
   fi
 done

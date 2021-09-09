@@ -12,6 +12,15 @@ spec:
     - kube-public
     - kube-node-lease
     - gatekeeper-system
+
+    - registry
+    - prometheus
+    - falco
+    - smartcheck
+    - container-security
+    - trivy
+    - opa
+    - cadvisor
   parameters:
     labels:
       - "zone"

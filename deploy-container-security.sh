@@ -188,7 +188,7 @@ function create_cluster_object {
       \"name\": \"${CLUSTER_NAME//-/_}\",
       \"description\": \"Playground Cluster\",
       \"policyID\": \"${CS_POLICYID}\",
-      \"runtimeEnabled\": false
+      \"runtimeEnabled\": true
     }"
   )
 
@@ -204,14 +204,24 @@ function deploy_container_security {
 
   cat <<EOF >overrides/overrides-container-security.yml
 cloudOne:
-  admissionController:
-    apiKey: ${API_KEY_ADMISSION_CONTROLLER}
+  apiKey: ${API_KEY_ADMISSION_CONTROLLER}
+  endpoint: https://container.us-1.cloudone.trendmicro.com
   runtimeSecurity:
-    enabled: false
-    apiKey: ${AP_KEY}
-    secret: ${AP_SECRET}
+    enabled: true
+  admissionController:
+    enabled: true
+    validationNamespaceSelector:
+      matchExpressions:
+      - key: ignoreAdmissionControl
+        operator: DoesNotExist
+    enableKubeSystem: false
+    failurePolicy: Ignore
   oversight:
+    enabled: true
     syncPeriod: 600s
+    enableNetworkPolicyCreation: true
+  runtimeSecurity:
+    enabled: true
 EOF
 
   helm upgrade \

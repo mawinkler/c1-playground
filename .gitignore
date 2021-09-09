@@ -13,3 +13,4 @@ additional_rules.yaml
 services
 busybox.yaml
 nginx.yaml
+additional_rules.sh
