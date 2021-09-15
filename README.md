@@ -573,6 +573,8 @@ You're now on the control plane of the cluster and should be kubernetes-admin.
 If you're wondering what you can do now...
 
 ```sh
+mkdir -p /root/.kube
+cp /etc/kubernetes/admin.conf /root/.kube/config
 kubectl auth can-i create deployments -n kube-system
 ```
 
