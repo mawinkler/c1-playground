@@ -1,7 +1,9 @@
 # Playground
 
 - [Playground](#playground)
-  - [Requirements](#requirements)
+  - [Requirements and Support Matrix](#requirements-and-support-matrix)
+    - [Suport Matrix](#suport-matrix)
+    - [Tools Installation](#tools-installation)
   - [Configure](#configure)
   - [Start](#start)
   - [Tear Down](#tear-down)
@@ -37,11 +39,34 @@ Currently, the following services are integrated:
 - Open Policy Agent
 - Gatekeeper
 
-## Requirements
+## Requirements and Support Matrix
 
-***Tested on Ubuntu Bionic+, MacOS 10+ in progress***
+> Note: The Playgound is designed to work on this operating systems
+>
+> - Ubuntu Bionic and newer
+> - Cloud9 with Ubuntu
+> - MacOS 10+
+>
+> Besides the cluster life-cycle scripts `up` and `down`, the deployment scripts are supporting the following managed cluster types:
+>
+> - GKE
+> - (EKS)
+> - (AKS)
 
-In all of the three possible environments you're going to run a script called `tools.sh`. This will ensure you have the latest versions of
+### Suport Matrix
+
+Operating System | Cluster Type | Registry | Container Security Admission & Continuous | Container Security Runtime | Falco | Gatekeeper | OPA | Prometheus | Starboard 
+---------------- | ------------ | -------- | ----------------------------------------- | ---------------------------| ----- | ---------- | --- | ---------- | ---------
+Ubuntu | Playground | X | X |  | X | X | X | X
+Ubuntu | GKE | X | X | X | (X) | (X) | (X) | X
+Ubuntu | (EKS) | (X) | (X) | (X) | (X) | (X) | (X) | (X)
+Ubuntu | (Azure) | (X) | (X) | (X) | (X) | (X) | (X) | (X)
+Cloud9 w/ Ubuntu | Playground | X | X |  | X | X | X | X
+MacOS | Playground | X | X |  |  | X | X | X
+
+### Tools Installation
+
+In all of these possible environments you're going to run a script called `tools.sh`. This will ensure you have the latest versions of
 
 - `brew` (MacOS only),
 - `docker` or `Docker for Mac`.
@@ -469,7 +494,7 @@ Falco is integrated with Prometheus and Grafana as well. A Dashboard is availabl
 
 ![alt text](images/falco-grafana.png "Grafana Dashboard")
 
-If you want to test out own falco rules, create a file called `additional_rules.yaml` write your rules. It will be included when running `deploy-falco.sh`.
+If you want to test out own falco rules, create a file called `falco/additional_rules.yaml` write your rules. It will be included when running `deploy-falco.sh`.
 
 Example:
 

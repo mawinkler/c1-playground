@@ -4,6 +4,8 @@ set -o errexit
 OS="$(uname)"
 
 # essential packages
+# AMAZON LINUX
+# sudo yum install -y jq apt-transport-https gnupg2 curl nginx
 if [ "${OS}" == 'Linux' ]; then
   printf '%s\n' "installing essential packages on linux"
   sudo apt update && \
@@ -40,6 +42,23 @@ else
 fi
 
 # kubectl
+# AMAZON LINUX
+# cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+# [kubernetes]
+# name=Kubernetes
+# baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+# enabled=1
+# gpgcheck=1
+# repo_gpgcheck=1
+# gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+# EOF
+# yum install -y kubectl
+# OR
+# curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+# chmod +x ./kubectl
+# mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+# echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+
 if ! command -v kubectl &>/dev/null; then
   if [ "${OS}" == 'Linux' ]; then
     printf '%s\n' "installing kubectl on linux"

@@ -149,11 +149,14 @@ whitelist_namespaces
 if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
   deploy_prometheus
-  ./deploy-proxy.sh prometheus
-  ./deploy-proxy.sh grafana
-  HOST_IP=$(hostname -I | awk '{print $1}')
-  echo "Prometheus UI on: http://${HOST_IP}:${PROMETHEUS_LISTEN_PORT}" >> services
-  echo "Grafana UI on: http://${HOST_IP}:${GRAFANA_LISTEN_PORT} w/ admin/${GRAFANA_PASSWORD}" >> services
+    # test if we're using a managed kubernetes cluster on GCP(, AWS or Azure)
+  if [[ ! $(kubectl config current-context) =~ "gke_".* ]]; then
+    ./deploy-proxy.sh prometheus
+    ./deploy-proxy.sh grafana
+    HOST_IP=$(hostname -I | awk '{print $1}')
+    echo "Prometheus UI on: http://${HOST_IP}:${PROMETHEUS_LISTEN_PORT}" >> services
+    echo "Grafana UI on: http://${HOST_IP}:${GRAFANA_LISTEN_PORT} w/ admin/${GRAFANA_PASSWORD}" >> services
+  fi
 fi
 
 if [ "${OS}" == 'Darwin' ]; then

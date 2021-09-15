@@ -70,79 +70,20 @@ EOF
 
   cat <<EOF > overrides/custom-rules.yaml
 customRules:
-  rules-networking.yaml: |-
-    # # Creates a macro outbound_corp that deals with any outbound connection
-    # # Creates a list k8s_not_monitored with values blue and green
-    # # Creates a rule that verifies:
-    # # - If it’s an outbound traffic defined in macro outbound_corp
-    # # - AND If the field k8s.ns.name is defined (which means it’s being executed
-    # #   inside Kubernetes)
-    # # - AND if the namespace containing the Pod does not have a label network
-    # #   containing any of the values in list k8s_not_monitored. If it does, the
-    # #   traffic wont be monitored
-    # # Whitelist a namespace by:
-    # # kubectl label ns falco --overwrite network=green (or blue)
-    # - macro: outbound_corp
-    #   condition: >
-    #     (((evt.type = connect and evt.dir=<) or
-    #       (evt.type in (sendto,sendmsg) and evt.dir=< and
-    #        fd.l4proto != tcp and fd.connected=false and fd.name_changed=true)) and
-    #      (fd.typechar = 4 or fd.typechar = 6) and
-    #      (fd.ip != "0.0.0.0" and fd.net != "127.0.0.0/8") and
-    #      (evt.rawres >= 0 or evt.res = EINPROGRESS))
-
-    # - list: k8s_not_monitored
-    #   items: ['"green"', '"blue"']
-
-    # - rule: Kubernetes Outbound Connection
-    #   desc: A pod in namespace attempted to connect to the outer world
-    #   condition: outbound_corp and k8s.ns.name != "" and not k8s.ns.label.network in (k8s_not_monitored)
-    #   output: "Outbound network traffic connection from a Pod: (pod=%k8s.pod.name namespace=%k8s.ns.name srcip=%fd.cip dstip=%fd.sip dstport=%fd.sport proto=%fd.l4proto procname=%proc.name)"
-    #   priority: WARNING
-    
-    # Here, I'm modifying the health_endpoints which is used for the "Anonymous Request Allowed"
-    # rule, required for CIS Benchmark 1.1.1.
-    # By default, Falco sets the endpoint to 'healthz' only which causes to many events for
-    # this playground
-    - macro: health_endpoint
-      condition: ka.uri=/healthz or ka.uri=/readyz or ka.uri=/livez
-
-    # We create an event, if someone runs whoami within a container
-    - rule: The Program "whoami" is run in a Container
-      desc: An event will trigger every time you run "whoami" in a container
-      condition: evt.type = execve and evt.dir=< and container.id != host and proc.name = whoami
-      output: "Whoami command run in container (user=%user.name %container.info parent=%proc.pname cmdline=%proc.cmdline)"
-      priority: WARNING
-
-    # # We create an event, if someone runs locate within a container
-    # - rule: The Program "locate" is run in a Container
-    #   desc: An event will trigger every time you run "locate" in a container
-    #   condition: evt.type = execve and evt.dir=< and container.id != host and proc.name = locate
-    #   output: "Locate command run in container (user=%user.name %container.info parent=%proc.pname cmdline=%proc.cmdline)"
-    #   priority: WARNING
-
-    # # kshell
-    # # To easily run kshell, you can set an alias to
-    # # alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --rm -- /bin/bash'
-    # # kshell will spawn an ubuntu based bash in the current namespace
-    # - macro: app_kshell
-    #   condition: k8s.pod.name contains "kshell" and container.image contains "ubuntu"
-
-    # - list: kshell_allowed_processes
-    #   items: [ curl, apt, grep, sort, sed, dpkg, dpkg-deb, tar ]
-
-    # - rule: Unexpected Spawned Process kshell
-    #   desc: Detect a process started in a kshell container outside of an expected set
-    #   condition: spawned_process and not proc.name in (kshell_allowed_processes) and app_kshell
-    #   output: Unexpected process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
-    #   priority: NOTICE
 EOF
 
-  # If there is a file called `additional_rules.yaml`, we append it to the custom-rules.yaml
-  if [ -f "additional_rules.yaml" ]; then
+  # If there is a file called `falco/playground_rules.yaml`, we append it to the custom-rules.yaml
+  if [ -f "falco/playground_rules.yaml" ]; then
+    printf '%s\n' "Playground rules file found"
+    echo "  a_playground_rules.yaml: |-" >> overrides/custom-rules.yaml
+    cat falco/playground_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+  fi
+
+  # If there is a file called `falco/additional_rules.yaml`, we append it to the custom-rules.yaml
+  if [ -f "falco/additional_rules.yaml" ]; then
     printf '%s\n' "Additional rules file found"
-    echo "  additional_rules.yaml: |-" >> overrides/custom-rules.yaml
-    cat additional_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+    echo "  z_additional_rules.yaml: |-" >> overrides/custom-rules.yaml
+    cat falco/additional_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
   fi
 
   # helm delete falco && kubectl delete svc falco-np && rm /tmp/passthrough.conf && sleep 2 && ./deploy-falco.sh 
@@ -217,9 +158,12 @@ whitelist_namsspace
 deploy_falco
 
 if [ "${OS}" == 'Linux' ]; then
-  ./deploy-proxy.sh falco
-  HOST_IP=$(hostname -I | awk '{print $1}')
-  echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" >> services
+  # test if we're using a managed kubernetes cluster on GCP(, AWS or Azure)
+  if [[ ! $(kubectl config current-context) =~ "gke_".* ]]; then
+    ./deploy-proxy.sh falco
+    HOST_IP=$(hostname -I | awk '{print $1}')
+    echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" >> services
+  fi
 fi
 if [ "${OS}" == 'Darwin' ]; then
   create_ingress

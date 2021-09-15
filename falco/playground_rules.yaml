@@ -1,0 +1,150 @@
+#
+# Here, I'm modifying the health_endpoints which is used for the "Anonymous Request Allowed"
+# rule, required for CIS Benchmark 1.1.1.
+# By default, Falco sets the endpoint to 'healthz' only which causes to many events for
+# this playground
+- macro: health_endpoint
+  condition: ka.uri=/healthz or ka.uri=/readyz or ka.uri=/livez
+
+# 
+# Creates a macro outbound_corp that deals with any outbound connection
+# Creates a list k8s_not_monitored with values blue and green
+# Creates a rule that verifies:
+# - If it’s an outbound traffic defined in macro outbound_corp
+# - AND If the field k8s.ns.name is defined (which means it’s being executed
+#   inside Kubernetes)
+# - AND if the namespace containing the Pod does not have a label network
+#   containing any of the values in list k8s_not_monitored. If it does, the
+#   traffic wont be monitored
+# Whitelist a namespace by:
+# kubectl label ns falco --overwrite network=green (or blue)
+- macro: outbound_corp
+  condition: >
+    (((evt.type = connect and evt.dir=<) or
+      (evt.type in (sendto,sendmsg) and evt.dir=< and
+       fd.l4proto != tcp and fd.connected=false and fd.name_changed=true)) and
+     (fd.typechar = 4 or fd.typechar = 6) and
+     (fd.ip != "0.0.0.0" and fd.net != "127.0.0.0/8") and
+     (evt.rawres >= 0 or evt.res = EINPROGRESS))
+
+- list: k8s_not_monitored
+  items: ['"green"', '"blue"']
+
+- rule: (Playground) Kubernetes Outbound Connection
+  desc: A pod in namespace attempted to connect to the outer world
+  condition: outbound_corp and k8s.ns.name != "" and not k8s.ns.label.network in (k8s_not_monitored)
+  output: "Outbound network traffic connection from a Pod: (pod=%k8s.pod.name namespace=%k8s.ns.name srcip=%fd.cip dstip=%fd.sip dstport=%fd.sport proto=%fd.l4proto procname=%proc.name)"
+  priority: WARNING
+
+#
+# To easily run kshell, you can set an alias to
+# alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --rm -- /bin/bash'
+# kshell will spawn an ubuntu based bash in the current namespace
+# apt update is allowed in this container!
+- macro: app_kshell
+  condition: k8s.pod.name contains "kshell" and container.image contains "ubuntu"
+
+- list: kshell_allowed_processes
+  items: [ curl, apt, apt-config, cat, cmp, grep, sort, sed, dpkg, dpkg-deb, tar, rm, gpgv,
+    touch, find, mktemp, readlink, chmod, store, cp, sh, apt-key, http, wc, basename, test,
+    ln, chown, stat, ca-certificates ]
+
+- rule: (Playground) Unexpected Spawned Process in kshell
+  desc: Detect a process started in a kshell container outside of an expected set
+  condition: spawned_process and not proc.name in (kshell_allowed_processes) and app_kshell
+  output: Unexpected process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
+  priority: NOTICE
+
+#
+# We create an event, if someone runs an information gathering tool within a container
+- list: information_gathering_tools
+  items:
+    [
+      whoami,
+      nmap,
+      racoon,
+    ]
+
+- rule: (Playground) Information gathering detected
+  desc: An information gathering tool is run in a Container
+  condition: evt.type = execve and evt.dir=< and container.id != host and proc.name in (information_gathering_tools)
+  output: "Information gathering tool run in container (user=%user.name %container.info parent=%proc.pname cmdline=%proc.cmdline)"
+  priority: WARNING
+
+#
+# Disable default rule
+- rule: Terminal shell in container
+  desc: A shell was used as the entrypoint/exec point into a container with an attached terminal.
+  condition: >
+    spawned_process and container
+    and shell_procs and proc.tty != 0
+    and container_entrypoint
+    and not user_expected_terminal_shell_in_container_conditions
+  output: >
+    A shell was spawned in a container with an attached terminal (user=%user.name user_loginuid=%user.loginuid %container.info
+    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id image=%container.image.repository)
+  priority: NOTICE
+  tags: [container, shell, mitre_execution]
+  enabled: false
+
+#
+# Disable default rule
+- rule: Attach/Exec Pod
+  desc: >
+    Detect any attempt to attach/exec to a pod
+  condition: kevt_started and pod_subresource and kcreate and ka.target.subresource in (exec,attach) and not user_known_exec_pod_activities
+  output: Attach/Exec to pod (user=%ka.user.name pod=%ka.target.name ns=%ka.target.namespace action=%ka.target.subresource command=%ka.uri.param[command])
+  priority: NOTICE
+  source: k8s_audit
+  tags: [k8s]
+  enabled: false
+
+#
+# Detect attach/exec with terminal shell as root or user
+- macro: is_user_shell
+  condition: (proc.vpid!=1 and user.uid!=0)
+
+- macro: is_root_shell
+  condition: (proc.vpid!=1 and user.uid=0)
+
+- rule: (Playground) Attach/Exec Pod with Terminal User shell in container
+  desc: A shell was created inside an unprivileged container with an attached terminal.
+  condition: >
+    spawned_process and container
+    and shell_procs and proc.tty != 0
+    and is_user_shell
+  output: >
+    A shell was spawned in a container with an attached terminal (user=%user.name user_loginuid=%user.loginuid %container.info
+    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id image=%container.image.repository)
+  priority: WARNING
+  tags: [container, shell, mitre_execution]
+  enabled: true
+
+- rule: (Playground) Attach/Exec Pod with Terminal Root shell in container
+  desc: A shell was created inside a container which runs as root user with an attached terminal.
+  condition: >
+    spawned_process and container
+    and shell_procs and proc.tty != 0
+    and is_root_shell
+  output: >
+    A shell with root privileges was spawned in a container running as root with an attached terminal (user=%user.name user_loginuid=%user.loginuid %container.info
+    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id image=%container.image.repository)
+  priority: WARNING
+  tags: [container, shell, mitre_execution]
+  enabled: true
+
+#
+# Detect container run as root user
+- macro: is_root_startup
+  condition: (proc.vpid=1 and user.uid=0)
+
+- rule: (Playground) Container Run as Root User
+  desc: Detected container running as root user
+  condition: >
+    spawned_process and container
+    and is_root_startup
+    and not user_known_run_as_root_container and not user_known_run_as_root_container
+  output: Container launched with root user privilege (uid=%user.uid container_id=%container.id container_name=%container.name image=%container.image.repository:%container.image.tag)
+  priority: WARNING
+  tags: [container, process]
+  enabled: true
