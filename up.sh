@@ -86,9 +86,10 @@ kubeadmConfigPatches:
   kind: ClusterConfiguration
   apiServer:
     extraArgs:
-      # audit-log-max-backups: "1"
-      # audit-log-max-size: "10"
       audit-log-path: "/var/log/k8s-audit.log"
+      audit-log-maxage: "3"
+      audit-log-maxbackup: "1"
+      audit-log-maxsize: "10"
       audit-policy-file: "/var/lib/k8s-audit/audit-policy.yaml"
       # audit-webhook-batch-max-wait: "5s"
       audit-webhook-config-file: "/var/lib/k8s-audit/audit-webhook.yaml"
