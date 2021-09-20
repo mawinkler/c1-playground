@@ -2,18 +2,82 @@
 
 - [Play with Falco & Container Security](#play-with-falco--container-security)
   - [Plays for Falco](#plays-for-falco)
-    - [Trigger: (Playground) Attach/Exec Pod with Terminal User shell in container](#trigger-playground-attachexec-pod-with-terminal-user-shell-in-container)
-    - [Trigger: (Playground) Attach/Exec Pod with Terminal Root shell in container](#trigger-playground-attachexec-pod-with-terminal-root-shell-in-container)
-    - [Trigger: (Playground) Container Run as Root User](#trigger-playground-container-run-as-root-user)
-    - [Trigger: (Playground) Information gathering detected](#trigger-playground-information-gathering-detected)
-    - [Trigger: (Playground) Unexpected Spawned Process in kshell](#trigger-playground-unexpected-spawned-process-in-kshell)
-    - [Trigger: (Playground) Kubernetes Outbound Connection](#trigger-playground-kubernetes-outbound-connection)
+    - [Networking](#networking)
+      - [(PG-NET) Kubernetes Outbound Connection](#pg-net-kubernetes-outbound-connection)
+    - [KShell](#kshell)
+      - [(PG-KSHELL) Process started in kshell container](#pg-kshell-process-started-in-kshell-container)
+      - [(PG-KSHELL) File or directory created in kshell container](#pg-kshell-file-or-directory-created-in-kshell-container)
+    - [Dangerous Things](#dangerous-things)
+      - [(PG-IG) Information gathering detected](#pg-ig-information-gathering-detected)
+      - [(PG-SHELL) Attach/Exec Pod with Terminal User shell in container](#pg-shell-attachexec-pod-with-terminal-user-shell-in-container)
+      - [(PG-SHELL) Attach/Exec Pod with Terminal Root shell in container](#pg-shell-attachexec-pod-with-terminal-root-shell-in-container)
+      - [(PG-ROOT) Container Run as Root User](#pg-root-container-run-as-root-user)
+    - [Integrity Monitoring in Containers](#integrity-monitoring-in-containers)
+      - [(PG-IMC) Detect New File](#pg-imc-detect-new-file)
+      - [(PG-IMC) Detect New Directory](#pg-imc-detect-new-directory)
+      - [(PG-IMC) Detect File Permission or Ownership Change](#pg-imc-detect-file-permission-or-ownership-change)
+      - [(PG-IMC) Detect Directory Change](#pg-imc-detect-directory-change)
+    - [Integrity Monitoring on Host and Containers](#integrity-monitoring-on-host-and-containers)
+      - [(PG-IM) Kernel Module Modification](#pg-im-kernel-module-modification)
+      - [(PG-IM) Node Created in Filesystem](#pg-im-node-created-in-filesystem)
+      - [(PG-IM) Listen on New Port](#pg-im-listen-on-new-port)
+    - [Admin Activities](#admin-activities)
+      - [(PG-ADM) Detect su or sudo](#pg-adm-detect-su-or-sudo)
+      - [(PG-ADM) Package Management Launched](#pg-adm-package-management-launched)
+    - [SSH](#ssh)
+      - [(PG-SSH) Inbound SSH Connection](#pg-ssh-inbound-ssh-connection)
+      - [(PG-SSH) Outbound SSH Connection](#pg-ssh-outbound-ssh-connection)
+    - [Miscellanious](#miscellanious)
+      - [(PG-KUBECTL) K8s Vulnerable Kubectl Copy](#pg-kubectl-k8s-vulnerable-kubectl-copy)
 
 ## Plays for Falco
 
 These examples are based on the default Falco ruleset and the additional rules provided by the playground.
 
-### Trigger: (Playground) Attach/Exec Pod with Terminal User shell in container
+### Networking
+
+#### (PG-NET) Kubernetes Outbound Connection
+
+Triggers, if a container is initiating an outbound network communication via TCP or UDP.
+
+```sh
+kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
+root@nginx-6799fc88d8-n5tdd:/# curl www.google.com
+```
+
+### KShell
+
+#### (PG-KSHELL) Process started in kshell container
+
+Triggers, if any process is run in the kshell pod
+
+```sh
+kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash
+root@kshell:/# tail /var/log/bootstrap.log 
+```
+
+#### (PG-KSHELL) File or directory created in kshell container
+
+Triggers, if a file or directory is created in the kshell pod
+
+```sh
+kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash
+root@kshell:/# touch foo.txt
+root@kshell:/# mkdir bar
+```
+
+### Dangerous Things
+
+#### (PG-IG) Information gathering detected
+
+Triggers, if one of the named tools (whoami, nmap, racoon) is run inside a container.
+
+```sh
+kubectl run -it busybox --image busybox -- /bin/sh
+/ # whoami
+```
+
+#### (PG-SHELL) Attach/Exec Pod with Terminal User shell in container
 
 This rule triggers, if one attaches / executes a shell in a container not running as root.
 
@@ -42,7 +106,7 @@ and
 kubectl exec -it security-context-demo -- /bin/sh
 ```
 
-### Trigger: (Playground) Attach/Exec Pod with Terminal Root shell in container
+#### (PG-SHELL) Attach/Exec Pod with Terminal Root shell in container
 
 This rule triggers, if one attaches / executes a shell in a container not running as root.
 
@@ -58,7 +122,7 @@ and
 kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
 ```
 
-### Trigger: (Playground) Container Run as Root User
+#### (PG-ROOT) Container Run as Root User
 
 Rule triggers, if container is started running as root
 
@@ -66,29 +130,44 @@ Rule triggers, if container is started running as root
 kubectl run -it busybox --image busybox -- /bin/sh
 ```
 
-### Trigger: (Playground) Information gathering detected
+### Integrity Monitoring in Containers
 
-Triggers, if one of the named tools (whoami, nmap, racoon) is run inside a container.
+#### (PG-IMC) Detect New File
+
+#### (PG-IMC) Detect New Directory
+
+#### (PG-IMC) Detect File Permission or Ownership Change
+
+#### (PG-IMC) Detect Directory Change
+
+### Integrity Monitoring on Host and Containers
+
+#### (PG-IM) Kernel Module Modification
+#### (PG-IM) Node Created in Filesystem
+
+#### (PG-IM) Listen on New Port
+
+### Admin Activities
+
+#### (PG-ADM) Detect su or sudo
 
 ```sh
-kubectl run -it busybox --image busybox -- /bin/sh
-/ # whoami
+sudo su -
 ```
 
-### Trigger: (Playground) Unexpected Spawned Process in kshell
-
-Triggers, if any process not in the list `kshell_allowed_processes` is run.
+#### (PG-ADM) Package Management Launched
 
 ```sh
-kubectl run -it --image=ubuntu kshell --restart=Never --rm -- /bin/bash
-root@kshell:/# tail /var/log/bootstrap.log 
+sudo apt update
 ```
 
-### Trigger: (Playground) Kubernetes Outbound Connection
+### SSH
 
-Triggers, if a container is initiating an outbound network communication via TCP or UDP.
+#### (PG-SSH) Inbound SSH Connection
 
-```sh
-kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
-root@nginx-6799fc88d8-n5tdd:/# curl www.google.com
-```
+#### (PG-SSH) Outbound SSH Connection
+
+### Miscellanious
+
+#### (PG-KUBECTL) K8s Vulnerable Kubectl Copy
+

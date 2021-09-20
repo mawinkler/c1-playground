@@ -30,7 +30,7 @@
 - list: k8s_not_monitored
   items: ['"green"', '"blue"']
 
-- rule: (Playground) Kubernetes Outbound Connection
+- rule: (PG-NET) Kubernetes Outbound Connection
   desc: A pod in namespace attempted to connect to the outer world
   condition: outbound_corp and k8s.ns.name != "" and not k8s.ns.label.network in (k8s_not_monitored)
   output: "Outbound network traffic connection from a Pod: (pod=%k8s.pod.name namespace=%k8s.ns.name srcip=%fd.cip dstip=%fd.sip dstport=%fd.sport proto=%fd.l4proto procname=%proc.name)"
@@ -38,22 +38,34 @@
 
 #
 # To easily run kshell, you can set an alias to
-# alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --rm -- /bin/bash'
+# alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash'
 # kshell will spawn an ubuntu based bash in the current namespace
 # apt update is allowed in this container!
+- list: app_kshell_label
+  items: ['"kshell:true"']
+  
 - macro: app_kshell
-  condition: k8s.pod.name contains "kshell" and container.image contains "ubuntu"
+  condition: >
+    k8s.pod.name contains "kshell" 
+    and container.image contains "ubuntu"
+    and k8s.pod.labels in (app_kshell_label)
 
-- list: kshell_allowed_processes
-  items: [ curl, apt, apt-config, cat, cmp, grep, sort, sed, dpkg, dpkg-deb, tar, rm, gpgv,
-    touch, find, mktemp, readlink, chmod, store, cp, sh, apt-key, http, wc, basename, test,
-    ln, chown, stat, ca-certificates ]
+- rule: (PG-KSHELL) Process started in kshell container
+  desc: Detect a process started in kshell container
+  condition: >
+    spawned_process
+    and app_kshell
+  output: Process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
+  priority: DEBUG
 
-- rule: (Playground) Unexpected Spawned Process in kshell
-  desc: Detect a process started in a kshell container outside of an expected set
-  condition: spawned_process and not proc.name in (kshell_allowed_processes) and app_kshell
-  output: Unexpected process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
-  priority: NOTICE
+- rule: (PG-KSHELL) File or directory created in kshell container
+  desc: Detect a file or directory created in kshell container
+  condition: >
+    ((evt.type = chmod or evt.type = fchmod)
+    or mkdir)
+    and app_kshell
+  output: File or directory created in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
+  priority: DEBUG
 
 #
 # We create an event, if someone runs an information gathering tool within a container
@@ -65,7 +77,7 @@
       racoon,
     ]
 
-- rule: (Playground) Information gathering detected
+- rule: (PG-IG) Information gathering detected
   desc: An information gathering tool is run in a Container
   condition: evt.type = execve and evt.dir=< and container.id != host and proc.name in (information_gathering_tools)
   output: "Information gathering tool run in container (user=%user.name %container.info parent=%proc.pname cmdline=%proc.cmdline)"
@@ -107,7 +119,7 @@
 - macro: is_root_shell
   condition: (proc.vpid!=1 and user.uid=0)
 
-- rule: (Playground) Attach/Exec Pod with Terminal User shell in container
+- rule: (PG-SHELL) Attach/Exec Pod with Terminal User shell in container
   desc: A shell was created inside an unprivileged container with an attached terminal.
   condition: >
     spawned_process and container
@@ -120,7 +132,7 @@
   tags: [container, shell, mitre_execution]
   enabled: true
 
-- rule: (Playground) Attach/Exec Pod with Terminal Root shell in container
+- rule: (PG-SHELL) Attach/Exec Pod with Terminal Root shell in container
   desc: A shell was created inside a container which runs as root user with an attached terminal.
   condition: >
     spawned_process and container
@@ -138,7 +150,7 @@
 - macro: is_root_startup
   condition: (proc.vpid=1 and user.uid=0)
 
-- rule: (Playground) Container Run as Root User
+- rule: (PG-ROOT) Container Run as Root User
   desc: Detected container running as root user
   condition: >
     spawned_process and container
@@ -148,3 +160,161 @@
   priority: WARNING
   tags: [container, process]
   enabled: true
+
+# 
+# Integrity Monitoring in Container
+# Since the playground normally runs within kind we're not monitoring for
+# integrity events created by the kind node containers themselves
+- macro: is_kind
+  condition: container.image startswith "kindest/node:"
+
+- rule: (PG-IMC) Detect New File
+  desc: Detect new file created
+  condition: >
+    (evt.type = chmod or evt.type = fchmod)
+    and container
+    and not is_kind
+  output: >
+    File below a known directory opened for writing (user=%user.name
+    command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] image=%container.image)
+  priority: ERROR
+  tags: [filesystem]
+
+# This rule is pretty noisy. I'm pretty sure that this is because of the kubernetes audit logging
+# - rule: (PG-IMC) Detect New Directory
+#   desc: Detect new directory created
+#   condition: >
+#     mkdir
+#     and container
+#     and not is_kind
+#   output: >
+#     Directory created (user=%user.name
+#     command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] image=%container.image)
+#   priority: ERROR
+#   tags: [filesystem]
+
+- rule: (PG-IMC) Detect File Permission or Ownership Change
+  desc: Detect file permission/ownership change
+  condition: >
+    spawned_process
+    and proc.name in (chmod, chown) and proc.args contains "/tmp/"
+    and container
+    and not is_kind
+  output: >
+    File below a known directory has permission or ownership change (user=%user.name
+    command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] image=%container.image)
+  priority: WARNING
+  tags: [filesystem]
+
+- rule: (PG-IMC) Detect Directory Change
+  desc: Detect directories change
+  condition: >
+    spawned_process 
+    and proc.name in (mkdir, rmdir, mvdir, mv)
+    and container
+    and not is_kind
+  output: >
+    Directory Change in Filesystem (user=%user.name
+    command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] image=%container.image)
+  priority: WARNING
+  tags: [filesystem]
+
+# 
+# Integrity Monitoring on Host & Container
+- rule: (PG-IM) Kernel Module Modification
+  desc: detect kernel module change
+  condition: >
+    spawned_process and proc.name in (insmod, modprobe)
+  output: >
+    Kernel Module Change (user=%user.name
+    command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] result=%evt.res)
+  priority: WARNING
+  tags: [process]
+
+- rule: (PG-IM) Node Created in Filesystem
+  desc: detect node created in filesystem
+  condition: >
+    spawned_process and proc.name = mknod
+  output: >
+    Node Creation in Filesystem (user=%user.name
+    command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] result=%evt.res)
+  priority: WARNING
+  tags: [filesystem]
+
+- rule: (PG-IM) Listen on New Port
+  desc: Detection a new port is listening
+  condition:
+    evt.type = listen 
+  output: >
+    A new port is open to listen (port=%fd.sport ip=%fd.sip)
+  priority: WARNING
+  tags: [network]
+
+#
+# Admin Activities
+- rule: (PG-ADM) Detect su or sudo
+  desc: Detect sudo activities
+  condition:
+    spawned_process and proc.name in (sudo, su)
+  output: >
+    Detected sudo or su privilege escalation activity (user=%user.name command=%proc.cmdline)
+  priority: WARNING
+  tags: [process]
+
+- rule: (PG-ADM) Package Management Launched
+  desc: Detect package management launched
+  condition: >
+    spawned_process and user.name != "_apt" and package_mgmt_procs and not package_mgmt_ancestor_procs
+  output: >
+    Package management process launched in container (user=%user.name
+    command=%proc.cmdline container_id=%container.id container_name=%container.name image=%container.image.repository:%container.image.tag)
+  priority: ERROR
+  tags: [process]
+
+#
+# SSH Connections
+- rule: (PG-SSH) Inbound SSH Connection
+  desc: Detect Inbound SSH Connection
+  condition: >
+    ((evt.type in (accept,listen) and evt.dir=<) or
+      (evt.type in (recvfrom,recvmsg))) and ssh_port
+  output: >
+    Inbound SSH connection detected (user=%user.name client_ip=%fd.cip client_port=%fd.cport server_ip=%fd.sip)
+  priority: WARNING
+  tags: [network]
+
+- rule: (PG-SSH) Outbound SSH Connection
+  desc: Detect Outbound SSH Connection
+  condition: >
+    ((evt.type = connect and evt.dir=<) or
+      (evt.type in (sendto,sendmsg))) and ssh_port
+  output: >
+    Outbound SSH connection detected (user=%user.name server_ip=%fd.sip server_port=%fd.sport client_ip=%fd.cip)
+  priority: WARNING
+  tags: [network]
+
+#
+# kubectl
+- macro: safe_kubectl_version
+  condition: (jevt.value[/userAgent] startswith "kubectl/v1.19" or
+              jevt.value[/userAgent] startswith "kubectl/v1.18" or
+              jevt.value[/userAgent] startswith "kubectl/v1.17" or
+              jevt.value[/userAgent] startswith "kubectl/v1.16" or
+              jevt.value[/userAgent] startswith "kubectl/v1.15" or
+              jevt.value[/userAgent] startswith "kubectl/v1.14.3" or
+              jevt.value[/userAgent] startswith "kubectl/v1.14.2" or
+              jevt.value[/userAgent] startswith "kubectl/v1.13.7" or
+              jevt.value[/userAgent] startswith "kubectl/v1.13.6" or
+              jevt.value[/userAgent] startswith "kubectl/v1.12.9")
+
+# CVE-2019-11246
+# Run kubectl version --client and if it does not say client version 1.12.9, 1.13.6, or 1.14.2 or newer,  you are running a vulnerable version.
+- rule: (PG-KUBECTL) K8s Vulnerable Kubectl Copy
+  desc: Detect any attempt vulnerable kubectl copy in pod
+  condition: kevt_started and pod_subresource and kcreate and
+             ka.target.subresource = "exec" and ka.uri.param[command] = "tar" and
+             not safe_kubectl_version
+  output: Vulnerable kubectl copy detected (user=%ka.user.name pod=%ka.target.name ns=%ka.target.namespace action=%ka.target.subresource command=%ka.uri.param[command] userAgent=%jevt.value[/userAgent])
+  priority: WARNING
+  source: k8s_audit
+  tags: [k8s]
