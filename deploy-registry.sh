@@ -47,7 +47,7 @@ function create_auth_secret {
   printf '%s' "Create registry auth secret"
 
   mkdir -p auth
-  docker run --rm --entrypoint htpasswd registry:2.6.2 -Bbn ${REG_USERNAME} ${REG_PASSWORD} > auth/htpasswd
+  htpasswd -bBc auth/htpasswd ${REG_USERNAME} ${REG_PASSWORD}
   echo "---" >> up.log
   kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd \
     -o yaml | cat >> up.log
