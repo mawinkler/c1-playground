@@ -9,7 +9,7 @@ OS="$(uname)"
 if [ "${OS}" == 'Linux' ]; then
   printf '%s\n' "installing essential packages on linux"
   sudo apt update && \
-    sudo apt install -y jq apt-transport-https gnupg2 curl nginx
+    sudo apt install -y jq apt-transport-https gnupg2 curl nginx apache2-utils
 fi
 
 # brew

@@ -50,6 +50,7 @@ function deploy_falco {
   helm repo add falcosecurity https://falcosecurity.github.io/charts
   helm repo update
 
+  mkdir -p overrides
   cat <<EOF > overrides/overrides-falco.yaml
 auditLog:
   enabled: true
@@ -67,6 +68,14 @@ falcosidekick:
     service:
       type: LoadBalancer
 EOF
+
+  # If running on GKE we switch to eBPF
+  if [[ $(kubectl config current-context) =~ "gke_".* ]]; then
+    cat <<EOF >> overrides/overrides-falco.yaml
+ebpf:
+  enabled: true
+EOF
+  fi
 
   cat <<EOF > overrides/custom-rules.yaml
 customRules:

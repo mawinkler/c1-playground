@@ -251,10 +251,12 @@ if [ "${OS}" == 'Linux' ]; then
   password_change
   create_ssl_certificate_linux
   upgrade_smartcheck
-  ./deploy-proxy.sh smartcheck
-  HOST_IP=$(hostname -I | awk '{print $1}')
-  # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
-  echo "Smart check UI on: https://${HOST_IP}:${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
+  if [[ ! $(kubectl config current-context) =~ "gke_".* ]]; then
+    ./deploy-proxy.sh smartcheck
+    HOST_IP=$(hostname -I | awk '{print $1}')
+    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
+    echo "Smart check UI on: https://${HOST_IP}:${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
+  fi
 fi
 
 if [ "${OS}" == 'Darwin' ]; then

@@ -27,7 +27,7 @@
     - [SSH](#ssh)
       - [(PG-SSH) Inbound SSH Connection](#pg-ssh-inbound-ssh-connection)
       - [(PG-SSH) Outbound SSH Connection](#pg-ssh-outbound-ssh-connection)
-    - [Miscellanious](#miscellanious)
+    - [Miscellaneous](#miscellaneous)
       - [(PG-KUBECTL) K8s Vulnerable Kubectl Copy](#pg-kubectl-k8s-vulnerable-kubectl-copy)
 
 ## Plays for Falco
@@ -167,7 +167,7 @@ sudo apt update
 
 #### (PG-SSH) Outbound SSH Connection
 
-### Miscellanious
+### Miscellaneous
 
 #### (PG-KUBECTL) K8s Vulnerable Kubectl Copy
 
