@@ -13,6 +13,10 @@ SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostn
 SC_AC="$(jq -r '.services[] | select(.name=="cloudone") | .activation_key' config.json)"
 OS="$(uname)"
 
+if [[ $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
+  echo Running on GKE or AKS
+fi
+
 function create_namespace {
   printf '%s' "Create smart check namespace"
 
@@ -251,7 +255,8 @@ if [ "${OS}" == 'Linux' ]; then
   password_change
   create_ssl_certificate_linux
   upgrade_smartcheck
-  if [[ ! $(kubectl config current-context) =~ "gke_".* ]]; then
+  # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
+  if [[ ! $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
     ./deploy-proxy.sh smartcheck
     HOST_IP=$(hostname -I | awk '{print $1}')
     # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services

@@ -60,7 +60,7 @@ Operating System | Cluster Type | Registry | Container Security Admission & Cont
 Ubuntu | Playground | X | X |  | X | X | X | X | X
 Ubuntu | GKE | X | X | X | X | X | X | X | X
 Ubuntu | (EKS) | (X) | (X) | (X) | (X) | (X) | (X) | (X) | (X)
-Ubuntu | (Azure) | (X) | (X) | (X) | (X) | (X) | (X) | (X) | (X)
+Ubuntu | Azure | X | X | X | X | X | X | X | X
 Cloud9 w/ Ubuntu | Playground | X | X |  | X | X | X | X | X
 MacOS | Playground | X | X |  |  | X | X | X |X
 

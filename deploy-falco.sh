@@ -8,6 +8,10 @@ SERVICE_NAME="$(jq -r '.services[] | select(.name=="falco") | .proxy_service_nam
 LISTEN_PORT="$(jq -r '.services[] | select(.name=="falco") | .proxy_listen_port' config.json)"
 OS="$(uname)"
 
+if [[ $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
+  echo Running on GKE or AKS
+fi
+
 function create_namespace {
   printf '%s' "Create falco namespace"
 
@@ -69,8 +73,8 @@ falcosidekick:
       type: LoadBalancer
 EOF
 
-  # If running on GKE we switch to eBPF
-  if [[ $(kubectl config current-context) =~ "gke_".* ]]; then
+  # If running on GKE or AKS we switch to eBPF
+  if [[ $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
     cat <<EOF >> overrides/overrides-falco.yaml
 ebpf:
   enabled: true
@@ -167,8 +171,8 @@ whitelist_namsspace
 deploy_falco
 
 if [ "${OS}" == 'Linux' ]; then
-  # test if we're using a managed kubernetes cluster on GCP(, AWS or Azure)
-  if [[ ! $(kubectl config current-context) =~ "gke_".* ]]; then
+  # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
+  if [[ ! $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
     ./deploy-proxy.sh falco
     HOST_IP=$(hostname -I | awk '{print $1}')
     echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" >> services
