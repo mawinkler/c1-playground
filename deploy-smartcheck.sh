@@ -13,8 +13,8 @@ SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostn
 SC_AC="$(jq -r '.services[] | select(.name=="cloudone") | .activation_key' config.json)"
 OS="$(uname)"
 
-if [[ $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
-  echo Running on GKE or AKS
+if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  echo Running on GKE, AKS or EKS
 fi
 
 function create_namespace {
@@ -250,13 +250,25 @@ if [ "${OS}" == 'Linux' ]; then
   create_namespace
   create_smartcheck_overrides
   deploy_smartcheck
-  SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+  if [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
+    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+    SC_HOST=$(dig +short ${SC_HOST} 2>&1 | head -n 1)
+  else
+    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
             -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  fi
+  if [ "${SC_HOST}" == "" ]; then
+    echo Unable to get Smart Check LoadBalancer
+    exit -1
+  else
+    echo Smart Check on ${SC_HOST}
+  fi
   password_change
   create_ssl_certificate_linux
   upgrade_smartcheck
   # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
-  if [[ ! $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
+  if [[ ! $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
     ./deploy-proxy.sh smartcheck
     HOST_IP=$(hostname -I | awk '{print $1}')
     # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services

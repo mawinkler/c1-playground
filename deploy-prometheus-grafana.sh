@@ -12,8 +12,8 @@ NAMESPACE="$(jq -r '.services[] | select(.name=="prometheus") | .namespace' conf
 HOMEASSISTANT_API_KEY="$(jq -r '.services[] | select(.name=="hass") | .api_key' config.json)"
 OS="$(uname)"
 
-if [[ $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
-  echo Running on GKE or AKS
+if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  echo Running on GKE, AKS or EKS
 fi
 
 function create_prometheus_namespace {
@@ -154,7 +154,7 @@ if [ "${OS}" == 'Linux' ]; then
   SERVICE_TYPE='LoadBalancer'
   deploy_prometheus
   # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
-  if [[ ! $(kubectl config current-context) =~ "gke_".*|"aks-".* ]]; then
+  if [[ ! $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
     ./deploy-proxy.sh prometheus
     ./deploy-proxy.sh grafana
     HOST_IP=$(hostname -I | awk '{print $1}')

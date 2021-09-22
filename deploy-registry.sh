@@ -11,6 +11,10 @@ REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .use
 REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
 OS="$(uname)"
 
+if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  echo Running on GKE, AKS or EKS
+fi
+
 function create_namespace_service {
   printf '%s' "Create registry namespace and service"
 
@@ -62,8 +66,14 @@ function create_tls_secret_linux {
   EXTERNAL_IP=""
   while [[ "${EXTERNAL_IP}" == "" ]]; do
     sleep 1
-    EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    if [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
+      EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                    -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+      EXTERNAL_IP=$(dig +short ${EXTERNAL_IP} 2>&1 | head -n 1)
+    else
+      EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    fi
     echo "External IP ${EXTERNAL_IP}"
   done
 

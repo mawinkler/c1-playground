@@ -4,6 +4,7 @@
   - [Requirements and Support Matrix](#requirements-and-support-matrix)
     - [Suport Matrix](#suport-matrix)
     - [Tools Installation](#tools-installation)
+  - [Rapid Clusters](#rapid-clusters)
   - [Configure](#configure)
   - [Start](#start)
   - [Tear Down](#tear-down)
@@ -39,6 +40,8 @@ Currently, the following services are integrated:
 - Open Policy Agent
 - Gatekeeper
 
+The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and most parts on MacOS as well.
+
 ## Requirements and Support Matrix
 
 > Note: The Playgound is designed to work on this operating systems
@@ -50,8 +53,8 @@ Currently, the following services are integrated:
 > Besides the cluster life-cycle scripts `up` and `down`, the deployment scripts are supporting the following managed cluster types:
 >
 > - GKE
-> - (EKS)
-> - (AKS)
+> - EKS
+> - AKS
 
 ### Suport Matrix
 
@@ -59,8 +62,8 @@ Operating System | Cluster Type | Registry | Container Security Admission & Cont
 ---------------- | ------------ | -------- | ----------------------------------------- | ---------------------------| ----- | ---------- | --- | ---------- | ---------
 Ubuntu | Playground | X | X |  | X | X | X | X | X
 Ubuntu | GKE | X | X | X | X | X | X | X | X
-Ubuntu | (EKS) | (X) | (X) | (X) | (X) | (X) | (X) | (X) | (X)
-Ubuntu | Azure | X | X | X | X | X | X | X | X
+Ubuntu | EKS | X | X | X | X | X | X | X | X
+Ubuntu | AKS | X | X | X | X | X | X | X | X
 Cloud9 w/ Ubuntu | Playground | X | X |  | X | X | X | X | X
 MacOS | Playground | X | X |  |  | X | X | X |X
 
@@ -127,6 +130,13 @@ Install required packages if not available. **After the installation continue in
 ```
 
 </details>
+
+## Rapid Clusters
+
+Within the directory `clusters` are scripts to rapidly create a kubernetes cluster on the three major public clouds. This comes in handy, if you want to play on these public clouds or have no possibility to run an Ubuntu or MacOS.
+
+> Be sure to be authenticated to the cloud in your shell before using them.
+> Using managed clusters with the playground scripts is not 100% tested, so some things might not work as expected. If you find a bug, please raise an issue.
 
 ## Configure
 
@@ -264,11 +274,14 @@ Simply run
 ./up.sh
 ```
 
+if using the playground cluster. Otherwise run one of the scripts within `clusters/`.
 ## Tear Down
 
 ```sh
 ./down.sh
 ```
+
+if using the playground cluster. Otherwise follow the instructions printed after you did run one of the scripts within `clusters/`.
 
 ## Add-On: Registry
 
