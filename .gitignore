@@ -14,3 +14,4 @@ services
 busybox.yaml
 nginx.yaml
 additional_rules.sh
+cloudone-container-security-helm
