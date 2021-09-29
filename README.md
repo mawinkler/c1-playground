@@ -129,13 +129,22 @@ cd c1-playground
 cp config.json.sample config.json
 ```
 
-Typically you don't need to change anything here besides setting your api key for C1. If you're planning to use Cloud One Container Security you don't need an activation key for smart check, the api key is then sufficient.
+Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you're planning to use Cloud One Container Security you don't need an activation key for smart check, the api-key is then sufficient.
+
+> ***Note:*** Please use a real Cloud One API Key, not the one from Workload Security.
 
 ```json
 {
-    ...
-    "api_key": "YOUR KEY HERE",
-    "activation_key": "YOUR KEY HERE"
+    "cluster_name": "playground",
+...
+    "services": [
+        {
+            "name": "cloudone",
+            "region": "YOUR REGION HERE",
+            "api_key": "YOUR KEY HERE",
+            "activation_key": "YOUR KEY HERE"
+        }
+    ]
 }
 ```
 

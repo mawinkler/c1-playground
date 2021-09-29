@@ -8,6 +8,8 @@
 
 ## Deploy
 
+> ***Note:*** The script `deploy-container-security.sh` uses the Cloud One API Key, which is managed in Cloud One, not Workload Security anymore. If you're not using the new Cloud One API Key and are logging in to Cloud One with an Account Name, e-Mail and Password copy the legacy version of this script found in the `legacy`-directory over the `deploy-container-security.sh` script in the root directory.
+
 To deploy Container Security run:
 
 ```sh

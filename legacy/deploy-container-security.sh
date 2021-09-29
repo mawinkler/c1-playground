@@ -1,5 +1,10 @@
 #!/bin/bash
-
+#
+# Script version uses the Legacy API Key.
+# If you're not using the new Cloud One API Key and are logging in to Cloud One with
+# an Account Name, e-Mail and Password copy this script over the deploy-container-security.sh
+# script in the root directory.
+#
 set -e
 
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
@@ -8,7 +13,6 @@ CS_POLICY_MODE="$(jq -r '.services[] | select(.name=="container_security") | .po
 CS_NAMESPACE="$(jq -r '.services[] | select(.name=="container_security") | .namespace' config.json)"
 SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
 API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
-REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
 
 function create_namespace {
   printf '%s' "Create container security namespace"
@@ -35,16 +39,10 @@ function whitelist_namsspaces {
 function cluster_policy {
   # query cluster policy
   printf '%s\n' "query cluster policy id"
-  echo ${API_KEY}
-  echo $(curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
-    --header 'Content-Type: application/json' \
-    --header 'Authorization: ApiKey '${API_KEY} \
-    --header 'api-version: v1')
-  echo HUH
   CS_POLICYID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
+    curl --silent --location --request GET 'https://cloudone.trendmicro.com/api/container/policies' \
     --header 'Content-Type: application/json' \
-    --header 'Authorization: ApiKey '${API_KEY} \
+    --header "api-secret-key: ${API_KEY}" \
     --header 'api-version: v1' |
     jq -r --arg CS_POLICY_NAME "${CS_POLICY_NAME}" '.policies[] | select(.name==$CS_POLICY_NAME) | .id'
   )
@@ -52,10 +50,9 @@ function cluster_policy {
   # create policy if not exist
   if [ "${CS_POLICYID}" == "" ]; then
     printf '%s\n' "creating policy ${CS_POLICY_NAME}"
-    #CS_POLICYID=$(
-  curl  --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
+    CS_POLICYID=$(curl --silent --location --request POST 'https://cloudone.trendmicro.com/api/container/policies' \
     --header 'Content-Type: application/json' \
-    --header 'Authorization: ApiKey '${API_KEY} \
+    --header "api-secret-key: ${API_KEY}" \
     --header 'api-version: v1' \
     --data-raw "{
     \"name\": \"${CS_POLICY_NAME}\",
@@ -177,10 +174,8 @@ function cluster_policy {
         }
       ]
       }
-    }"
-# |
- #     jq -r ".id")
-    printf '%s\n' "policy with id ${CS_POLICYID} created"
+    }" |
+      jq -r ".id")
   else
     printf '%s\n' "reusing cluster policy with id ${CS_POLICYID}"
   fi
@@ -190,9 +185,9 @@ function create_cluster_object {
   # create cluster object
   printf '%s\n' "create cluster object"
   RESULT=$(
-    curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+    curl --silent --location --request POST 'https://cloudone.trendmicro.com/api/container/clusters' \
       --header 'Content-Type: application/json' \
-      --header 'Authorization: ApiKey '${API_KEY} \
+      --header "api-secret-key: ${API_KEY}" \
       --header 'api-version: v1' \
       --data-raw "{
       \"name\": \"${CLUSTER_NAME//-/_}\",
@@ -246,9 +241,9 @@ function create_scanner {
   # create scanner
   printf '%s\n' "create scanner object"
   RESULT=$(
-    curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+    curl --silent --location --request POST 'https://cloudone.trendmicro.com/api/container/scanners' \
       --header 'Content-Type: application/json' \
-      --header 'Authorization: ApiKey '${API_KEY} \
+      --header "api-secret-key: ${API_KEY}" \
       --header 'api-version: v1' \
       --data-raw "{
       \"name\": \"${CLUSTER_NAME//-/_}\",
