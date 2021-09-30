@@ -35,6 +35,11 @@ gcloud container clusters create ${CLUSTER} \
     --release-channel=rapid \
     --scopes "https://www.googleapis.com/auth/projecthosting,storage-rw"
 
-echo "Done."
-
-echo "Delete project run: gcloud -q projects delete ${PROJECT_ID}"
+echo "Creating rapid-gke-down.sh script"
+cat <<EOF >rapid-gke-down.sh
+#!/bin/bash
+gcloud -q container clusters delete ${CLUSTER}
+gcloud -q projects delete ${PROJECT_ID}
+EOF
+chmod +x rapid-gke-down.sh
+echo "Run rapid-gke-down.sh to tear down everything"
