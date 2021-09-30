@@ -35,12 +35,6 @@ function whitelist_namsspaces {
 function cluster_policy {
   # query cluster policy
   printf '%s\n' "query cluster policy id"
-  echo ${API_KEY}
-  echo $(curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
-    --header 'Content-Type: application/json' \
-    --header 'Authorization: ApiKey '${API_KEY} \
-    --header 'api-version: v1')
-  echo HUH
   CS_POLICYID=$(
     curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
     --header 'Content-Type: application/json' \
@@ -215,7 +209,7 @@ function deploy_container_security {
   cat <<EOF >overrides/overrides-container-security.yml
 cloudOne:
   apiKey: ${API_KEY_ADMISSION_CONTROLLER}
-  endpoint: https://container.us-1.cloudone.trendmicro.com
+  endpoint: https://container.${REGION}.cloudone.trendmicro.com
   runtimeSecurity:
     enabled: true
   admissionController:
