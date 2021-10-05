@@ -118,6 +118,12 @@ containerdConfigPatches:
           insecure_skip_verify = true
         [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
           insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.1:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.2:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.3:5000".tls]
+          insecure_skip_verify = true
 EOF
 }
 
