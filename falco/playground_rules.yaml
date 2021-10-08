@@ -18,23 +18,23 @@
 #   traffic wont be monitored
 # Whitelist a namespace by:
 # kubectl label ns falco --overwrite network=green (or blue)
-- macro: outbound_corp
-  condition: >
-    (((evt.type = connect and evt.dir=<) or
-      (evt.type in (sendto,sendmsg) and evt.dir=< and
-       fd.l4proto != tcp and fd.connected=false and fd.name_changed=true)) and
-     (fd.typechar = 4 or fd.typechar = 6) and
-     (fd.ip != "0.0.0.0" and fd.net != "127.0.0.0/8") and
-     (evt.rawres >= 0 or evt.res = EINPROGRESS))
+# - macro: outbound_corp
+#   condition: >
+#     (((evt.type = connect and evt.dir=<) or
+#       (evt.type in (sendto,sendmsg) and evt.dir=< and
+#        fd.l4proto != tcp and fd.connected=false and fd.name_changed=true)) and
+#      (fd.typechar = 4 or fd.typechar = 6) and
+#      (fd.ip != "0.0.0.0" and fd.net != "127.0.0.0/8") and
+#      (evt.rawres >= 0 or evt.res = EINPROGRESS))
 
-- list: k8s_not_monitored
-  items: ['"green"', '"blue"']
+# - list: k8s_not_monitored
+#   items: ['"green"', '"blue"']
 
-- rule: (PG-NET) Kubernetes Outbound Connection
-  desc: A pod in namespace attempted to connect to the outer world
-  condition: outbound_corp and k8s.ns.name != "" and not k8s.ns.label.network in (k8s_not_monitored)
-  output: "Outbound network traffic connection from a Pod: (pod=%k8s.pod.name namespace=%k8s.ns.name srcip=%fd.cip dstip=%fd.sip dstport=%fd.sport proto=%fd.l4proto procname=%proc.name)"
-  priority: WARNING
+# - rule: (PG-NET) Kubernetes Outbound Connection
+#   desc: A pod in namespace attempted to connect to the outer world
+#   condition: outbound_corp and k8s.ns.name != "" and not k8s.ns.label.network in (k8s_not_monitored)
+#   output: "Outbound network traffic connection from a Pod: (pod=%k8s.pod.name namespace=%k8s.ns.name srcip=%fd.cip dstip=%fd.sip dstport=%fd.sport proto=%fd.l4proto procname=%proc.name)"
+#   priority: WARNING
 
 #
 # To easily run kshell, you can set an alias to
@@ -318,3 +318,18 @@
   priority: WARNING
   source: k8s_audit
   tags: [k8s]
+
+# THIS IS FOR POTENTIAL ADDITIONAL RULES, WHICH IGNORE A LIST OF NAMESPACES
+- list: ignored_namespace
+  items:
+    - registry
+    - prometheus
+    - falco
+    - smartcheck
+    - container_security
+    - trivy
+    - starboard
+    - opa
+    - kube-system
+    - gatekeeper-system
+    - cadvisor

@@ -19,6 +19,14 @@ The deployment of Falco runtime security is very straigt forward with the playgr
 $ ./deploy-falco.sh
 ```
 
+To ignore events triggerd by services belonging to the playground environment, you can easily whitelist all the playground components by running the following script.
+
+```sh
+$ ./whitelist_playground_ns.sh
+```
+
+Rerun the script whenever you're deploying additional playground components.
+
 Falco is integrated with Prometheus and Grafana as well. A Dashboard is available for import with the ID 11914.
 
 ![alt text](../images/falco-grafana.png "Grafana Dashboard")
