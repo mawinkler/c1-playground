@@ -16,7 +16,7 @@ The deployment of Falco runtime security is very straigt forward with the playgr
 > Note for MacOS: Falco is currently unsupported on MacOS
 
 ```sh
-./deploy-falco.sh
+$ ./deploy-falco.sh
 ```
 
 Falco is integrated with Prometheus and Grafana as well. A Dashboard is available for import with the ID 11914.
@@ -52,7 +52,7 @@ Examle
 To test the k8s auditing try to create a configmap:
 
 ```sh
-cat <<EOF | kubectl apply -f -
+$ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 data:
   ui.properties: |
@@ -89,13 +89,13 @@ Example:
 ### Generate some events
 
 ```sh
-docker run -it --rm falcosecurity/event-generator run syscall --loop
+$ docker run -it --rm falcosecurity/event-generator run syscall --loop
 ```
 
 ### Fun with privileged mode
 
 ```sh
-function shell () {
+$ function shell () {
   kubectl run shell --restart=Never -it --image mawinkler/kod:latest \
   --rm --attach \
   --overrides \
@@ -126,13 +126,13 @@ function shell () {
 You can paste this into a new file `shell.sh` and source the file.
 
 ```sh
-source shell.sh
+$ . ./shell.sh
 ```
 
 Then you can type the following to demonstrate a privilege escalation in Kubernetes.
 
 ```sh
-shell
+$ shell
 ```
 
 If you don't see a command prompt, try pressing enter.
@@ -147,12 +147,12 @@ You're now on the control plane of the cluster and should be kubernetes-admin.
 If you're wondering what you can do now...
 
 ```sh
-mkdir -p /root/.kube
-cp /etc/kubernetes/admin.conf /root/.kube/config
-kubectl auth can-i create deployments -n kube-system
+$ mkdir -p /root/.kube
+$ cp /etc/kubernetes/admin.conf /root/.kube/config
+$ kubectl auth can-i create deployments -n kube-system
 ```
 
 ```sh
-kubectl create deployment echo --image=inanimate/echo-server
-kubectl get pods
+$ kubectl create deployment echo --image=inanimate/echo-server
+$ kubectl get pods
 ```

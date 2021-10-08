@@ -13,8 +13,8 @@
 To deploy Container Security run:
 
 ```sh
-./deploy-smartcheck.sh
-./deploy-container-security.sh
+$ ./deploy-smartcheck.sh
+$ ./deploy-container-security.sh
 ```
 
 ## Access Container Security
@@ -44,7 +44,7 @@ If working on a Cloud9 environment you need to adapt the security group of the c
 1. Query the public IP of your Cloud9 instance with
 
    ```sh
-   curl http://169.254.169.254/latest/meta-data/public-ipv4
+   $ curl http://169.254.169.254/latest/meta-data/public-ipv4
    ```
 
 2. In the IDE for the environment, on the menu bar, choose your user icon, and then choose Manage EC2 Instance
@@ -62,7 +62,7 @@ You should now be able to connect to Smart Check on the public ip of your Cloud9
 The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
 
 ```sh
-./scan-image.sh nginx:latest
+$ ./scan-image.sh nginx:latest
 ```
 
 starts an asynchronous scan of the latest version of nginx. The scan will run on Smart Check, but you are immedeately back in the shell. To access the scan results either use the UI or API of Smart Check.
@@ -70,7 +70,7 @@ starts an asynchronous scan of the latest version of nginx. The scan will run on
 If you add the flag `-s` the scan will be synchronous, so you get the scan results directly in your shell.
 
 ```sh
-./scan-image.sh -s nginx:latest
+$ ./scan-image.sh -s nginx:latest
 ```
 
 ```json
@@ -86,7 +86,7 @@ If you add the flag `-s` the scan will be synchronous, so you get the scan resul
 The script
 
 ```sh
-./scan-namespace.sh
+$ ./scan-namespace.sh
 ```
 
 scans all used images within the current namespace. Eventually do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.

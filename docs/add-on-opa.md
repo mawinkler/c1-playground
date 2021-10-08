@@ -16,7 +16,7 @@ You don’t have to write policies on your own at the beginning of your journey,
 To deploy the registry run:
 
 ```sh
-./deploy-opa.sh
+$ ./deploy-opa.sh
 ```
 
 ## Usage
@@ -24,7 +24,7 @@ To deploy the registry run:
 ### Example Policy: Registry Whitelisting
 
 ```sh
-cat <<EOF >opa/registry-whitelist.rego
+$ cat <<EOF >opa/registry-whitelist.rego
 package kubernetes.admission
 
 deny[msg] {
@@ -35,13 +35,13 @@ deny[msg] {
 }
 EOF
 
-kubectl -n opa create configmap registry-whitelist --from-file=opa/registry-whitelist.rego
+$ kubectl -n opa create configmap registry-whitelist --from-file=opa/registry-whitelist.rego
 ```
 
 Try to create a deployment
 
 ```sh
-kubectl create deployment echo --image=inanimate/echo-server
+$ kubectl create deployment echo --image=inanimate/echo-server
 ```
 
 If you now run a `kubectl get pods`, the echo-server should ***NOT*** show up.
@@ -49,7 +49,7 @@ If you now run a `kubectl get pods`, the echo-server should ***NOT*** show up.
 Access the logs from OPA
 
 ```sh
-kubectl -n opa logs -l app=opa -c opa -f
+$ kubectl -n opa logs -l app=opa -c opa -f
 ```
 
 There should be something like

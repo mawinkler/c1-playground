@@ -11,7 +11,7 @@ Ultra fast and slim kubernetes playground.
 To deploy the registry run:
 
 ```sh
-./deploy-registry.sh
+$ ./deploy-registry.sh
 ```
 
 ## Access

@@ -14,39 +14,39 @@ Ensure to have run `up.sh` and `deploy-registry.sh` according to the [README.md]
 ## Cluster Registry
 
 ```sh
-# pull hello-app:1.0 from Google and push it to the cluster registry
-# verify w/ curl
-REGISTRY_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
-REGISTRY_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
-REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
-REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
-REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
-REGISTRY_IP=$(kubectl get svc -n ${REGISTRY_NAMESPACE} ${REGISTRY_NAME} \
-              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-REGISTRY_HOST_INGRESS="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
-REGISTRY_PORT_INGRESS=443 # ingress
+$ # pull hello-app:1.0 from Google and push it to the cluster registry
+$ # verify w/ curl
+$ REGISTRY_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)" && \
+  REGISTRY_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)" && \
+  REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)" && \
+  REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)" && \
+  REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)" && \
+  REGISTRY_IP=$(kubectl get svc -n ${REGISTRY_NAMESPACE} ${REGISTRY_NAME} \
+                -o jsonpath='{.status.loadBalancer.ingress[0].ip}') && \
+  REGISTRY_HOST_INGRESS="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)" && \
+  REGISTRY_PORT_INGRESS=443 # ingress
 
-echo ${REGISTRY_PASSWORD} | docker login ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS} --username ${REGISTRY_USERNAME} --password-stdin
+$ echo ${REGISTRY_PASSWORD} | docker login ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS} --username ${REGISTRY_USERNAME} --password-stdin
 
-docker pull gcr.io/google-samples/hello-app:1.0
-docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
-docker push ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
-curl -k https://${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}@${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/v2/_catalog
+§ docker pull gcr.io/google-samples/hello-app:1.0
+§ docker tag gcr.io/google-samples/hello-app:1.0 ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
+§ docker push ${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/hello-app:1.0
+§ curl -k https://${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}@${REGISTRY_HOST_INGRESS}:${REGISTRY_PORT_INGRESS}/v2/_catalog
 ```
 
 You should get
 
-```sh
+```json
 {"repositories":["hello-app"]}
 ```
 
 ## Create a Deployment on Kubernetes - Echo Server #1
 
 ```sh
-# create a pull secret and deployment
-kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
+$ # create a pull secret and deployment
+$ kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com
 
-cat <<EOF | kubectl apply -f -
+$ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Service
 metadata:
@@ -96,7 +96,7 @@ EOF
 Now, we need to prepare our ingress. For this add `hello-server` to your `/etc/hosts`-file as before. Then create the ingress:
 
 ```sh
-cat <<EOF | kubectl apply -f -
+$ cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -118,12 +118,12 @@ spec:
                 number: 8080              
 EOF
 
-echo Try: curl hello-server
+$ echo Try: curl hello-server
 ```
 
 You should get
 
-```sh
+```
 Hello, world!
 Version: 1.0.0
 Hostname: hello-server-6488746978-vvtdx
@@ -133,19 +133,19 @@ Hostname: hello-server-6488746978-vvtdx
 
 ```sh
 # instant deployment and scale an echo-server
-kubectl create deployment echo --image=inanimate/echo-server
-kubectl scale deployment echo --replicas=3
-kubectl get deployments
-kubectl expose deployment echo --port=8080 --type LoadBalancer
+$ kubectl create deployment echo --image=inanimate/echo-server
+$ kubectl scale deployment echo --replicas=3
+$ kubectl get deployments
+$ kubectl expose deployment echo --port=8080 --type LoadBalancer
 
-echo Try: curl $(kubectl --namespace default get svc echo \
+$ echo Try: curl $(kubectl --namespace default get svc echo \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080
 ```
 
 Now, we need to prepare our ingress. For this add `echo` to your `/etc/hosts`-file as before. Then create the ingress:
 
 ```sh
-cat <<EOF | kubectl apply -f -
+$ cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -167,7 +167,7 @@ spec:
                 number: 8080              
 EOF
 
-echo Try: curl echo
+$ echo Try: curl echo
 ```
 
 ## Play with Container Security Admission Control
@@ -175,15 +175,15 @@ echo Try: curl echo
 First, deploy Cloud One Container Security
 
 ```sh
-./deploy-smartcheck.sh
-./deploy-container-security.sh
+$ ./deploy-smartcheck.sh
+$ ./deploy-container-security.sh
 ```
 
 ```sh
-kubectl -n container-security get pods
+$ kubectl -n container-security get pods
 ```
 
-```sh
+```
 NAME                                              READY   STATUS    RESTARTS   AGE
 trendmicro-admission-controller-d98785b5c-9cfj6   1/1     Running   0          67s
 trendmicro-oversight-controller-8cb9ffc65-tv7zv   2/2     Running   0          67s
@@ -195,14 +195,14 @@ What you've now got is running instances of the admission-, oversight- and usage
 Try it:
 
 ```sh
-# try to deploy nginx pod in its own namspace - fail if you set the policy to block
-kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /dev/null
-kubectl create deployment --image=nginx --namespace nginx nginx
+$ # try to deploy nginx pod in its own namspace - fail if you set the policy to block
+$ kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /dev/null
+$ kubectl create deployment --image=nginx --namespace nginx nginx
 ```
 
 You will get an error in return, which tells you that the nginx image is unscanned and therefore not allowed to be deployed on your cluster.
 
-```sh
+```
 error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request: 
 - unscannedImage violated in container(s) "nginx" (block).
 ```
@@ -210,7 +210,7 @@ error: failed to create deployment: admission webhook "trendmicro-admission-cont
 Do trigger a scan of the image
 
 ```sh
-./scan-image.sh nginx:latest -s
+$ ./scan-image.sh nginx:latest -s
 ```
 
 The script above downloads the `nginx`, pushes it to our internal cluster registry and initiates a regular scan (not a pre-registry-scan).
@@ -218,12 +218,12 @@ The script above downloads the `nginx`, pushes it to our internal cluster regist
 So, let's try the deployment again...
 
 ```sh
-kubectl create deployment --image=nginx --namespace nginx nginx
+$ kubectl create deployment --image=nginx --namespace nginx nginx
 ```
 
 Uuups, still not working!
 
-```sh
+```
 error: failed to create deployment: admission webhook "trendmicro-admission-controller.container-security.svc" denied the request:
 - unscannedImage violated in container(s) "nginx" (block).
 ```
@@ -233,13 +233,13 @@ The reason for this is, that we scanned the nginx image within the cluster regis
 Now the nginx was scanned, we need to change the deployment manfest for it, that it is pulled from our internal registry and not docker hub.
 
 ```sh
-kubectl create deployment --image=nginx --namespace nginx --dry-run=client nginx -o yaml > nginx.yaml
+$ kubectl create deployment --image=nginx --namespace nginx --dry-run=client nginx -o yaml > nginx.yaml
 ```
 
 Now edit the `nginx.yaml`
 
 ```sh
-vi nginx.yaml
+$ vi nginx.yaml
 ```
 
 ```yaml
@@ -277,18 +277,18 @@ Modify the line `spec.templates.spec.containers.image` to point to the internal 
 Now, we need to create an image pull secret within the nginx namespace, if it does not already exists from the previous tests
 
 ```sh
-kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com --namespace nginx
+$ kubectl create secret docker-registry regcred --docker-server=${REGISTRY_IP}:${REGISTRY_PORT} --docker-username=${REGISTRY_USERNAME} --docker-password=${REGISTRY_PASSWORD} --docker-email=info@mail.com --namespace nginx
 ```
 
 Finally, create the deployment
 
 ```sh
-kubectl -n nginx apply -f nginx.yaml
+$ kubectl -n nginx apply -f nginx.yaml
 ```
 
 Crap, now we get a different failure
 
-```sh
+```
 Error from server: error when creating "nginx.yaml": admission webhook "trendmicro-admission-controller.container-security.svc" denied the request: 
 - vulnerabilities violates rule with properties { max-severity:medium } in container(s) "nginx" (block).
 ```
@@ -302,12 +302,11 @@ If you retry the last command you will be able to deploy our nginx.
 Now, create a service and try, if we can reach the nginx
 
 ```sh
-kubectl -n nginx expose deployment nginx --type=LoadBalancer --name=nginx --port 80
-
-kubectl -n nginx get service
+$ kubectl -n nginx expose deployment nginx --type=LoadBalancer --name=nginx --port 80
+$ kubectl -n nginx get service
 ```
 
-```sh
+```
 NAME    TYPE           CLUSTER-IP    EXTERNAL-IP    PORT(S)        AGE
 nginx   LoadBalancer   10.96.90.85   172.18.255.3   80:30675/TCP   5s
 ```
@@ -315,7 +314,7 @@ nginx   LoadBalancer   10.96.90.85   172.18.255.3   80:30675/TCP   5s
 Now, our ingress again... (don't forget the `hosts`-file)
 
 ```sh
-cat <<EOF | kubectl apply -f -
+$ cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -340,7 +339,7 @@ EOF
 ```
 
 ```sh
-curl nginx
+$ curl nginx
 ```
 
 Your should get some html in return.
@@ -368,16 +367,16 @@ Then, go to the deployment section and set
 After typically less or equal five minutes, container security should have created an isolating network policy which you can display with
 
 ```sh
-kubectl -n nginx get networkpolicies
+$ kubectl -n nginx get networkpolicies
 ```
 
-```sh
+```
 NAME                                  POD-SELECTOR                   AGE
 trendmicro-oversight-isolate-policy   trendmicro-cloud-one=isolate   25s
 ```
 
 ```sh
-kubectl -n nginx edit networkpolicies trendmicro-oversight-isolate-policy
+$ kubectl -n nginx edit networkpolicies trendmicro-oversight-isolate-policy
 ```
 
 ```yaml
@@ -406,7 +405,7 @@ An "empty" Ingress / Egress definition basically isolates the resource.
 If you now repeat the previous curl
 
 ```sh
-curl nginx
+$ curl nginx
 ```
 
 It should time out.
@@ -420,11 +419,10 @@ Ensure to have the block rule `Images that are not scanned` applied to your Cont
 Create a namespace for a different pod and try to deploy it
 
 ```sh
-export TARGET_IMAGE=busybox
-export TARGET_IMAGE_TAG=latest
-
-kubectl create ns ${TARGET_IMAGE}
-kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
+$ export TARGET_IMAGE=busybox
+$ export TARGET_IMAGE_TAG=latest
+$ kubectl create ns ${TARGET_IMAGE}
+$ kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
 ```
 
 The above should fail.
@@ -432,14 +430,13 @@ The above should fail.
 If you want to exclude a namespace from admission control, label it
 
 ```sh
-kubectl label ns ${TARGET_IMAGE} ignoreAdmissionControl=true --overwrite
-
-kubectl get ns --show-labels ${TARGET_IMAGE}
+$ kubectl label ns ${TARGET_IMAGE} ignoreAdmissionControl=true --overwrite
+$ kubectl get ns --show-labels ${TARGET_IMAGE}
 ```
 
 You should see:
 
-```sh
+```
 NAME      STATUS   AGE   LABELS
 busybox   Active   23s   ignoreAdmissionControl=true,kubernetes.io/metadata.name=busybox
 ```
@@ -447,7 +444,7 @@ busybox   Active   23s   ignoreAdmissionControl=true,kubernetes.io/metadata.name
 Now rerun the run command
 
 ```sh
-kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
+$ kubectl run -n ${TARGET_IMAGE} --image=${TARGET_IMAGE} ${TARGET_IMAGE}
 ```
 
 This should now work, because Container Control is ignoring the labeled namespace.
@@ -457,16 +454,16 @@ This should now work, because Container Control is ignoring the labeled namespac
 The potentially most interesting part on your cluster (in reagards Container Control) is the ValidatingWebhookConfiguration. Review and understand it.
 
 ```sh
-kubectl get ValidatingWebhookConfiguration
+$ kubectl get ValidatingWebhookConfiguration
 ```
 
-```sh
+```
 NAME                                                 WEBHOOKS   AGE
 admission-controller-trendmicro-container-security   1          8m1s
 ```
 
 ```sh
-kubectl edit ValidatingWebhookConfiguration admission-controller-trendmicro-container-security
+$ kubectl edit ValidatingWebhookConfiguration admission-controller-trendmicro-container-security
 ```
 
 Inspect the yaml
@@ -525,5 +522,5 @@ So, if everything matches, kubernetes will query our service which will then sen
 To see all the available configuration options you can query the helm chart with
 
 ```sh
-helm inspect values https://github.com/trendmicro/cloudone-admission-controller-helm/archive/master.tar.gz
+$ helm inspect values https://github.com/trendmicro/cloudone-admission-controller-helm/archive/master.tar.gz
 ```

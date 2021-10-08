@@ -41,7 +41,7 @@ These examples are based on the default Falco ruleset and the additional rules p
 Triggers, if a container is initiating an outbound network communication via TCP or UDP.
 
 ```sh
-kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
+$ kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
 root@nginx-6799fc88d8-n5tdd:/# curl www.google.com
 ```
 
@@ -52,7 +52,7 @@ root@nginx-6799fc88d8-n5tdd:/# curl www.google.com
 Triggers, if any process is run in the kshell pod
 
 ```sh
-kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash
+$ kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash
 root@kshell:/# tail /var/log/bootstrap.log 
 ```
 
@@ -61,7 +61,7 @@ root@kshell:/# tail /var/log/bootstrap.log
 Triggers, if a file or directory is created in the kshell pod
 
 ```sh
-kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash
+$ kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash
 root@kshell:/# touch foo.txt
 root@kshell:/# mkdir bar
 ```
@@ -73,7 +73,7 @@ root@kshell:/# mkdir bar
 Triggers, if one of the named tools (whoami, nmap, racoon) is run inside a container.
 
 ```sh
-kubectl run -it busybox --image busybox -- /bin/sh
+$ kubectl run -it busybox --image busybox -- /bin/sh
 / # whoami
 ```
 
@@ -82,7 +82,7 @@ kubectl run -it busybox --image busybox -- /bin/sh
 This rule triggers, if one attaches / executes a shell in a container not running as root.
 
 ```sh
-cat <<EOF | kubectl apply -f - 
+$ cat <<EOF | kubectl apply -f - 
 apiVersion: v1
 kind: Pod
 metadata:
@@ -103,7 +103,7 @@ EOF
 and
 
 ```sh
-kubectl exec -it security-context-demo -- /bin/sh
+$ kubectl exec -it security-context-demo -- /bin/sh
 ```
 
 #### (PG-SHELL) Attach/Exec Pod with Terminal Root shell in container
@@ -111,15 +111,15 @@ kubectl exec -it security-context-demo -- /bin/sh
 This rule triggers, if one attaches / executes a shell in a container not running as root.
 
 ```sh
-kubectl create namespace nginx
-kubectl -n nginx create deployment --image=nginx nginx
-kubectl -n nginx get pods
+$ kubectl create namespace nginx
+$ kubectl -n nginx create deployment --image=nginx nginx
+$ kubectl -n nginx get pods
 ```
 
 and
 
 ```sh
-kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
+$ kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
 ```
 
 #### (PG-ROOT) Container Run as Root User
@@ -127,7 +127,7 @@ kubectl exec -it -n nginx nginx-6799fc88d8-n5tdd -- /bin/bash
 Rule triggers, if container is started running as root
 
 ```sh
-kubectl run -it busybox --image busybox -- /bin/sh
+$ kubectl run -it busybox --image busybox -- /bin/sh
 ```
 
 ### Integrity Monitoring in Containers
@@ -152,13 +152,13 @@ kubectl run -it busybox --image busybox -- /bin/sh
 #### (PG-ADM) Detect su or sudo
 
 ```sh
-sudo su -
+$ sudo su -
 ```
 
 #### (PG-ADM) Package Management Launched
 
 ```sh
-sudo apt update
+$ sudo apt update
 ```
 
 ### SSH
@@ -170,4 +170,3 @@ sudo apt update
 ### Miscellaneous
 
 #### (PG-KUBECTL) K8s Vulnerable Kubectl Copy
-

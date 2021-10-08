@@ -12,12 +12,12 @@ Krew is a tool that makes it easy to use kubectl plugins. Krew helps you discove
 Example usage:
 
 ```sh
-kubectl krew list
-kubectl krew install tree
+$ kubectl krew list
+$ kubectl krew install tree
 ```
 
 The tree command is a kubectl plugin to browse Kubernetes object hierarchies as a tree.
 
 ```sh
-kubectl tree node playground-control-plane -A
+$ kubectl tree node playground-control-plane -A
 ```

@@ -24,7 +24,7 @@ Constraint is an object that says on which resources are the policies applicable
 To deploy the registry run:
 
 ```sh
-./deploy-gatekeeper.sh
+$ ./deploy-gatekeeper.sh
 ```
 
 ## Usage
@@ -34,8 +34,8 @@ To deploy the registry run:
 There is an example within the gatekeeper directory which you can apply by doing
 
 ```sh
-kubectl apply -f gatekeeper/constrainttemplate.yaml
-kubectl apply -f gatekeeper/constraints.yaml
+$ kubectl apply -f gatekeeper/constrainttemplate.yaml
+$ kubectl apply -f gatekeeper/constraints.yaml
 ```
 
 From now on, any new namespace being created requires labels set for `stage`, `status` and `zone`.
@@ -43,10 +43,10 @@ From now on, any new namespace being created requires labels set for `stage`, `s
 To test it, run
 
 ```sh
-kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f -
+$ kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-```sh
+```
 Error from server ([label-check] 
 
 DENIED. 
@@ -61,7 +61,7 @@ You must provide these labels: {"stage", "status", "zone"}
 A valid namespace definition could look like the following:
 
 ```sh
-cat <<EOF | kubectl apply -f - -o yaml
+$ cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -76,5 +76,5 @@ EOF
 A subsequent nginx deployment can be done via:
 
 ```sh
-kubectl create deployment --image=nginx --namespace nginx nginx
+$ kubectl create deployment --image=nginx --namespace nginx nginx
 ```
