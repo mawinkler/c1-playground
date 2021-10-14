@@ -37,10 +37,10 @@
 #   priority: WARNING
 
 #
-# To easily run kshell, you can set an alias to
-# alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash'
-# kshell will spawn an ubuntu based bash in the current namespace
-# apt update is allowed in this container!
+# kshell is an alias which I always in my environment. I spawns a pod running a simple
+# ubuntu in the current namespace. I use it for digging around in the cluster.
+# set alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash'
+# All process spawnes and file creations within kshell are monitored in debug mode.
 - list: app_kshell_label
   items: ['"kshell:true"']
   
@@ -66,6 +66,28 @@
     and app_kshell
   output: File or directory created in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
   priority: DEBUG
+
+#
+# Container Escape with nsenter
+#
+# Not 100% sure about the deltatime thing
+# Runnig a nsenter -t 1 -m -u -i -n bash will result in four findings if no
+# deltatime is defined. 
+- rule: (PG-ESC) Detect Container Escape (nsenter)
+  desc: Detect a container escape using nsenter
+  condition: >
+    evt.type = setns
+    and container
+    and container.privileged=true
+    and container.image != ""
+    and evt.deltatime > 8000
+    and not is_kind
+  output: >
+    The command nsenter was used to run a process within the name spaces of another process from within a container
+    (user=%user.name
+    command=%proc.cmdline parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] container=%container.name image=%container.image)
+  priority: ERROR
+  tags: [escape]
 
 #
 # We create an event, if someone runs an information gathering tool within a container
@@ -194,10 +216,11 @@
 #   tags: [filesystem]
 
 - rule: (PG-IMC) Detect File Permission or Ownership Change
-  desc: Detect file permission/ownership change
+  desc: Detect file permission/ownership change in /tmp
   condition: >
     spawned_process
-    and proc.name in (chmod, chown) and proc.args contains "/tmp/"
+    and proc.name in (chmod, chown)
+    and proc.args contains "/tmp/"
     and container
     and not is_kind
   output: >

@@ -85,18 +85,26 @@ EOF
 customRules:
 EOF
 
-  # If there is a file called `falco/playground_rules.yaml`, we append it to the custom-rules.yaml
-  if [ -f "falco/playground_rules.yaml" ]; then
-    printf '%s\n' "Playground rules file found"
-    echo "  a_playground_rules.yaml: |-" >> overrides/custom-rules.yaml
-    cat falco/playground_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
-  fi
+  # If there is a file called `falco/playground_rules_dev.yaml`, we append it to the custom-rules.yaml
+  # and skip the playground and additional rule files
+  if [ -f "falco/playground_rules_dev.yaml" ]; then
+    printf '%s\n' "Playground Dev rules file found"
+    echo "  a_playground_rules_dev.yaml: |-" >> overrides/custom-rules.yaml
+    cat falco/playground_rules_dev.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+  else    
+    # If there is a file called `falco/playground_rules.yaml`, we append it to the custom-rules.yaml
+    if [ -f "falco/playground_rules.yaml" ]; then
+      printf '%s\n' "Playground rules file found"
+      echo "  a_playground_rules.yaml: |-" >> overrides/custom-rules.yaml
+      cat falco/playground_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+    fi
 
-  # If there is a file called `falco/additional_rules.yaml`, we append it to the custom-rules.yaml
-  if [ -f "falco/additional_rules.yaml" ]; then
-    printf '%s\n' "Additional rules file found"
-    echo "  z_additional_rules.yaml: |-" >> overrides/custom-rules.yaml
-    cat falco/additional_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+    # If there is a file called `falco/additional_rules.yaml`, we append it to the custom-rules.yaml
+    if [ -f "falco/additional_rules.yaml" ]; then
+      printf '%s\n' "Additional rules file found"
+      echo "  z_additional_rules.yaml: |-" >> overrides/custom-rules.yaml
+      cat falco/additional_rules.yaml | sed  -e 's/^/    /' >> overrides/custom-rules.yaml
+    fi
   fi
 
   # helm delete falco && kubectl delete svc falco-np && rm /tmp/passthrough.conf && sleep 2 && ./deploy-falco.sh 
