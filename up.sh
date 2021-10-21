@@ -58,6 +58,8 @@ nodes:
   # Falco
   - hostPath: /dev
     containerPath: /dev
+  - hostPath: /usr/src
+    containerPath: /usr/src
 
   # Kube Audit
   - hostPath: $(pwd)/log/

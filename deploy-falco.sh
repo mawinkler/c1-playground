@@ -74,7 +74,7 @@ falcosidekick:
 EOF
 
   # If running on GKE or AKS we switch to eBPF
-  if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io|kind.* ]]; then
     cat <<EOF >> overrides/overrides-falco.yaml
 ebpf:
   enabled: true

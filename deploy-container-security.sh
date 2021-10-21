@@ -28,7 +28,6 @@ function whitelist_namsspaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespace for container security
-  kubectl label namespace smartcheck --overwrite ignoreAdmissionControl=ignore
   kubectl label namespace kube-system --overwrite ignoreAdmissionControl=ignore
 }
 
@@ -228,15 +227,30 @@ cloudOne:
     enabled: true
 EOF
 
-  helm upgrade \
-    container-security \
-    --values overrides/overrides-container-security.yml \
-    --namespace ${CS_NAMESPACE} \
-    --install \
-    https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz
+  # if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  #   echo Running on GKE, AKS or EKS
+    helm upgrade \
+      container-security \
+      --values overrides/overrides-container-security.yml \
+      --namespace ${CS_NAMESPACE} \
+      --install \
+      https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz
+  # else
+  #   # echo Not running on GKE, AKS or EKS
+  #   helm template \
+  #     container-security \
+  #     --values overrides/overrides-container-security.yml \
+  #     --namespace ${CS_NAMESPACE} \
+  #     https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz | \
+  #       sed -e '/\s*\-\sname:\ FALCO_BPF_PROBE/,/\s*value:/d' | \
+  #       kubectl --namespace ${CS_NAMESPACE} apply -f -
+  # fi
 }
 
 function create_scanner {
+
+  kubectl label namespace smartcheck --overwrite ignoreAdmissionControl=ignore
+
   # create scanner
   printf '%s\n' "create scanner object"
   RESULT=$(
@@ -273,4 +287,4 @@ whitelist_namsspaces
 cluster_policy
 create_cluster_object
 deploy_container_security
-create_scanner
+kubectl -n smartcheck get service proxy && create_scanner || echo Smartcheck not found
