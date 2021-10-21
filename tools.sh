@@ -126,11 +126,14 @@ fi
 if ! command -v ~/.krew/bin/kubectl-krew &>/dev/null; then
   if [ "${OS}" == 'Linux' ]; then
     printf '%s\n' "installing krew on linux"
-    curl -fsSL "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz" -o ./krew.tar.gz && \
-      tar zxvf ./krew.tar.gz && \
-      KREW=./krew-"$(uname | tr '[:upper:]' '[:lower:]')_$(uname -m | sed -e 's/x86_64/amd64/' -e 's/arm.*$/arm/')" && \
-      "$KREW" install krew && \
-      rm -f ./krew.tar.gz ./krew-* && \
+    set -x; cd "$(mktemp -d)" &&
+      OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+      ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+      KREW="krew-${OS}_${ARCH}" &&
+      curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+      tar zxvf "${KREW}.tar.gz" &&
+      ./"${KREW}" install krew && \
+      rm -f "${KREW}.tar.gz" ./krew-* && \
       echo 'export PATH=~/.krew/bin:$PATH' >> ~/.bashrc
   fi
   if [ "${OS}" == 'Darwin' ]; then
@@ -158,4 +161,22 @@ if ! command -v kubebox &>/dev/null; then
   fi
 else
   printf '%s\n' "kubebox already installed"
+fi
+
+# stern
+if ! command -v stern &>/dev/null; then
+  if [ "${OS}" == 'Linux' ]; then
+    printf '%s\n' "installing stern on linux"
+    curl -Lo stern https://github.com/wercker/stern/releases/download/1.11.0/stern_linux_amd64 && \
+      chmod +x stern && \
+      sudo mv stern /usr/local/bin/stern
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf '%s\n' "installing stern on darwin"
+    curl -Lo stern https://github.com/wercker/stern/releases/download/1.11.0/stern_darwin_amd64 && \
+      chmod +x stern && \
+      sudo mv stern /usr/local/bin/stern
+  fi
+else
+  printf '%s\n' "stern already installed"
 fi
