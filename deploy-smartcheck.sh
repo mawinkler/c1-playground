@@ -10,7 +10,6 @@ SC_LISTEN_PORT="$(jq -r '.services[] | select(.name=="smartcheck") | .proxy_list
 SC_REG_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_username' config.json)"
 SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' config.json)"
 SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
-SC_AC="$(jq -r '.services[] | select(.name=="cloudone") | .activation_key' config.json)"
 OS="$(uname)"
 
 if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
@@ -38,7 +37,6 @@ function create_smartcheck_overrides {
   cat <<EOF >overrides/overrides-image-security.yml
   ##
   ## Default value: (none)
-  # activationCode: '${SC_AC}'
   auth:
     ## secretSeed is used as part of the password generation process for
     ## all auto-generated internal passwords, ensuring that each installation of

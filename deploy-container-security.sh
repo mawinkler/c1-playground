@@ -225,6 +225,15 @@ cloudOne:
     enableNetworkPolicyCreation: true
   runtimeSecurity:
     enabled: true
+scout:
+  exclusion:
+    ## List of namespaces for which Scout Runtime Security feature will not trigger events.
+    namespaces:
+    - smartcheck
+    - container-security
+    - kube-node-lease
+    - kube-public
+    - kube-system
 EOF
 
   # if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
@@ -272,6 +281,7 @@ function create_scanner {
   cat <<EOF >overrides/overrides-image-security-bind.yml
 cloudOne:
   apiKey: ${API_KEY_SCANNER}
+  endpoint: https://container.${REGION}.cloudone.trendmicro.com
 EOF
 
   helm upgrade \
