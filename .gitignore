@@ -16,3 +16,4 @@ nginx.yaml
 additional_rules.sh
 cloudone-container-security-helm
 rapid-gke-down.sh
+service-gcrsvc_keyfile.json
