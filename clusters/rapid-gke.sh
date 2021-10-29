@@ -28,11 +28,12 @@ gcloud services enable \
     cloudresourcemanager.googleapis.com
 
 # Create Cluster
-echo "Creating cluster..."
+echo "Creating cluster... (4CPU/16GB per node)"
 gcloud container clusters create ${CLUSTER} \
     --project=${PROJECT_ID} \
     --zone=${ZONE} \
     --release-channel=rapid \
+    --machine-type=e2-standard-4 \
     --scopes "https://www.googleapis.com/auth/projecthosting,storage-rw"
 
 echo "Creating rapid-gke-down.sh script"

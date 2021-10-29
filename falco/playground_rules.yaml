@@ -90,6 +90,24 @@
   tags: [escape]
 
 #
+# Detected query to unexpected DNS server outside the cluster not on allowed list
+# Test with: dig @8.8.8.8 www.google.com
+- list: trusted_dns
+  items: ['"10.96.0.10/16"', '"127.0.0.1"']
+
+- rule: (PG-DNS) Unexpected DNS Server Queried
+  desc: Query to DNS server not on allowed list
+  condition: >
+    outbound
+    and fd.rport = 53
+    and not (fd.sip.name in (trusted_dns))
+  output: Detected query to unexpected DNS server not on allowed list
+    (container=%container.name command=%proc.cmdline procpname=%proc.pname connection=%fd.name
+    servername=%fd.sip.name serverip=%fd.sip type=%fd.type typechar=%fd.typechar fdlocal=%fd.lip
+    fdremote=%fd.rip)
+  priority: ERROR
+
+#
 # We create an event, if someone runs an information gathering tool within a container
 - list: information_gathering_tools
   items:
