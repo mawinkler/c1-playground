@@ -1,4 +1,3 @@
-#!/bin/bash
 n=1
 while [ $n -le 12 ]  
 do
