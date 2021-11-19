@@ -201,6 +201,21 @@
   tags: [container, process]
   enabled: true
 
+- rule: (PG-ROOT) Shell as Root User without TTY
+  desc: Shell usage as Root User without TTY
+  condition: >
+    spawned_process and container
+    and shell_procs
+    and proc.tty=0
+    and user.uid=0
+    and container.name != ""
+  output: Shell usage detected without creating a TTY
+    (uid=%user.uid container_id=%container.id container_name=%container.name image=%container.image.repository:%container.image.tag
+    command=%proc.cmdline)
+  priority: WARNING
+  tags: [container, process]
+  enabled: true
+
 # 
 # Integrity Monitoring in Container
 # Since the playground normally runs within kind we're not monitoring for
