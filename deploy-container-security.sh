@@ -10,6 +10,13 @@ SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' c
 API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
 REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
 
+DEPLOY_RT_YAML=
+DEPLOY_RT_JSON=
+if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  DEPLOY_RT_YAML=$'runtimeSecurity:\n    enabled: true'
+  DEPLOY_RT_JSON=', "runtimeEnabled": true'
+fi
+
 function create_namespace {
   printf '%s' "Create container security namespace"
 
@@ -171,8 +178,6 @@ function cluster_policy {
       ]
       }
     }"
-# |
- #     jq -r ".id")
     printf '%s\n' "policy with id ${CS_POLICYID} created"
   else
     printf '%s\n' "reusing cluster policy with id ${CS_POLICYID}"
@@ -184,17 +189,15 @@ function create_cluster_object {
   printf '%s\n' "create cluster object"
   RESULT=$(
     curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
-      --header 'Content-Type: application/json' \
-      --header 'Authorization: ApiKey '${API_KEY} \
-      --header 'api-version: v1' \
-      --data-raw "{
-      \"name\": \"${CLUSTER_NAME//-/_}\",
-      \"description\": \"Playground Cluster\",
-      \"policyID\": \"${CS_POLICYID}\",
-      \"runtimeEnabled\": true
-    }"
+    --header 'Content-Type: application/json' \
+    --header 'Authorization: ApiKey '${API_KEY} \
+    --header 'api-version: v1' \
+    --data-raw '{
+      "name": "'${CLUSTER_NAME//-/_}'",
+      "description": "Playground Cluster",
+      "policyID": "'${CS_POLICYID}'"'"${DEPLOY_RT_JSON}"'
+    }'
   )
-
   API_KEY_ADMISSION_CONTROLLER=$(echo ${RESULT} | jq -r ".apiKey")
   CS_CLUSTERID=$(echo ${RESULT} | jq -r ".id")
   AP_KEY=$(echo ${RESULT} | jq -r ".runtimeKey")
@@ -209,8 +212,6 @@ function deploy_container_security {
 cloudOne:
   apiKey: ${API_KEY_ADMISSION_CONTROLLER}
   endpoint: https://container.${REGION}.cloudone.trendmicro.com
-  runtimeSecurity:
-    enabled: true
   admissionController:
     enabled: true
     validationNamespaceSelector:
@@ -223,8 +224,7 @@ cloudOne:
     enabled: true
     syncPeriod: 600s
     enableNetworkPolicyCreation: true
-  runtimeSecurity:
-    enabled: true
+  ${DEPLOY_RT_YAML}
 scout:
   exclusion:
     ## List of namespaces for which Scout Runtime Security feature will not trigger events.
