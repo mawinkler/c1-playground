@@ -1,4 +1,16 @@
-#
+# ################################################################################
+# Rule Sections:
+#   - Network Violations
+#   - Container Activity Monitoring
+#   - Container Escape
+#   - Information Gathering
+#   - Shell Usage in Container
+#   - Container Startup
+#   - Integrity Monitoring in Container
+#   - Integrity Monitoring on Host & Container
+#   - Admin Activities
+# ################################################################################
+
 # Here, I'm modifying the health_endpoints which is used for the "Anonymous Request Allowed"
 # rule, required for CIS Benchmark 1.1.1.
 # By default, Falco sets the endpoint to 'healthz' only which causes to many events for
@@ -6,7 +18,9 @@
 - macro: health_endpoint
   condition: ka.uri=/healthz or ka.uri=/readyz or ka.uri=/livez
 
-# 
+# ################################################################################
+# Network Violations
+# ################################################################################
 # Creates a macro outbound_corp that deals with any outbound connection
 # Creates a list k8s_not_monitored with values blue and green
 # Creates a rule that verifies:
@@ -36,10 +50,52 @@
 #   output: "Outbound network traffic connection from a Pod: (pod=%k8s.pod.name namespace=%k8s.ns.name srcip=%fd.cip dstip=%fd.sip dstport=%fd.sport proto=%fd.l4proto procname=%proc.name)"
 #   priority: WARNING
 
-#
+# Detected query to unexpected DNS server outside the cluster not on allowed list
+# Test with: dig @8.8.8.8 www.google.com
+- list: trusted_dns
+  items: ['"10.12.0.10/16"', '"10.96.0.10/16"', '"127.0.0.1"']
+
+- rule: (PG-DNS) Unexpected DNS Server Queried
+  desc: Query to DNS server not on allowed list
+  condition: >
+    outbound
+    and fd.rport = 53
+    and not (fd.sip.name in (trusted_dns))
+  output: >
+    Detected query to unexpected DNS server not on allowed list
+    (container=%container.name command=%proc.cmdline procpname=%proc.pname connection=%fd.name
+    servername=%fd.sip.name serverip=%fd.sip type=%fd.type typechar=%fd.typechar fdlocal=%fd.lip
+    fdremote=%fd.rip)
+  priority: ERROR
+
+# Inbound SSH Connections
+- rule: (PG-SSH) Inbound SSH Connection
+  desc: Detect Inbound SSH Connection
+  condition: >
+    ((evt.type in (accept,listen) and evt.dir=<) or
+      (evt.type in (recvfrom,recvmsg))) and ssh_port
+  output: >
+    Inbound SSH connection detected (user=%user.name client_ip=%fd.cip client_port=%fd.cport server_ip=%fd.sip)
+  priority: WARNING
+  tags: [network]
+
+# Outbound SSH Connections
+- rule: (PG-SSH) Outbound SSH Connection
+  desc: Detect Outbound SSH Connection
+  condition: >
+    ((evt.type = connect and evt.dir=<) or
+      (evt.type in (sendto,sendmsg))) and ssh_port
+  output: >
+    Outbound SSH connection detected (user=%user.name server_ip=%fd.sip server_port=%fd.sport client_ip=%fd.cip)
+  priority: WARNING
+  tags: [network]
+
+# ################################################################################
+# Container Activity Monitoring
+# ################################################################################
 # kshell is an alias which I always in my environment. I spawns a pod running a simple
 # ubuntu in the current namespace. I use it for digging around in the cluster.
-# set alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash'
+# set alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash'$@
 # All process spawnes and file creations within kshell are monitored in debug mode.
 - list: app_kshell_label
   items: ['"kshell:true"']
@@ -55,7 +111,9 @@
   condition: >
     spawned_process
     and app_kshell
-  output: Process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
+  output: >
+    Process spawned in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info
+    image=%container.image)
   priority: DEBUG
 
 - rule: (PG-KSHELL) File or directory created in kshell container
@@ -64,12 +122,16 @@
     ((evt.type = chmod or evt.type = fchmod)
     or mkdir)
     and app_kshell
-  output: File or directory created in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name %container.info image=%container.image)
+  output: >
+    File or directory created in kshell container (command=%proc.cmdline pid=%proc.pid user=%user.name
+    %container.info image=%container.image)
   priority: DEBUG
 
-#
+
+# ################################################################################
+# Container Escape
+# ################################################################################
 # Container Escape with nsenter
-#
 # Not 100% sure about the deltatime thing
 # Runnig a nsenter -t 1 -m -u -i -n bash will result in four findings if no
 # deltatime is defined. 
@@ -84,30 +146,14 @@
     and not is_kind
   output: >
     The command nsenter was used to run a process within the name spaces of another process from within a container
-    (user=%user.name
-    command=%proc.cmdline parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] container=%container.name image=%container.image)
+    (user=%user.name command=%proc.cmdline parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2]
+    container=%container.name image=%container.image)
   priority: ERROR
   tags: [escape]
 
-#
-# Detected query to unexpected DNS server outside the cluster not on allowed list
-# Test with: dig @8.8.8.8 www.google.com
-- list: trusted_dns
-  items: ['"10.96.0.10/16"', '"127.0.0.1"']
-
-- rule: (PG-DNS) Unexpected DNS Server Queried
-  desc: Query to DNS server not on allowed list
-  condition: >
-    outbound
-    and fd.rport = 53
-    and not (fd.sip.name in (trusted_dns))
-  output: Detected query to unexpected DNS server not on allowed list
-    (container=%container.name command=%proc.cmdline procpname=%proc.pname connection=%fd.name
-    servername=%fd.sip.name serverip=%fd.sip type=%fd.type typechar=%fd.typechar fdlocal=%fd.lip
-    fdremote=%fd.rip)
-  priority: ERROR
-
-#
+# ################################################################################
+# Information Gathering
+# ################################################################################
 # We create an event, if someone runs an information gathering tool within a container
 - list: information_gathering_tools
   items:
@@ -123,7 +169,9 @@
   output: "Information gathering tool run in container (user=%user.name %container.info parent=%proc.pname cmdline=%proc.cmdline)"
   priority: WARNING
 
-#
+# ################################################################################
+# Shell Usage in Container
+# ################################################################################
 # Disable default rule
 - rule: Terminal shell in container
   desc: A shell was used as the entrypoint/exec point into a container with an attached terminal.
@@ -133,13 +181,13 @@
     and container_entrypoint
     and not user_expected_terminal_shell_in_container_conditions
   output: >
-    A shell was spawned in a container with an attached terminal (user=%user.name user_loginuid=%user.loginuid %container.info
-    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id image=%container.image.repository)
+    A shell was spawned in a container with an attached terminal (user=%user.name user_loginuid=%user.loginuid
+    %container.info shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id
+    image=%container.image.repository)
   priority: NOTICE
   tags: [container, shell, mitre_execution]
   enabled: false
 
-#
 # Disable default rule
 - rule: Attach/Exec Pod
   desc: >
@@ -151,7 +199,6 @@
   tags: [k8s]
   enabled: false
 
-#
 # Detect attach/exec with terminal shell as root or user
 - macro: is_user_shell
   condition: (proc.vpid!=1 and user.uid!=0)
@@ -179,26 +226,11 @@
     and shell_procs and proc.tty != 0
     and is_root_shell
   output: >
-    A shell with root privileges was spawned in a container running as root with an attached terminal (user=%user.name user_loginuid=%user.loginuid %container.info
-    shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty container_id=%container.id image=%container.image.repository)
+    A shell with root privileges was spawned in a container running as root with an attached terminal (user=%user.name
+    user_loginuid=%user.loginuid %container.info shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline terminal=%proc.tty
+    container_id=%container.id image=%container.image.repository)
   priority: WARNING
   tags: [container, shell, mitre_execution]
-  enabled: true
-
-#
-# Detect container run as root user
-- macro: is_root_startup
-  condition: (proc.vpid=1 and user.uid=0)
-
-- rule: (PG-ROOT) Container Run as Root User
-  desc: Detected container running as root user
-  condition: >
-    spawned_process and container
-    and is_root_startup
-    and not user_known_run_as_root_container
-  output: Container launched with root user privilege (uid=%user.uid container_id=%container.id container_name=%container.name image=%container.image.repository:%container.image.tag)
-  priority: WARNING
-  tags: [container, process]
   enabled: true
 
 - rule: (PG-ROOT) Shell as Root User without TTY
@@ -209,15 +241,37 @@
     and proc.tty=0
     and user.uid=0
     and container.name != ""
-  output: Shell usage detected without creating a TTY
+  output: >
+    Shell usage detected without creating a TTY
     (uid=%user.uid container_id=%container.id container_name=%container.name image=%container.image.repository:%container.image.tag
     command=%proc.cmdline)
   priority: WARNING
   tags: [container, process]
   enabled: true
 
-# 
+# ################################################################################
+# Container Startup
+# ################################################################################
+# Detect container run as root user
+- macro: is_root_startup
+  condition: (proc.vpid=1 and user.uid=0)
+
+- rule: (PG-ROOT) Container Run as Root User
+  desc: Detected container running as root user
+  condition: >
+    spawned_process and container
+    and is_root_startup
+    and not user_known_run_as_root_container
+  output: >
+    Container launched with root user privilege (uid=%user.uid container_id=%container.id container_name=%container.name
+    image=%container.image.repository:%container.image.tag)
+  priority: WARNING
+  tags: [container, process]
+  enabled: true
+
+# ################################################################################
 # Integrity Monitoring in Container
+# ################################################################################
 # Since the playground normally runs within kind we're not monitoring for
 # integrity events created by the kind node containers themselves
 - macro: is_kind
@@ -248,6 +302,7 @@
 #   priority: ERROR
 #   tags: [filesystem]
 
+# Detect File Permission or Ownership Change
 - rule: (PG-IMC) Detect File Permission or Ownership Change
   desc: Detect file permission/ownership change in /tmp
   condition: >
@@ -275,8 +330,45 @@
   priority: WARNING
   tags: [filesystem]
 
-# 
+# ################################################################################
 # Integrity Monitoring on Host & Container
+# ################################################################################
+# Disable default rule
+- rule: Write below etc
+  desc: an attempt to write to any file below /etc
+  condition: write_etc_common
+  output: "File below /etc opened for writing (user=%user.name user_loginuid=%user.loginuid command=%proc.cmdline parent=%proc.pname pcmdline=%proc.pcmdline file=%fd.name program=%proc.name gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] container_id=%container.id image=%container.image.repository)"
+  priority: ERROR
+  tags: [filesystem, mitre_persistence]
+  enabled: false
+
+# Write below /etc/kubernetes
+- macro: etc_kubernetes_dir
+  condition: fd.name startswith /etc/kubernetes
+
+- macro: write_etc_kubernetes
+  condition: >
+    etc_kubernetes_dir and evt.dir = < and open_write
+    and proc_name_exists
+    and not (container and proc.cmdline in ("cp /run/secrets/kubernetes.io/serviceaccount/ca.crt /etc/pki/ca-trust/source/anchors/openshift-ca.crt"))
+
+- rule: (PG-IM) Write below /etc/kubernetes
+  desc: an attempt to write to any file below /etc/kubernetes
+  condition: write_etc_kubernetes
+  output: "File below /etc/kubernetes opened for writing (user=%user.name user_loginuid=%user.loginuid command=%proc.cmdline parent=%proc.pname pcmdline=%proc.pcmdline file=%fd.name program=%proc.name gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] container_id=%container.id image=%container.image.repository)"
+  priority: CRITICAL
+  tags: [filesystem, mitre_persistence]
+
+# Write below /etc (macros defined in default ruleset)
+- rule: (PG-IM) Write below /etc
+  desc: an attempt to write to any file below /etc
+  condition: write_etc_common
+  output: "File below /etc opened for writing (user=%user.name user_loginuid=%user.loginuid command=%proc.cmdline parent=%proc.pname pcmdline=%proc.pcmdline file=%fd.name program=%proc.name gparent=%proc.aname[2] ggparent=%proc.aname[3] gggparent=%proc.aname[4] container_id=%container.id image=%container.image.repository)"
+  priority: ERROR
+  tags: [filesystem, mitre_persistence]
+  enabled: true
+
+# Kernel module modification
 - rule: (PG-IM) Kernel Module Modification
   desc: detect kernel module change
   condition: >
@@ -287,6 +379,7 @@
   priority: WARNING
   tags: [process]
 
+# Node created in file system
 - rule: (PG-IM) Node Created in Filesystem
   desc: detect node created in filesystem
   condition: >
@@ -297,6 +390,7 @@
   priority: WARNING
   tags: [filesystem]
 
+# New listener port
 - rule: (PG-IM) Listen on New Port
   desc: Detection a new port is listening
   condition:
@@ -306,8 +400,10 @@
   priority: WARNING
   tags: [network]
 
-#
+# ################################################################################
 # Admin Activities
+# ################################################################################
+# su or sudo
 - rule: (PG-ADM) Detect su or sudo
   desc: Detect sudo activities
   condition:
@@ -317,6 +413,7 @@
   priority: WARNING
   tags: [process]
 
+# Package management
 - rule: (PG-ADM) Package Management Launched
   desc: Detect package management launched
   condition: >
@@ -327,30 +424,8 @@
   priority: ERROR
   tags: [process]
 
-#
-# SSH Connections
-- rule: (PG-SSH) Inbound SSH Connection
-  desc: Detect Inbound SSH Connection
-  condition: >
-    ((evt.type in (accept,listen) and evt.dir=<) or
-      (evt.type in (recvfrom,recvmsg))) and ssh_port
-  output: >
-    Inbound SSH connection detected (user=%user.name client_ip=%fd.cip client_port=%fd.cport server_ip=%fd.sip)
-  priority: WARNING
-  tags: [network]
-
-- rule: (PG-SSH) Outbound SSH Connection
-  desc: Detect Outbound SSH Connection
-  condition: >
-    ((evt.type = connect and evt.dir=<) or
-      (evt.type in (sendto,sendmsg))) and ssh_port
-  output: >
-    Outbound SSH connection detected (user=%user.name server_ip=%fd.sip server_port=%fd.sport client_ip=%fd.cip)
-  priority: WARNING
-  tags: [network]
-
-#
-# kubectl
+# CVE-2019-11246
+# Run kubectl version --client and if it does not say client version 1.12.9, 1.13.6, or 1.14.2 or newer,  you are running a vulnerable version.
 - macro: safe_kubectl_version
   condition: (jevt.value[/userAgent] startswith "kubectl/v1.19" or
               jevt.value[/userAgent] startswith "kubectl/v1.18" or
@@ -363,8 +438,6 @@
               jevt.value[/userAgent] startswith "kubectl/v1.13.6" or
               jevt.value[/userAgent] startswith "kubectl/v1.12.9")
 
-# CVE-2019-11246
-# Run kubectl version --client and if it does not say client version 1.12.9, 1.13.6, or 1.14.2 or newer,  you are running a vulnerable version.
 - rule: (PG-KUBECTL) K8s Vulnerable Kubectl Copy
   desc: Detect any attempt vulnerable kubectl copy in pod
   condition: kevt_started and pod_subresource and kcreate and
@@ -375,7 +448,9 @@
   source: k8s_audit
   tags: [k8s]
 
+# ################################################################################
 # THIS IS FOR POTENTIAL ADDITIONAL RULES, WHICH IGNORE A LIST OF NAMESPACES
+# ################################################################################
 - list: ignored_namespace
   items:
     - registry
