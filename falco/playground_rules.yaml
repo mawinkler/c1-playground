@@ -151,6 +151,35 @@
   priority: ERROR
   tags: [escape]
 
+- rule: Launch Sensitive Mount Container
+  desc: >
+    Detect the initial process started by a container that has a mount from a sensitive host directory
+    (i.e. /proc). Exceptions are made for known trusted images.
+  condition: >
+    container_started and container
+    and sensitive_mount
+    and not falco_sensitive_mount_containers
+    and not user_sensitive_mount_containers
+  output: Container with sensitive mount started (user=%user.name user_loginuid=%user.loginuid command=%proc.cmdline %container.info image=%container.image.repository:%container.image.tag mounts=%container.mounts)
+  priority: INFO
+  tags: [container, cis, mitre_lateral_movement]
+  enabled: false
+  
+# Container Escape with mount
+- rule: (PG-ESC) Detect Container Escape (mount)
+  desc: Detect usage of mount in container
+  condition: >
+    evt.type = fsmount
+    and container
+    and container.privileged=true
+    and not is_kind
+  output: Escape attempt in privileged container(user=%user.name
+    user_loginuid=%user.loginuid command=%proc.cmdline
+    parent_process=%proc.pname container_id=%container.id
+    container_name=%container.name)
+  priority: WARNING
+  tags: [container, mitre_lateral_movement]
+
 # ################################################################################
 # Information Gathering
 # ################################################################################

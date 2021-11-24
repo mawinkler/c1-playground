@@ -225,7 +225,6 @@ cloudOne:
     syncPeriod: 600s
     enableNetworkPolicyCreation: true
   ${DEPLOY_RT_YAML}
-scout:
   exclusion:
     ## List of namespaces for which Scout Runtime Security feature will not trigger events.
     namespaces:
@@ -234,6 +233,10 @@ scout:
     - kube-node-lease
     - kube-public
     - kube-system
+    - prometheus
+    - trivy
+    - falco
+    - starboard
 EOF
 
   # if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
