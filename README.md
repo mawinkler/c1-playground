@@ -146,7 +146,6 @@ Typically you don't need to change anything here besides setting your api-key an
             "name": "cloudone",
             "region": "YOUR REGION HERE",
             "api_key": "YOUR KEY HERE",
-            "activation_key": "YOUR KEY HERE"
         }
     ]
 }
