@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Exports
-export APP_NAME=playground
-export CLUSTER_NAME=aks-playground
+export APP_NAME="$(jq -r '.cluster_name' config.json)"
+export CLUSTER_NAME=${APP_NAME}
 
 az group create --name ${APP_NAME} --location westeurope
 az aks create \

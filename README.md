@@ -59,7 +59,7 @@ Within the directory `clusters` are scripts to rapidly create a kubernetes clust
 Add-On | Ubuntu | Cloud9 | MacOS | GKE | EKS | AKS
 ------ | ------ | ------ | ----- | --- | --- | ---
 Registry | X | X | X | | |
-Scanning Scripts | X | X | X | X | |
+Scanning Scripts | X | X | X | X | | X
 C1CS Admission & Continuous | X | X | X | X | X | X
 C1CS Runtime Security | | | | X | X | X
 Falco | X | X | | X | X | X | X
