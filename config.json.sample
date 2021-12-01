@@ -89,7 +89,6 @@
             "name": "cloudone",
             "region": "trend-us-1",
             "api_key": "YOUR KEY HERE",
-            "activation_key": "YOUR KEY HERE"
         }
     ]
 }
