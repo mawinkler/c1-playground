@@ -169,7 +169,7 @@
 - rule: (PG-ESC) Detect Container Escape (mount)
   desc: Detect usage of mount in container
   condition: >
-    evt.type = fsmount
+    evt.type = mount
     and container
     and container.privileged=true
     and not is_kind
@@ -358,6 +358,19 @@
     command=%proc.cmdline file=%fd.name parent=%proc.pname pcmdline=%proc.pcmdline gparent=%proc.aname[2] image=%container.image)
   priority: WARNING
   tags: [filesystem]
+
+# Mass deletion of files (wip)
+# - rule: (PG-IMC) Dangerous deletion detected in container
+#   desc: Dangerous deletion detected in container
+#   condition: >
+#     evt.type = unlink
+#     and container
+#     and not is_kind
+#     and evt.deltatime.ns < 5000
+#   output: Files got deleted (user=%user.name user_loginuid=%user.loginuid
+#     command=%proc.cmdline parent_process=%proc.pname container_id=%container.id)
+#   priority: WARNING
+#   tags: [container, mitre_lateral_movement]
 
 # ################################################################################
 # Integrity Monitoring on Host & Container
