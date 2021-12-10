@@ -5,6 +5,7 @@ CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 HOST_REGISTRY_NAME=playground-host-registry
 HOST_REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-host-registry") | .port' config.json)"
 OS="$(uname)"
+HOST_IP=$(hostname -I | awk '{print $1}')
 
 printf '%s\n' "Target environment ${OS}"
 echo > up.log
@@ -45,6 +46,8 @@ EOF
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
+  apiServerAddress: "${HOST_IP}"
+  apiServerPort: 6443
   disableDefaultCNI: true # disable kindnet
   podSubnet: 192.168.0.0/16 # set to Calico's default subnet
 name: ${CLUSTER_NAME}

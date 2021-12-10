@@ -15,7 +15,8 @@ for NAMESPACE in $(cat config.json | jq -r '.services[].namespace'); do
   fi
 done
 
-eksctl delete cluster --name `eksctl get cluster -o json | jq -r '.[].metadata.name' | grep playground`
+eksctl delete cluster --name $(jq -r '.cluster_name' config.json)
+#`eksctl get cluster -o json | jq -r '.[].metadata.name' | grep playground`
 
 # # Delete Keys
 # aws ec2 delete-key-pair --key-name ${KEY_NAME}

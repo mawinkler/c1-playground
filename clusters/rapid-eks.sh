@@ -8,7 +8,7 @@ export KEY_ALIAS_NAME=alias/${KEY_NAME}
 aws kms create-alias --alias-name ${KEY_ALIAS_NAME} --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
 export MASTER_ARN=$(aws kms describe-key --key-id ${KEY_ALIAS_NAME} --query KeyMetadata.Arn --output text)
 echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bashrc
-export CLUSTER_NAME=playground-$(openssl rand -hex 4)
+export CLUSTER_NAME=$(jq -r '.cluster_name' config.json)-$(openssl rand -hex 4)
 
 cat << EOF | eksctl create cluster -f -
 ---
