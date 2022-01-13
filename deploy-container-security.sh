@@ -35,7 +35,55 @@ function whitelist_namsspaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespace for container security
-  kubectl label namespace kube-system --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace kube-system --overwrite ignoreAdmissionControl=true
+}
+
+function get_registry_name {
+
+  if [[ $(kubectl config current-context) =~ gke_.* ]]; then
+    printf '%s\n' "running on gke"
+    GCP_HOSTNAME="gcr.io"
+    GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+    REGISTRY=${GCP_HOSTNAME}/${GCP_PROJECTID}
+  elif [[ $(kubectl config current-context) =~ .*-aks ]]; then
+    printf '%s\n' "running on aks"
+    PLAYGROUND_NAME="$(jq -r '.cluster_name' config.json)"
+    if [[ $(az group list | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME} '.[] | select(.name==$PLAYGROUND_NAME) | .name') == "" ]]; then
+      printf '%s\n' "creating resource group ${PLAYGROUND_NAME}"
+      az group create --name ${PLAYGROUND_NAME} --location westeurope
+    else
+      printf '%s\n' "using resource group ${PLAYGROUND_NAME}"
+    fi
+    REGISTRY_NAME=$(az acr list --resource-group ${PLAYGROUND_NAME} | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME//-/} '.[] | select(.name | startswith($PLAYGROUND_NAME)) | .name')
+    if [[ ${REGISTRY_NAME} == "" ]]; then
+      REGISTRY_NAME=${PLAYGROUND_NAME//-/}$(openssl rand -hex 4)
+      printf '%s\n' "creating container registry ${REGISTRY_NAME}"
+      az acr create --resource-group ${PLAYGROUND_NAME} --name ${REGISTRY_NAME} --sku Basic
+    else
+      printf '%s\n' "using container registry ${REGISTRY_NAME}"
+    fi
+    REGISTRY=$(az acr show --resource-group ${PLAYGROUND_NAME} --name ${REGISTRY_NAME} -o json | jq -r '.loginServer')
+  elif [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
+    printf '%s\n' "running on eks"
+    printf '%s\n' "NOT YET IMPLEMENTED"
+    exit 0
+  else
+    printf '%s\n' "running on local playground"
+    REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
+    REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
+    OS="$(uname)"
+    if [ "${OS}" == 'Linux' ]; then
+      REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+      REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
+    fi
+    if [ "${OS}" == 'Darwin' ]; then
+      REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+                      -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+      REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
+    fi
+    REGISTRY="${REG_HOST}:${REG_PORT}"
+  fi
 }
 
 function cluster_policy {
@@ -51,8 +99,10 @@ function cluster_policy {
 
   # create policy if not exist
   if [ "${CS_POLICYID}" == "" ]; then
+    printf '%s\n' "getting registry address"
+    get_registry_name
+    printf '%s\n' "registry is on ${REGISTRY}"
     printf '%s\n' "creating policy ${CS_POLICY_NAME}"
-    #CS_POLICYID=$(
   curl  --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
     --header 'Content-Type: application/json' \
     --header 'Authorization: ApiKey '${API_KEY} \
@@ -61,45 +111,50 @@ function cluster_policy {
     \"name\": \"${CS_POLICY_NAME}\",
     \"description\": \"Policy for Playground\",
     \"default\": {
-    \"rules\": [
-      {
-        \"action\": \"${CS_POLICY_MODE}\",
-        \"type\": \"podSecurityContext\",
-        \"enabled\": true,
-        \"statement\": {
-        \"key\": \"runAsNonRoot\",
-        \"value\": \"false\"
-        }
-      },
+      \"rules\": [
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"podSecurityContext\",
-          \"enabled\": false,
+          \"enabled\": true,
+          \"statement\": {
+          \"key\": \"runAsNonRoot\",
+          \"value\": \"false\"
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"podSecurityContext\",
+          \"enabled\": true,
           \"statement\": {
             \"key\": \"hostNetwork\",
             \"value\": \"true\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
           \"type\": \"podSecurityContext\",
-          \"enabled\": false,
+          \"enabled\": true,
           \"statement\": {
             \"key\": \"hostIPC\",
             \"value\": \"true\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
           \"type\": \"podSecurityContext\",
-          \"enabled\": false,
+          \"enabled\": true,
           \"statement\": {
             \"key\": \"hostPID\",
             \"value\": \"true\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"containerSecurityContext\",
           \"enabled\": true,
           \"statement\": {
@@ -108,7 +163,8 @@ function cluster_policy {
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
           \"type\": \"containerSecurityContext\",
           \"enabled\": true,
           \"statement\": {
@@ -117,30 +173,34 @@ function cluster_policy {
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"containerSecurityContext\",
-          \"enabled\": false,
+          \"enabled\": true,
           \"statement\": {
             \"key\": \"allowPrivilegeEscalation\",
             \"value\": \"true\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"containerSecurityContext\",
-          \"enabled\": false,
+          \"enabled\": true,
           \"statement\": {
             \"key\": \"readOnlyRootFilesystem\",
             \"value\": \"false\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"unscannedImage\",
           \"enabled\": true
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
           \"type\": \"malware\",
           \"enabled\": true,
           \"statement\": {
@@ -149,30 +209,125 @@ function cluster_policy {
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"vulnerabilities\",
           \"enabled\": true,
           \"statement\": {
             \"key\": \"max-severity\",
-            \"value\": \"medium\"
+            \"value\": \"high\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"contents\",
           \"enabled\": true,
           \"statement\": {
             \"key\": \"max-severity\",
-            \"value\": \"medium\"
+            \"value\": \"high\"
           }
         },
         {
-          \"action\": \"${CS_POLICY_MODE}\",
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
           \"type\": \"checklists\",
           \"enabled\": true,
           \"statement\": {
             \"key\": \"max-severity\",
-            \"value\": \"medium\"
+            \"value\": \"high\"
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"registry\",
+          \"enabled\": true,
+          \"statement\": {
+              \"key\": \"not-equals\",
+              \"value\": \"${REGISTRY}\"
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"tag\",
+          \"enabled\": true,
+          \"statement\": {
+              \"key\": \"equals\",
+              \"value\": \"latest\"
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"cvssAttackVector\",
+          \"enabled\": true,
+          \"statement\": {
+              \"properties\": [
+                  {
+                      \"key\": \"cvss-attack-vector\",
+                      \"value\": \"network\"
+                  },
+                  {
+                      \"key\": \"max-severity\",
+                      \"value\": \"medium\"
+                  }
+              ]
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"cvssAttackComplexity\",
+          \"enabled\": true,
+          \"statement\": {
+              \"properties\": [
+                  {
+                      \"key\": \"cvss-attack-complexity\",
+                      \"value\": \"low\"
+                  },
+                  {
+                      \"key\": \"max-severity\",
+                      \"value\": \"medium\"
+                  }
+              ]
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"block"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"cvssAvailability\",
+          \"enabled\": true,
+          \"statement\": {
+              \"properties\": [
+                  {
+                      \"key\": \"cvss-availability\",
+                      \"value\": \"high\"
+                  },
+                  {
+                      \"key\": \"max-severity\",
+                      \"value\": \"medium\"
+                  }
+              ]
+          }
+        },
+        {
+          \"action\": \"${CS_POLICY_MODE:-"log"}\",
+          \"mitigation\": \"log\",
+          \"type\": \"checklistProfile\",
+          \"enabled\": true,
+          \"statement\": {
+              \"properties\": [
+                  {
+                      \"key\": \"checklist-profile\",
+                      \"value\": \"pci-dss\"
+                  },
+                  {
+                      \"key\": \"max-severity\",
+                      \"value\": \"high\"
+                  }
+              ]
           }
         }
       ]
@@ -227,18 +382,18 @@ cloudOne:
   ${DEPLOY_RT_YAML}
   exclusion:
     ## List of namespaces for which Deploy and Continuous feature will not trigger events.
-    # namespaces:
-    # - smartcheck
-    # - container-security
+    namespaces:
+    - kube-system
+    - smartcheck
+    - container-security
     # - kube-node-lease
     # - kube-public
-    # - kube-system
     # - prometheus
     # - trivy
     # - falco
     # - starboard
 scout:
-  excludeSameNamespace: false
+  excludeSameNamespace: true
 EOF
 
   # if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
@@ -263,7 +418,7 @@ EOF
 
 function create_scanner {
 
-  kubectl label namespace smartcheck --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace smartcheck --overwrite ignoreAdmissionControl=true
 
   # create scanner
   printf '%s\n' "create scanner object"

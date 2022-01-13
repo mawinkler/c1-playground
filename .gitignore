@@ -1,12 +1,16 @@
 .DS_Store
+# directories
 auth
 certs
 overrides
 opa
-report_*.pdf
-config.json
-*.log
+demos
 log/*
+
+# config
+config.json
+report_*.pdf
+*.log
 audit/audit-webhook.yaml
 overrides-falco.yaml
 additional_rules.yaml
