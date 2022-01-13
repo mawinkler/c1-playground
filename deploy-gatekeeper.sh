@@ -25,7 +25,7 @@ function whitelist_namsspaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespaces
-  # kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
+  # kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=true
   # kubectl label namespace ${NAMESPACE} --overwrite openpolicyagent.org/webhook=ignore
   # kubectl label namespace kube-system  --overwrite openpolicyagent.org/webhook=ignore
 }

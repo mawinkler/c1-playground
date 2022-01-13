@@ -34,7 +34,7 @@ function whitelist_namespaces {
   printf '%s\n' "whitelist namespaces"
 
   # whitelist some namespaces
-  kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=true
 }
 
 # helm show values prometheus-community/kube-prometheus-stack

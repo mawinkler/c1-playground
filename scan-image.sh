@@ -6,7 +6,7 @@
 OS="$(uname)"
 # If no parameter was given and TARGET_IMAGE is not set in env, default to rhel7
 TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7:latest}
-SYNC=false
+SYNC=true
 
 while [[ $# -gt 0 ]]; do
   key="$1"
@@ -67,14 +67,6 @@ function scan_image {
 # ##############################################################
 function pullpush_registry {
 
-  echo ${REG_PASSWORD} | docker login ${REG_HOST}:${REG_PORT} --username ${REG_USERNAME} --password-stdin
-  docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}
-  docker push ${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}
-}
-
-function scan_registry {
-
   REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
   REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
   REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
@@ -84,9 +76,10 @@ function scan_registry {
     SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
                   -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-    REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
     REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
                   -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
+    printf '%s\n' "Cluster registry is on ${REG_HOST}:${REG_PORT}"
   fi
 
   if [ "${OS}" == 'Darwin' ]; then
@@ -97,6 +90,14 @@ function scan_registry {
     REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
     printf '%s\n' "Cluster registry is on ${REG_HOST}:${REG_PORT}"
   fi
+
+  echo ${REG_PASSWORD} | docker login ${REG_HOST}:${REG_PORT} --username ${REG_USERNAME} --password-stdin
+  docker pull ${TARGET_IMAGE}
+  docker tag ${TARGET_IMAGE} ${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}
+  docker push ${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}
+}
+
+function scan_registry {
 
   printf '%s\n' "Create Registry Pull Auth"
   PULL_AUTH='{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'
@@ -198,27 +199,35 @@ function scan_aks {
 # ##############################################################
 # EKS
 # ##############################################################
-# function pullpush_eks {
+function pullpush_eks {
 
-#   GCP_HOSTNAME="gcr.io"
-#   GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
-#   printf '%s\n' "GCP Project is ${GCP_PROJECTID}"
-#   GCR_SERVICE_ACCOUNT=service-gcrsvc
-#   if test -f "${GCR_SERVICE_ACCOUNT}_keyfile.json"; then
-#     printf '%s\n' "Using existing key file"
-#   else
-#     printf '%s\n' "Creating Service Account"
-#     echo ${GCR_SERVICE_ACCOUNT}_keyfile.json
-#     gcloud iam service-accounts create ${GCR_SERVICE_ACCOUNT}
-#     gcloud projects add-iam-policy-binding ${GCP_PROJECTID} --member "serviceAccount:${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com" --role "roles/storage.admin"
-#     gcloud iam service-accounts keys create ${GCR_SERVICE_ACCOUNT}_keyfile.json --iam-account ${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com
-#   fi
+  # GCP_HOSTNAME="gcr.io"
+  # GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+  # printf '%s\n' "GCP Project is ${GCP_PROJECTID}"
+  # GCR_SERVICE_ACCOUNT=service-gcrsvc
+  # if test -f "${GCR_SERVICE_ACCOUNT}_keyfile.json"; then
+  #   printf '%s\n' "Using existing key file"
+  # else
+  #   printf '%s\n' "Creating Service Account"
+  #   echo ${GCR_SERVICE_ACCOUNT}_keyfile.json
+  #   gcloud iam service-accounts create ${GCR_SERVICE_ACCOUNT}
+  #   gcloud projects add-iam-policy-binding ${GCP_PROJECTID} --member "serviceAccount:${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com" --role "roles/storage.admin"
+  #   gcloud iam service-accounts keys create ${GCR_SERVICE_ACCOUNT}_keyfile.json --iam-account ${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com
+  # fi
 
-#   cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME}
-#   docker pull ${TARGET_IMAGE}
-#   docker tag ${TARGET_IMAGE} ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
-#   docker push ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
-# }
+  IMAGE_TAG=(${TARGET_IMAGE//:/ })
+  if $(aws ecr describe-repositories --repository-names ${IMAGE_TAG[0]}) ; then
+    printf '%s\n' "Using Container Repository ${IMAGE_TAG[0]}"
+  else
+    printf '%s\n' "Creating Container Repository ${IMAGE_TAG[0]}"
+    aws ecr create-repository --repository-name ${IMAGE_TAG[0]}
+  fi
+
+  cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME}
+  docker pull ${TARGET_IMAGE}
+  docker tag ${TARGET_IMAGE} ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
+  docker push ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
+}
 
 function scan_eks {
 

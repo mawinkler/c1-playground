@@ -30,7 +30,7 @@ function whitelist_namsspace {
   printf '%s\n' "Whitelist namespace"
 
   # whitelist namespace for falco
-  kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=ignore
+  kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=true
 }
 
 ###
