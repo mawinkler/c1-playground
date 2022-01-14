@@ -3,6 +3,9 @@
 # Pulls an image, initiates a scan with Smart Check and creates a PDF report
 # ##############################################################################
 
+# source helpers
+. ./playground-helpers.sh
+
 OS="$(uname)"
 # If no parameter was given and TARGET_IMAGE is not set in env, default to rhel7
 TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7:latest}
@@ -27,17 +30,11 @@ echo "Scanning Image ${TARGET_IMAGE}"
 
 
 # ##############################################################
-# Get Smart Check Config
+# Scan Image
 # ##############################################################
-function setup_sc {
-
-  SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' config.json)"
-  SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' config.json)"
-  SC_PORT="$(jq -r '.services[] | select(.name=="smartcheck") | .proxy_service_port' config.json)"
-  SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
-}
-
 function scan_image {
+
+  get_smartcheck
 
   if [ ${SYNC} == false ]; then
     eval docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/docker.sock --network host \
@@ -69,39 +66,22 @@ function pullpush_registry {
 
   REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
   REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
-  REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
-  REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
 
-  if [ "${OS}" == 'Linux' ]; then
-    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-                  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  get_registry
 
-    REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
-    printf '%s\n' "Cluster registry is on ${REG_HOST}:${REG_PORT}"
-  fi
+  printf '%s\n' "Cluster registry is on ${REGISTRY}"
 
-  if [ "${OS}" == 'Darwin' ]; then
-    SC_HOST="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' config.json)"
-
-    REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
-    printf '%s\n' "Cluster registry is on ${REG_HOST}:${REG_PORT}"
-  fi
-
-  echo ${REG_PASSWORD} | docker login ${REG_HOST}:${REG_PORT} --username ${REG_USERNAME} --password-stdin
+  echo ${REG_PASSWORD} | docker login ${REGISTRY} --username ${REG_USERNAME} --password-stdin
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}
-  docker push ${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
+  docker push ${REGISTRY}/${TARGET_IMAGE}
 }
 
 function scan_registry {
 
   printf '%s\n' "Create Registry Pull Auth"
   PULL_AUTH='{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'
-  IMAGE_NAME="${REG_HOST}:${REG_PORT}/${TARGET_IMAGE}"
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
 
   # Scan
   scan_image
@@ -111,6 +91,8 @@ function scan_registry {
 # GKE
 # ##############################################################
 function pullpush_gcp {
+
+  get_registry
 
   GCP_HOSTNAME="gcr.io"
   GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
@@ -128,8 +110,8 @@ function pullpush_gcp {
 
   cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME}
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
-  docker push ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
+  docker push ${REGISTRY}/${TARGET_IMAGE}
 }
 
 function scan_gcp {
@@ -137,10 +119,8 @@ function scan_gcp {
   printf '%s\n' "Create Registry Pull Auth"
   JSON_KEY=$(cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | jq tostring)
   PULL_AUTH='{"username":"_json_key","password":'${JSON_KEY}'}'
-  IMAGE_NAME="${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}"
-  SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
+  
   # Scan
   scan_image
 }
@@ -150,25 +130,7 @@ function scan_gcp {
 # ##############################################################
 function pullpush_aks {
 
-  PLAYGROUND_NAME="$(jq -r '.cluster_name' config.json)"
-  if [[ $(az group list | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME} '.[] | select(.name==$PLAYGROUND_NAME) | .name') == "" ]]; then
-    printf '%s\n' "Creating Resource Group ${PLAYGROUND_NAME}"
-    az group create --name ${PLAYGROUND_NAME} --location westeurope
-  else
-    printf '%s\n' "Using Resource Group ${PLAYGROUND_NAME}"
-  fi
-
-  # Registry names must not have hyphens
-  REGISTRY_NAME=$(az acr list --resource-group ${PLAYGROUND_NAME} | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME//-/} '.[] | select(.name | startswith($PLAYGROUND_NAME)) | .name')
-  if [[ ${REGISTRY_NAME} == "" ]]; then
-    REGISTRY_NAME=${PLAYGROUND_NAME//-/}$(openssl rand -hex 4)
-    printf '%s\n' "Creating Container Registry ${REGISTRY_NAME}"
-    az acr create --resource-group ${PLAYGROUND_NAME} --name ${REGISTRY_NAME} --sku Basic
-  else
-    printf '%s\n' "Using Container Registry ${REGISTRY_NAME}"
-  fi
-
-  REGISTRY_LOGINSERVER=$(az acr show --resource-group ${PLAYGROUND_NAME} --name ${REGISTRY_NAME} -o json | jq -r '.loginServer')
+  get_registry
 
   printf '%s\n' "Retrieving Container Registry Credentials"
   az acr update -n ${REGISTRY_NAME} --admin-enabled true 1>/dev/null
@@ -178,19 +140,17 @@ function pullpush_aks {
 
   # Login, pull, push
   printf '%s\n' "Login to Container Registry, pull, tag and push"
-  echo ${ACR_PASSWORD} | docker login -u ${ACR_USERNAME} --password-stdin https://${REGISTRY_LOGINSERVER}
+  echo ${ACR_PASSWORD} | docker login -u ${ACR_USERNAME} --password-stdin https://${REGISTRY}
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REGISTRY_LOGINSERVER}/${TARGET_IMAGE}
-  docker push ${REGISTRY_LOGINSERVER}/${TARGET_IMAGE}
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
+  docker push ${REGISTRY}/${TARGET_IMAGE}
 }
 
 function scan_aks {
 
   printf '%s\n' "Create Registry Pull Auth"
   PULL_AUTH='{"username":"'${ACR_USERNAME}'","password":"'${ACR_PASSWORD}'"}'
-  IMAGE_NAME="${REGISTRY_LOGINSERVER}/${TARGET_IMAGE}"
-  SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
   
   # Scan
   scan_image
@@ -244,8 +204,6 @@ function scan_eks {
 # ##############################################################
 # Main
 # ##############################################################
-setup_sc
-
 if [[ $(kubectl config current-context) =~ gke_.* ]]; then
   printf '%s\n' "Running on GKE"
   pullpush_gcp

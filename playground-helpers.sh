@@ -1,6 +1,55 @@
 #!/bin/bash
 
-function get_registry_name {
+function setup_smartcheck {
+
+  SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' config.json)"
+  SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' config.json)"
+  SC_PORT="$(jq -r '.services[] | select(.name=="smartcheck") | .proxy_service_port' config.json)"
+  SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
+}
+
+function get_smartcheck {
+
+  setup_smartcheck
+  
+  # gke
+  if [[ $(kubectl config current-context) =~ gke_.* ]]; then
+
+    printf '%s\n' "running on gke"
+    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  # aks
+  elif [[ $(kubectl config current-context) =~ .*-aks ]]; then
+
+    printf '%s\n' "running on aks"
+    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  # eks
+  elif [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
+
+    printf '%s\n' "running on eks"
+    printf '%s\n' "NOT YET IMPLEMENTED"
+    exit 0
+
+  # local
+  else
+
+    printf '%s\n' "running on local playground"
+    if [ "${OS}" == 'Linux' ]; then
+      SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+                    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    fi
+
+    if [ "${OS}" == 'Darwin' ]; then
+      SC_HOST="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' config.json)"
+    fi
+
+  fi
+}
+
+function get_registry {
 
   # gke
   if [[ $(kubectl config current-context) =~ gke_.* ]]; then

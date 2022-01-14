@@ -51,7 +51,7 @@ function cluster_policy {
   # create policy if not exist
   if [ "${CS_POLICYID}" == "" ]; then
     printf '%s\n' "getting registry address"
-    get_registry_name
+    get_registry
     printf '%s\n' "registry is on ${REGISTRY}"
     printf '%s\n' "creating policy ${CS_POLICY_NAME}"
 
