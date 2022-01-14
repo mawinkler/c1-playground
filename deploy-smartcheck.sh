@@ -19,9 +19,8 @@ fi
 function create_namespace {
   printf '%s' "Create smart check namespace"
 
-  echo "---" >> up.log
   # create service
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -143,7 +142,7 @@ EOF
     -keyout certs/sc.key -out certs/sc.crt \
     -subj "/CN=${SC_HOST//./-}.nip.io" -extensions san -config certs/req-sc.conf &> /dev/null
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
-    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml | cat >> up.log
+    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍵"
 }
 
@@ -163,7 +162,7 @@ EOF
     -keyout certs/sc.key -out certs/sc.crt \
     -subj "/CN=${SC_HOSTNAME}" -extensions san -config certs/req-sc.conf &> /dev/null
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
-    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml | cat >> up.log
+    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍵"
 }
 
@@ -199,8 +198,7 @@ function password_change {
 function create_ingress {
     # create ingress for smart check
   printf '%s\n' "Create smart check ingress"
-  echo "---" >> up.log
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

@@ -8,7 +8,6 @@ OS="$(uname)"
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 printf '%s\n' "Target environment ${OS}"
-echo > up.log
 mkdir -p overrides
 
 function create_cluster_linux {
@@ -284,8 +283,7 @@ function configure_host_registry {
   # Document the local registry
   # https://github.com/kubernetes/enhancements/tree/master/keps/sig-cluster-lifecycle/ \
   # generic/1755-communicating-a-local-registry
-  echo "---" >> up.log
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -303,22 +301,15 @@ function create_load_balancer {
   # load balancer
   printf '%s\n' "Create load balancer"
 
-  echo "---" >> up.log && \
-    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml \
-    -o yaml | cat >> up.log
-  echo "---" >> up.log && \
-    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml \
-    -o yaml | cat >> up.log
-  echo "---" >> up.log && \
-    kubectl create secret generic -n metallb-system memberlist \
-    --from-literal=secretkey="$(openssl rand -base64 128)" \
-    -o yaml | cat >> up.log
+   kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml -o yaml
+   kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml -o yaml
+   kubectl create secret generic -n metallb-system memberlist \
+    --from-literal=secretkey="$(openssl rand -base64 128)" -o yaml
   ADDRESS_POOL=$(kubectl get nodes -o json | \
     jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | \
     sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|')
 
-  echo "---" >> up.log
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log 
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -338,7 +329,7 @@ EOF
 function create_ingress_controller {
   # ingress nginx
   printf '%s\n' "Create ingress controller"
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml -o yaml | cat >> up.log
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml -o yaml
 
   # wating for the cluster be ready
   printf '%s' "Wating for the cluster be ready"
@@ -354,7 +345,7 @@ function create_ingress_controller {
     --for=condition=ready pod \
     --selector=app.kubernetes.io/component=controller \
     --timeout=90s \
-    -o yaml | cat >> up.log
+    -o yaml
     
   printf '\n%s\n' "Cluster and ingress controller ready 🍾"
 }
@@ -376,8 +367,6 @@ function deploy_calico {
   kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 }
 
-# flush logfile
-echo > up.log
 # flush services
 echo > services
 

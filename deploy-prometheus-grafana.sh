@@ -19,9 +19,8 @@ fi
 function create_prometheus_namespace {
   printf '%s' "Create Prometheus namespace"
 
-  echo "---" >>up.log
   # create service
-  cat <<EOF | kubectl apply -f - -o yaml | cat >>up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -106,8 +105,7 @@ function create_ingress {
     # create ingress for prometheus and grafana
 
   printf '%s\n' "Create prometheus and grafana ingress"
-  echo "---" >> up.log
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

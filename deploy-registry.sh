@@ -18,9 +18,8 @@ fi
 function create_namespace_service {
   printf '%s' "Create registry namespace and service"
 
-  echo "---" >> up.log
   # create service
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -52,9 +51,7 @@ function create_auth_secret {
 
   mkdir -p auth
   htpasswd -bBc auth/htpasswd ${REG_USERNAME} ${REG_PASSWORD}
-  echo "---" >> up.log
-  kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd \
-    -o yaml | cat >> up.log
+  kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd -o yaml
   printf '%s\n' " 🍿"
 }
 
@@ -88,9 +85,7 @@ EOF
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
     -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
-  echo "---" >> up.log
-  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key \
-    -o yaml | cat >> up.log
+  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key -o yaml
   printf '%s\n' " 🍵"
 }
 
@@ -117,9 +112,7 @@ EOF
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
     -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
-  echo "---" >> up.log
-  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key \
-    -o yaml | cat >> up.log
+  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key -o yaml
   printf '%s\n' " 🍵"
 }
 
@@ -128,8 +121,7 @@ function create_deployment {
 
   printf '%s' "Create registry deployment"
 
-  echo "---" >> up.log
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -207,9 +199,8 @@ function create_ingress {
   # create ingress for registry
   printf '%s\n' "Create registry ingress"
 
-  echo "---" >> up.log
   # cat <<EOF
-  cat <<EOF | kubectl apply -f - -o yaml | cat >> up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

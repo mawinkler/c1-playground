@@ -10,9 +10,8 @@ mkdir -p gatekeeper
 function create_gatekeeper_namespace {
   printf '%s' "Create gatekeeper namespace"
 
-  echo "---" >>up.log
   # create namespace
-  cat <<EOF | kubectl apply -f - -o yaml | cat >>up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:

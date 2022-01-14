@@ -10,9 +10,8 @@ OS="$(uname)"
 function create_trivy_starboard_namespace {
   printf '%s' "Create trivy namespace"
 
-  echo "---" >>up.log
   # create namespace
-  cat <<EOF | kubectl apply -f - -o yaml | cat >>up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -21,9 +20,8 @@ EOF
   printf '%s\n' " 🍼"
 
   printf '%s' "Create starboard namespace"
-  echo "---" >>up.log
   # create namespace
-  cat <<EOF | kubectl apply -f - -o yaml | cat >>up.log
+  cat <<EOF | kubectl apply -f - -o yaml
 apiVersion: v1
 kind: Namespace
 metadata:
