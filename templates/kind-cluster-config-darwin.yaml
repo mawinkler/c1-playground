@@ -1,0 +1,95 @@
+#
+# Cluster Configuration
+#
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true # disable kindnet
+  podSubnet: 192.168.0.0/16 # set to Calico's default subnet
+name: ${CLUSTER_NAME}
+nodes:
+#
+# Control Plane
+#
+- role: control-plane
+  extraMounts:
+
+  # Falco
+  - hostPath: /dev
+    containerPath: /dev
+
+  # Kube Audit
+  - hostPath: ${PLAYGROUND_HOME}/log/
+    containerPath: /var/log/
+  - hostPath: ${PLAYGROUND_HOME}/audit/
+    containerPath: /var/lib/k8s-audit/
+
+  kubeadmConfigPatches:
+
+  # Ingress
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  
+  # Port Mappings
+  extraPortMappings:
+  - containerPort: 443
+    hostPort: 443
+    # listenAddress: "0.0.0.0"
+    # listenAddress: "127.0.0.1"
+    protocol: tcp
+  - containerPort: 80
+    hostPort: 80
+    # listenAddress: "0.0.0.0"
+    # listenAddress: "127.0.0.1"
+    protocol: TCP
+
+
+# Workers
+# - role: worker
+# - role: worker
+
+#
+# Kube Audit
+#
+kubeadmConfigPatches:
+- |
+  kind: ClusterConfiguration
+  apiServer:
+    extraArgs:
+      # audit-log-max-backups: "1"
+      # audit-log-max-size: "10"
+      audit-log-path: "/var/log/k8s-audit.log"
+      audit-policy-file: "/var/lib/k8s-audit/audit-policy.yaml"
+      # audit-webhook-batch-max-wait: "5s"
+      audit-webhook-config-file: "/var/lib/k8s-audit/audit-webhook.yaml"
+    extraVolumes:
+    - name: audit
+      hostPath: /var/log/
+      mountPath: /var/log/
+    - name: auditcfg
+      hostPath: /var/lib/k8s-audit/
+      mountPath: /var/lib/k8s-audit/
+
+#
+# Registries
+#
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.1:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.2:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.1:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.2:5000".tls]
+          insecure_skip_verify = true
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.3:5000".tls]
+          insecure_skip_verify = true

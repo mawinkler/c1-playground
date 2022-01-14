@@ -57,5 +57,5 @@ sudo service nginx restart
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 if [ "${OS}" == 'Linux' ]; then
-  echo "Service ${SERVICE} on: http://${HOST_IP}:${LISTEN_PORT}"
+  echo "Service ${SERVICE} on: http(s)://${HOST_IP}:${LISTEN_PORT}"
 fi

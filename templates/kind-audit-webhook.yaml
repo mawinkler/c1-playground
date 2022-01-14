@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Config
+clusters:
+- name: ${CLUSTER_NAME}
+  cluster:
+    # certificate-authority: /path/to/ca.crt # for https
+    server: http://127.0.0.1:32765/k8s-audit
+contexts:
+- context:
+    cluster: ${CLUSTER_NAME}
+    user: ""
+  name: default-context
+current-context: default-context
+preferences: {}
+users: []

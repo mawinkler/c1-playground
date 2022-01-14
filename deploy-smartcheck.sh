@@ -99,7 +99,7 @@ function deploy_smartcheck() {
 #   None
 #######################################
 function upgrade_smartcheck() {
-  printf '%s\n' "upgrade smart check"
+  printf '%s\n' "Upgrade smart check"
   helm upgrade --namespace ${SC_NAMESPACE} \
     --values overrides/smartcheck-overrides-upgrade.yaml \
     smartcheck \
@@ -217,7 +217,6 @@ function password_change() {
 #   None
 #######################################
 function create_ingress() {
-  # create ingress for smart check
   printf '%s\n' "Create smart check ingress"
   SC_HOSTNAME=${SC_HOSTNAME} \
     SC_REG_HOSTNAME=${SC_REG_HOSTNAME} \
@@ -231,7 +230,7 @@ function create_ingress() {
 # Check deployment depending on the
 # host operating system
 #######################################
-if is_linux; then
+if is_linux ; then
   SERVICE_TYPE='LoadBalancer'
   create_namespace
   create_smartcheck_overrides
