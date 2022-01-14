@@ -1,0 +1,4 @@
+{
+    "name": "${CLUSTER_NAME}",
+    "description": "Playground Image Scanner"
+}

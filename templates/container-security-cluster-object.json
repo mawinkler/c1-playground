@@ -1,0 +1,6 @@
+{
+    "name": "${CLUSTER_NAME}",
+    "description": "Playground Cluster",
+    "policyID": "${CS_POLICYID}",
+    "runtimeEnabled": "${DEPLOY_RT_JSON}"
+}

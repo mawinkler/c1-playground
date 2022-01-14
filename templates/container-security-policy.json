@@ -1,0 +1,226 @@
+{
+    "name": "${CS_POLICY_NAME}",
+    "description": "Policy for Playground",
+    "default": {
+        "rules": [
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "podSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "runAsNonRoot",
+                    "value": "false"
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "podSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "hostNetwork",
+                    "value": "true"
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "podSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "hostIPC",
+                    "value": "true"
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "podSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "hostPID",
+                    "value": "true"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "runAsNonRoot",
+                    "value": "false"
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "privileged",
+                    "value": "true"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "allowPrivilegeEscalation",
+                    "value": "true"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "key": "readOnlyRootFilesystem",
+                    "value": "false"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "unscannedImage",
+                "enabled": true
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "malware",
+                "enabled": true,
+                "statement": {
+                    "key": "count",
+                    "value": "0"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "vulnerabilities",
+                "enabled": true,
+                "statement": {
+                    "key": "max-severity",
+                    "value": "high"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "contents",
+                "enabled": true,
+                "statement": {
+                    "key": "max-severity",
+                    "value": "high"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "checklists",
+                "enabled": true,
+                "statement": {
+                    "key": "max-severity",
+                    "value": "high"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "registry",
+                "enabled": true,
+                "statement": {
+                    "key": "not-equals",
+                    "value": "${REGISTRY}"
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "tag",
+                "enabled": true,
+                "statement": {
+                    "key": "equals",
+                    "value": "latest"
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "cvssAttackVector",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "cvss-attack-vector",
+                            "value": "network"
+                        },
+                        {
+                            "key": "max-severity",
+                            "value": "medium"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "cvssAttackComplexity",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "cvss-attack-complexity",
+                            "value": "low"
+                        },
+                        {
+                            "key": "max-severity",
+                            "value": "medium"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "cvssAvailability",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "cvss-availability",
+                            "value": "high"
+                        },
+                        {
+                            "key": "max-severity",
+                            "value": "medium"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "checklistProfile",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "checklist-profile",
+                            "value": "pci-dss"
+                        },
+                        {
+                            "key": "max-severity",
+                            "value": "high"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

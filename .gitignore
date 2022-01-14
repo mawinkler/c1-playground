@@ -22,3 +22,4 @@ cloudone-container-security-helm
 rapid-gke-down.sh
 service-gcrsvc_keyfile.json
 falco/additional_rules_tm.yaml
+nginx.yml

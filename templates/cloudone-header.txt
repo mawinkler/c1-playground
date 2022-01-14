@@ -1,0 +1,3 @@
+Content-Type: application/json
+Authorization: ApiKey ${API_KEY}
+api-version: v1

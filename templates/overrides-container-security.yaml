@@ -1,0 +1,32 @@
+cloudOne:
+  apiKey: ${API_KEY_ADMISSION_CONTROLLER}
+  endpoint: https://container.${REGION}.cloudone.trendmicro.com
+  admissionController:
+    enabled: true
+    validationNamespaceSelector:
+      matchExpressions:
+      - key: ignoreAdmissionControl
+        operator: DoesNotExist
+    enableKubeSystem: false
+    failurePolicy: Ignore
+  oversight:
+    enabled: true
+    syncPeriod: 600s
+    enableNetworkPolicyCreation: true
+  runtimeSecurity:
+    enabled: ${DEPLOY_RT_YAML}  
+  exclusion:
+    ## List of namespaces for which Deploy and Continuous feature will not trigger events.
+    namespaces:
+    - kube-system
+    - calico-system
+    - smartcheck
+    - container-security
+    # - kube-node-lease
+    # - kube-public
+    # - prometheus
+    # - trivy
+    # - falco
+    # - starboard
+scout:
+  excludeSameNamespace: true

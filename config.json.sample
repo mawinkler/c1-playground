@@ -58,7 +58,6 @@
         {
             "name": "container_security",
             "policy_name": "relaxed_playground",
-            "policy_mode": "",
             "namespace": "container-security"
         },
         {
