@@ -1,0 +1,4 @@
+Content-Type: application/json
+Api-Version: 2018-05-01
+cache-control: no-cache
+authorization: Bearer ${SC_BEARERTOKEN}

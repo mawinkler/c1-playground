@@ -14,7 +14,7 @@ cloudOne:
     syncPeriod: 600s
     enableNetworkPolicyCreation: true
   runtimeSecurity:
-    enabled: ${DEPLOY_RT_YAML}  
+    enabled: ${DEPLOY_RT}  
   exclusion:
     ## List of namespaces for which Deploy and Continuous feature will not trigger events.
     namespaces:

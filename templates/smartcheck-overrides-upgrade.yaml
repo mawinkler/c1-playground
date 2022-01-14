@@ -1,0 +1,25 @@
+registry:
+  ## Enable the built-in registry for pre-registry scanning.
+  ##
+  ## Default value: false
+  enabled: true
+    ## Authentication for the built-in registry
+  auth:
+    ## User name for authentication to the registry
+    ##
+    ## Default value: empty string
+    username: "${SC_REG_USERNAME}"
+    ## Password for authentication to the registry
+    ##
+    ## Default value: empty string
+    password: "${SC_REG_PASSWORD}"
+    ## The amount of space to request for the registry data volume
+    ##
+    ## Default value: 5Gi
+  dataVolume:
+    sizeLimit: 10Gi
+certificate:
+  secret:
+    name: k8s-certificate
+    certificate: tls.crt
+    privateKey: tls.key
