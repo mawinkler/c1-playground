@@ -123,16 +123,17 @@ function create_ssl_certificate_linux() {
   # create ssl certificate
   printf '%s' "Create ssl certificate (linux)"
   mkdir -p certs
+  SC_HOST_IP=$(dig +short ${SC_HOST} | tail -n 1)
   cat <<EOF >certs/req-sc.conf
 [req]
   distinguished_name=req
 [san]
-  subjectAltName=DNS:${SC_HOST//./-}.nip.io
+  subjectAltName=DNS:${SC_HOST_IP//./-}.nip.io
 EOF
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/sc.key -out certs/sc.crt \
-    -subj "/CN=${SC_HOST//./-}.nip.io" -extensions san -config certs/req-sc.conf &> /dev/null
+    -subj "/CN=${SC_HOST_IP//./-}.nip.io" -extensions san -config certs/req-sc.conf
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
     --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍵"
@@ -164,7 +165,7 @@ EOF
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/sc.key -out certs/sc.crt \
-    -subj "/CN=${SC_HOSTNAME}" -extensions san -config certs/req-sc.conf &> /dev/null
+    -subj "/CN=${SC_HOSTNAME}" -extensions san -config certs/req-sc.conf
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
     --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍵"
@@ -235,15 +236,8 @@ if is_linux ; then
   create_namespace
   create_smartcheck_overrides
   deploy_smartcheck
+  get_smartcheck
 
-  if [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
-    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-    SC_HOST=$(dig +short ${SC_HOST} 2>&1 | head -n 1)
-  else
-    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-            -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-  fi
   if [ "${SC_HOST}" == "" ]; then
     echo Unable to get Smart Check LoadBalancer
     exit -1
@@ -251,29 +245,44 @@ if is_linux ; then
     echo Smart Check on ${SC_HOST}
   fi
 
+  echo $SC_HOST
   password_change
   create_ssl_certificate_linux
   upgrade_smartcheck
 
   # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
-  if [[ ! $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
+  if is_gke || is_aks || is_eks ; then
+    echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+  else
     ./deploy-proxy.sh smartcheck
-    HOST_IP=$(hostname -I | awk '{print $1}')
-    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://${HOST_IP}:5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
-    echo "Smart check UI on: https://${HOST_IP}:${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
+    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
+    echo "Smart check UI on: https://$(hostname) -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
   fi
 fi
 
 if is_darwin ; then
-  SERVICE_TYPE='ClusterIP'
-  create_namespace
-  create_smartcheck_overrides
-  deploy_smartcheck
-  SC_HOST="${SC_HOSTNAME}"
-  create_ingress
-  password_change
-  create_ssl_certificate_darwin
-  upgrade_smartcheck
-  # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" >> services
-  echo "Smart check UI on: https://${SC_HOSTNAME}:443 w/ ${SC_USERNAME}/${SC_PASSWORD}" >> services
+  if is_gke || is_aks || is_eks ; then
+    SERVICE_TYPE='LoadBalancer'
+    create_namespace
+    create_smartcheck_overrides
+    deploy_smartcheck
+    get_smartcheck
+    password_change
+    create_ssl_certificate_linux
+    upgrade_smartcheck
+    echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+  else
+    SERVICE_TYPE='ClusterIP'
+    create_namespace
+    create_smartcheck_overrides
+    deploy_smartcheck
+    get_smartcheck
+    # SC_HOST="${SC_HOSTNAME}"
+    create_ingress
+    password_change
+    create_ssl_certificate_darwin
+    upgrade_smartcheck
+    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" >> services
+    echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+  fi
 fi

@@ -25,3 +25,5 @@ falco/additional_rules_tm.yaml
 nginx.yml
 aws-iam-authenticator
 rapid-eks-down.sh
+cloud-one/api_key
+cloud-one/c1_url

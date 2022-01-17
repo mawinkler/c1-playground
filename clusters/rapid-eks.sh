@@ -38,7 +38,7 @@ echo "Creating rapid-eks-down.sh script"
 cat <<EOF >rapid-eks-down.sh
 set -e
 
-AWS_REGION=eu-central-1
+AWS_REGION=${AWS_REGION}
 CLUSTER_NAME=${CLUSTER_NAME}
 KEY_NAME=${KEY_NAME}
 KEY_ALIAS_NAME=${KEY_ALIAS_NAME}
