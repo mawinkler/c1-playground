@@ -10,6 +10,7 @@
   - [Tear Down](#tear-down)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
+  - [TODO](#todo)
 
 Ultra fast and slim kubernetes playground.
 
@@ -59,7 +60,7 @@ Within the directory `clusters` are scripts to rapidly create a kubernetes clust
 Add-On | Ubuntu | Cloud9 | MacOS | GKE | EKS | AKS
 ------ | ------ | ------ | ----- | --- | --- | ---
 Registry | X | X | X | | |
-Scanning Scripts | X | X | X | X | | X
+Scanning Scripts | X | X | X | X | X | X
 C1CS Admission & Continuous | X | X | X | X | X | X
 C1CS Runtime Security | | | | X | X | X
 Falco | X | X | | X | X | X | X
@@ -133,15 +134,21 @@ First step is to clone the repo to your machine and second you create your perso
 cp config.json.sample config.json
 ```
 
-Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you're planning to use Cloud One Container Security you don't need an activation key for smart check, the api-key is then sufficient.
+Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you intent to run multiple clusters (e.g. a local and a GKE), adapt the `cluster_name` and the `policy_name`.
 
 > ***Note:*** Please use a real Cloud One API Key, not the one from Workload Security.
 
 ```json
 {
     "cluster_name": "playground",
-...
     "services": [
+...
+        {
+            "name": "container_security",
+            "policy_name": "relaxed_playground",
+            "namespace": "container-security"
+        },
+...
         {
             "name": "cloudone",
             "region": "YOUR REGION HERE",
@@ -300,3 +307,8 @@ If you're running the playground on MacOS, follow the lab guide [Play with the P
 Both guides are basically identical, but since access to some services is different on Linux and MacOS there are two guides available.
 
 Lastly, there is a [guide](docs/play-with-falco.md) to experiment with the runtime rules built into the playground to play with Falco. The rule set of the playground is located [here](falco/playground_rules.yaml).
+
+## TODO
+
+- Add runtime policy when supported
+- ...

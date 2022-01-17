@@ -30,6 +30,32 @@ secretsEncryption:
   keyARN: ${MASTER_ARN}
 EOF
 
-echo "Done."
+# Deploy Calico
+kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-operator.yaml
+kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-crs.yaml
 
-echo "Delete project run: clusters/rapid-eks-down.sh"
+echo "Creating rapid-eks-down.sh script"
+cat <<EOF >rapid-eks-down.sh
+set -e
+
+AWS_REGION=eu-central-1
+CLUSTER_NAME=${CLUSTER_NAME}
+KEY_NAME=${KEY_NAME}
+KEY_ALIAS_NAME=${KEY_ALIAS_NAME}
+
+EXISTING_NAMESPACES=\$(kubectl get ns -o json | jq -r '.items[].metadata.name' | tr '\n' '|')
+
+for NAMESPACE in \$(cat config.json | jq -r '.services[].namespace'); do
+  if [ "\$NAMESPACE" != "null" ] && [[ ! "\$NAMESPACE" =~ "kube-system"|"kube-public"|"kube-node-lease" ]]; then
+    if [[ \$EXISTING_NAMESPACES == *"\$NAMESPACE"* ]]; then
+      kubectl delete namespace \${NAMESPACE}
+    fi
+  fi
+done
+eksctl delete cluster --name \${CLUSTER_NAME}
+# Delete Keys
+aws ec2 delete-key-pair --key-name \${KEY_NAME}
+aws kms delete-alias --alias-name \${KEY_ALIAS_NAME}
+EOF
+chmod +x rapid-eks-down.sh
+echo "Run rapid-eks-down.sh to tear down everything"

@@ -19,7 +19,9 @@ $ ./deploy-container-security.sh
 
 ## Access Container Security
 
-Head over to your Cloud One Account and select the Container Security Tile.
+Head over to your Cloud One Account and select the Container Security tile.
+
+The deployment script automatically creates a policy for your cluster if it doesn't exist already. Some controls in the deploy section are either set to log or block, the continuous section is set to log only.
 
 ## Access Smart Check
 
