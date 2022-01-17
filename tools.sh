@@ -75,6 +75,22 @@ else
   printf '%s\n' "kubectl already installed"
 fi
 
+# eksctl
+if ! command -v eksctl &>/dev/null; then
+  if [ "${OS}" == 'Linux' ]; then
+    printf '%s\n' "installing eksctl on linux"
+    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+    sudo mv /tmp/eksctl /usr/local/bin
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf '%s\n' "installing eksctl on darwin"
+    brew tap weaveworks/tap
+    brew install weaveworks/tap/eksctl
+  fi
+else
+  printf '%s\n' "eksctl already installed"
+fi
+
 # kustomize
 if ! command -v kustomize &>/dev/null; then
   if [ "${OS}" == 'Linux' ]; then
@@ -179,4 +195,20 @@ if ! command -v stern &>/dev/null; then
   fi
 else
   printf '%s\n' "stern already installed"
+fi
+
+# linkerd
+if ! command -v linkerd &>/dev/null; then
+  if [ "${OS}" == 'Linux' ]; then
+    printf '%s\n' "installing linkerd on linux"
+    curl -fsL https://run.linkerd.io/install | sh
+    echo "export PATH=$PATH:/home/markus/.linkerd2/bin" >> ~/.bashrc
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf '%s\n' "installing linkerd on darwin"
+    url -fsL https://run.linkerd.io/install | sh
+    echo "export PATH=$PATH:/home/markus/.linkerd2/bin" >> ~/.zshrc
+  fi
+else
+  printf '%s\n' "linkerd already installed"
 fi

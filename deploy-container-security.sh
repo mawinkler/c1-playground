@@ -15,7 +15,7 @@ REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)
 
 DEPLOY_RT=false
 if is_gke || is_aks || is_eks ; then
-  printf '%s' "Deploying with Runtime Security"
+  printf '%s\n' "Deploying with Runtime Security"
   DEPLOY_RT=true
 fi
 
@@ -143,6 +143,7 @@ function deploy_container_security() {
   ## deploy container security
   printf '%s\n' "Deploy container security"
   API_KEY_ADMISSION_CONTROLLER=${API_KEY_ADMISSION_CONTROLLER} \
+    REGION=${REGION} \
     DEPLOY_RT=${DEPLOY_RT} \
     envsubst <templates/container-security-overrides.yaml >overrides/container-security-overrides.yaml
 

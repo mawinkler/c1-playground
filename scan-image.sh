@@ -161,41 +161,34 @@ function scan_aks {
 # ##############################################################
 function pullpush_eks {
 
-  # GCP_HOSTNAME="gcr.io"
-  # GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
-  # printf '%s\n' "GCP Project is ${GCP_PROJECTID}"
-  # GCR_SERVICE_ACCOUNT=service-gcrsvc
-  # if test -f "${GCR_SERVICE_ACCOUNT}_keyfile.json"; then
-  #   printf '%s\n' "Using existing key file"
-  # else
-  #   printf '%s\n' "Creating Service Account"
-  #   echo ${GCR_SERVICE_ACCOUNT}_keyfile.json
-  #   gcloud iam service-accounts create ${GCR_SERVICE_ACCOUNT}
-  #   gcloud projects add-iam-policy-binding ${GCP_PROJECTID} --member "serviceAccount:${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com" --role "roles/storage.admin"
-  #   gcloud iam service-accounts keys create ${GCR_SERVICE_ACCOUNT}_keyfile.json --iam-account ${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com
-  # fi
+  get_registry
 
+  curl -sS -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator
+  chmod +x ./aws-iam-authenticator
+
+  AWS_REGION=$(aws configure get region)
   IMAGE_TAG=(${TARGET_IMAGE//:/ })
-  if $(aws ecr describe-repositories --repository-names ${IMAGE_TAG[0]}) ; then
+  if [ $(aws ecr describe-repositories --repository-names ${IMAGE_TAG[0]} --output text --query repositories[].repositoryName) == ${IMAGE_TAG[0]} ] ; then
     printf '%s\n' "Using Container Repository ${IMAGE_TAG[0]}"
   else
     printf '%s\n' "Creating Container Repository ${IMAGE_TAG[0]}"
-    aws ecr create-repository --repository-name ${IMAGE_TAG[0]}
+    aws ecr create-repository --repository-name ${IMAGE_TAG[0]} --image-scanning-configuration scanOnPush=true --region ${AWS_REGION}
   fi
 
-  cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME}
+  # Login, pull, push
+  ECR_USERNAME=AWS
+  ECR_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
+  echo ${ECR_PASSWORD} | 
+    docker login --username ${ECR_USERNAME} --password-stdin ${REGISTRY}
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
-  docker push ${GCP_HOSTNAME}/${GCP_PROJECTID}/${TARGET_IMAGE}
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
+  docker push ${REGISTRY}/${TARGET_IMAGE}
 }
 
 function scan_eks {
 
-  JSON_KEY=$(cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | jq tostring)
-  PULL_AUTH='{"username":"_json_key","password":'${JSON_KEY}'}'
-  IMAGE_NAME="${REGISTRY_LOGINSERVER}/${TARGET_IMAGE}"
-  SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-                  -o jsonpath='{.status.loadBalancer.ingress[0].dns}')
+  PULL_AUTH='{"aws":{"region":"'${AWS_REGION}'"}}'
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
 
   # Scan
   scan_image
@@ -214,8 +207,6 @@ elif [[ $(kubectl config current-context) =~ .*-aks ]]; then
   scan_aks
 elif [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
   printf '%s\n' "Running on EKS"
-  printf '%s\n' "NOT YET IMPLEMENTED"
-  exit 0
   pullpush_eks
   scan_eks
 else

@@ -119,22 +119,18 @@ function get_smartcheck() {
   setup_smartcheck
   # gke
   if is_gke ; then
-    printf '%s\n' "Running on gke"
     SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
   # aks
   elif is_aks ; then
-    printf '%s\n' "Running on aks"
     SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
   # eks
   elif is_eks ; then
-    printf '%s\n' "Running on eks"
-    printf '%s\n' "NOT YET IMPLEMENTED"
-    exit 0
+    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
   # local
   else
-    printf '%s\n' "Running on local playground"
     if is_linux ; then
       SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
                     -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -162,13 +158,11 @@ function get_smartcheck() {
 function get_registry() {
   # gke
   if is_gke ; then
-    printf '%s\n' "Running on gke"
     GCP_HOSTNAME="gcr.io"
     GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
     REGISTRY=${GCP_HOSTNAME}/${GCP_PROJECTID}
   # aks
   elif is_aks ; then
-    printf '%s\n' "Running on aks"
     PLAYGROUND_NAME="$(jq -r '.cluster_name' config.json)"
     if [[ $(az group list | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME} '.[] | select(.name==$PLAYGROUND_NAME) | .name') == "" ]]; then
       printf '%s\n' "creating resource group ${PLAYGROUND_NAME}"
@@ -187,12 +181,12 @@ function get_registry() {
     REGISTRY=$(az acr show --resource-group ${PLAYGROUND_NAME} --name ${REGISTRY_NAME} -o json | jq -r '.loginServer')
   # eks
   elif is_eks ; then
-    printf '%s\n' "Running on eks"
-    printf '%s\n' "NOT YET IMPLEMENTED"
-    exit 0
+    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+    AWS_REGION=$(aws configure get region)
+    REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+    printf '%s\n' "Using container registry ${REGISTRY}"
   # local
   else
-    printf '%s\n' "Running on local playground"
     REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
     REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
     if is_linux ; then
