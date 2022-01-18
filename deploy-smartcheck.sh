@@ -222,7 +222,7 @@ function create_ingress() {
   SC_HOSTNAME=${SC_HOSTNAME} \
     SC_REG_HOSTNAME=${SC_REG_HOSTNAME} \
     envsubst <templates/smartcheck-ingress.yaml | kubectl apply -f - -o yaml
-  printf '%s\n' "Smart check ingress created 🍻"
+  printf '%s\n' "Smart Check ingress created 🍻"
 }
 
 #######################################
@@ -255,7 +255,7 @@ if is_linux ; then
     echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
   else
     ./deploy-proxy.sh smartcheck
-    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" >> services
+    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
     echo "Smart check UI on: https://$(hostname) -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
   fi
 fi
@@ -282,7 +282,7 @@ if is_darwin ; then
     password_change
     create_ssl_certificate_darwin
     upgrade_smartcheck
-    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" >> services
+    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
     echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
   fi
 fi

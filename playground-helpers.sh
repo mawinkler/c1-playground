@@ -52,6 +52,23 @@ function is_eks() {
 }
 
 #######################################
+# Test for Kind cluster
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   0: if Kind
+#   false: if not Kind
+#######################################
+function is_kind() {
+  if [[ $(kubectl config current-context) =~ kind.* ]]; then
+    return
+  fi
+  false
+}
+
+#######################################
 # Test for host operating system Linux
 # Globals:
 #   None
