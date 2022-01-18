@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: falco-np
+spec:
+  selector:
+    app: falco
+  ports:
+  - protocol: TCP
+    port: 8765
+    nodePort: 32765
+  type: NodePort

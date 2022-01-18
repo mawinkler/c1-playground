@@ -1,0 +1,15 @@
+auditLog:
+  enabled: true
+falco:
+  jsonOutput: true
+  jsonIncludeOutputProperty: true
+  grpc:
+    enabled: true
+  grpcOutput:
+    enabled: true
+falcosidekick:
+  enabled: true
+  webui:
+    enabled: true
+    service:
+      type: LoadBalancer
