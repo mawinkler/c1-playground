@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${SERVICE_NAME}
+  namespace: ${NAMESPACE}
+  labels:
+    app: ${SERVICE_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${SERVICE_NAME}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: ${SERVICE_NAME}
+    spec:
+      containers:
+      - name: ${SERVICE_NAME}
+        image: registry:2.6.2
+        ports:
+        - containerPort: ${SERVICE_PORT}
+        volumeMounts:
+        - name: repo-vol
+          mountPath: "/var/lib/registry"
+        - name: certs-vol
+          mountPath: "/certs"
+          readOnly: true
+        - name: auth-vol
+          mountPath: "/auth"
+          readOnly: true
+        env:
+        - name: REGISTRY_AUTH
+          value: "htpasswd"
+        - name: REGISTRY_AUTH_HTPASSWD_REALM
+          value: "Registry Realm"
+        - name: REGISTRY_AUTH_HTPASSWD_PATH
+          value: "/auth/htpasswd"
+        - name: REGISTRY_HTTP_TLS_CERTIFICATE
+          value: "/certs/tls.crt"
+        - name: REGISTRY_HTTP_TLS_KEY
+          value: "/certs/tls.key"
+      volumes:
+      - name: repo-vol
+        persistentVolumeClaim:
+          claimName: docker-repo-pvc
+      - name: certs-vol
+        secret:
+          secretName: certs-secret
+      - name: auth-vol
+        secret:
+          secretName: auth-secret

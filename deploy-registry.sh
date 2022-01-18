@@ -2,252 +2,214 @@
 
 set -e
 
-REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
-REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
-REG_HOSTNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
-REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
-REG_SIZE="$(jq -r '.services[] | select(.name=="playground-registry") | .size' config.json)"
-REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
-REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
-OS="$(uname)"
+# Source helpers
+. ./playground-helpers.sh
 
-if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
-  echo Running on GKE, AKS or EKS
-fi
+# Get config
+NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' config.json)"
+HOSTNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' config.json)"
+SERVICE_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' config.json)"
+SERVICE_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' config.json)"
+STORAGE_SIZE="$(jq -r '.services[] | select(.name=="playground-registry") | .size' config.json)"
+USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
 
-function create_namespace_service {
-  printf '%s' "Create registry namespace and service"
-
-  # create service
-  cat <<EOF | kubectl apply -f - -o yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${REG_NAMESPACE}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${REG_NAME}
-  namespace: ${REG_NAMESPACE}
-  labels:
-    app: ${REG_NAME}
-spec:
-  type: ${SERVICE_TYPE}
-  ports:
-  - port: 5000
-    protocol: TCP
-    targetPort: 5000
-  selector:
-    app: ${REG_NAME}
-EOF
+#######################################
+# Creates Kubernetes namespace
+# Globals:
+#   NAMESPACE
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_namespace() {
+  printf '%s' "Create registry namespace"
+  NAMESPACE=${NAMESPACE} envsubst <templates/namespace.yaml | kubectl apply -f - -o yaml > /dev/null
   printf '%s\n' " 🍼"
 }
 
-function create_auth_secret {
+#######################################
+# Creates Kubernetes service
+# Globals:
+#   NAMESPACE
+#   SERVICE_NAME
+#   SERVICE_TYPE
+#   SERVICE_PORT
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_service() {
+  printf '%s' "Create registry service"
+  NAMESPACE=${NAMESPACE} \
+    SERVICE_NAME=${SERVICE_NAME} \
+    SERVICE_TYPE=${SERVICE_TYPE} \
+    SERVICE_PORT=${SERVICE_PORT} \
+    envsubst <templates/service.yaml | kubectl apply -f - -o yaml > /dev/null
+  printf '%s\n' " 🍼"
+}
+
+#######################################
+# Create authentication secret for
+# registry
+# Globals:
+#   NAMESPACE
+#   USERNAME
+#   PASSWORD
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_auth_secret() {
   # create auth secret
 
   printf '%s' "Create registry auth secret"
 
   mkdir -p auth
-  htpasswd -bBc auth/htpasswd ${REG_USERNAME} ${REG_PASSWORD}
-  kubectl --namespace ${REG_NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd -o yaml
+  htpasswd -bBc auth/htpasswd ${USERNAME} ${PASSWORD}
+  kubectl --namespace ${NAMESPACE} create secret generic auth-secret --from-file=auth/htpasswd -o yaml
   printf '%s\n' " 🍿"
 }
 
-function create_tls_secret_linux {
-  # create tls secret
-
+#######################################
+# Create server certificate
+# Globals:
+#   NAMESPACE
+#   SERVICE_NAME
+#   USERNAME
+#   PASSWORD
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_tls_secret_linux() {
   printf '%s' "Create registry tls secret (linux)"
-
   EXTERNAL_IP=""
   while [[ "${EXTERNAL_IP}" == "" ]]; do
     sleep 1
-    if [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
-      EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+    if is_eks ; then
+      EXTERNAL_IP=$(kubectl --namespace ${NAMESPACE} get svc ${SERVICE_NAME} \
                     -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
       EXTERNAL_IP=$(dig +short ${EXTERNAL_IP} 2>&1 | head -n 1)
     else
-      EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+      EXTERNAL_IP=$(kubectl --namespace ${NAMESPACE} get svc ${SERVICE_NAME} \
                     -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     fi
     echo "External IP ${EXTERNAL_IP}"
   done
 
   mkdir -p certs
-  cat <<EOF >certs/req-reg.conf
-[req]
-  distinguished_name=req
-[san]
-  subjectAltName=DNS:${EXTERNAL_IP//./-}.nip.io,IP:${EXTERNAL_IP}
-EOF
+  EXTERNAL_IP=${EXTERNAL_IP} \
+    EXTERNAL_IP_DASH=${EXTERNAL_IP//./-} \
+    envsubst <templates/registry-server-tls-linux.conf >certs/req-reg.conf
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
-    -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
-  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key -o yaml
+    -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf
+  kubectl --namespace ${NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key -o yaml
   printf '%s\n' " 🍵"
 }
 
-function create_tls_secret_darwin {
-  # create tls secret
-
+#######################################
+# Create server certificate
+# Globals:
+#   NAMESPACE
+#   SERVICE_NAME
+#   USERNAME
+#   PASSWORD
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_tls_secret_darwin() {
   printf '%s' "create tls secret (darwin)"
-
   EXTERNAL_IP=""
   while [[ "${EXTERNAL_IP}" == "" ]]; do
     sleep 1
-    EXTERNAL_IP=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
+    EXTERNAL_IP=$(kubectl --namespace ${NAMESPACE} get svc ${SERVICE_NAME} \
                   -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
   done
 
   mkdir -p certs
-  cat <<EOF >certs/req-reg.conf
-[req]
-  distinguished_name=req
-[san]
-  subjectAltName=DNS:${REG_HOSTNAME},IP:${EXTERNAL_IP}
-EOF
+  EXTERNAL_IP=${EXTERNAL_IP} \
+    HOSTNAME=${HOSTNAME} \
+    envsubst <templates/registry-server-tls-darwin.conf >certs/req-reg.conf
 
   openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
     -keyout certs/tls.key -out certs/tls.crt \
     -subj "/CN=${EXTERNAL_IP}" -extensions san -config certs/req-reg.conf &> /dev/null
-  kubectl --namespace ${REG_NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key -o yaml
+  kubectl --namespace ${NAMESPACE} create secret tls certs-secret --cert=certs/tls.crt --key=certs/tls.key -o yaml
   printf '%s\n' " 🍵"
 }
 
-function create_deployment {
+#######################################
+# Deploys Registry to Kubernetes
+# Globals:
+#   NAMESPACE
+#   STORAGE_SIZE
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function deploy_registry() {
   # create registry deployment
 
   printf '%s' "Create registry deployment"
 
-  cat <<EOF | kubectl apply -f - -o yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: docker-repo-pvc
-  namespace: ${REG_NAMESPACE}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: ${REG_SIZE}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${REG_NAME}
-  namespace: ${REG_NAMESPACE}
-  labels:
-    app: ${REG_NAME}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${REG_NAME}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-  template:
-    metadata:
-      labels:
-        app: ${REG_NAME}
-    spec:
-      containers:
-      - name: ${REG_NAME}
-        image: registry:2.6.2
-        ports:
-        - containerPort: 5000
-        volumeMounts:
-        - name: repo-vol
-          mountPath: "/var/lib/registry"
-        - name: certs-vol
-          mountPath: "/certs"
-          readOnly: true
-        - name: auth-vol
-          mountPath: "/auth"
-          readOnly: true
-        env:
-        - name: REGISTRY_AUTH
-          value: "htpasswd"
-        - name: REGISTRY_AUTH_HTPASSWD_REALM
-          value: "Registry Realm"
-        - name: REGISTRY_AUTH_HTPASSWD_PATH
-          value: "/auth/htpasswd"
-        - name: REGISTRY_HTTP_TLS_CERTIFICATE
-          value: "/certs/tls.crt"
-        - name: REGISTRY_HTTP_TLS_KEY
-          value: "/certs/tls.key"
-      volumes:
-      - name: repo-vol
-        persistentVolumeClaim:
-          claimName: docker-repo-pvc
-      - name: certs-vol
-        secret:
-          secretName: certs-secret
-      - name: auth-vol
-        secret:
-          secretName: auth-secret
-EOF
+  NAMESPACE=${NAMESPACE} \
+    STORAGE_SIZE=${STORAGE_SIZE} \
+    envsubst <templates/registry-volume-claim.yaml | kubectl apply -f - -o yaml
+  NAMESPACE=${NAMESPACE} \
+    SERVICE_NAME=${SERVICE_NAME} \
+    SERVICE_PORT=${SERVICE_PORT} \
+  envsubst <templates/registry-deployment.yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍶"
 }
 
-function create_ingress {
-  # create ingress for registry
+#######################################
+# Creates Kubernetes ingress
+# Globals:
+#   NAMESPACE
+#   PROMETHEUS_HOSTNAME
+#   GRAFANA_HOSTNAME
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_ingress() {
   printf '%s\n' "Create registry ingress"
-
-  # cat <<EOF
-  cat <<EOF | kubectl apply -f - -o yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: 1000m
-  name: ${REG_NAME}
-  namespace: ${REG_NAMESPACE}
-spec:
-  tls:
-  - hosts:
-    - ${REG_HOSTNAME}
-    # secretName: certs-secret
-  rules:
-  - host: ${REG_HOSTNAME}
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ${REG_NAME}
-            port:
-              number: 5000
-EOF
+  NAMESPACE=${NAMESPACE} \
+    SERVICE_NAME=${SERVICE_NAME} \
+    SERVICE_PORT=${SERVICE_PORT} \
+    HOSTNAME=${HOSTNAME} \
+    envsubst <templates/registry-ingress.yaml | kubectl apply -f - -o yaml
   printf '%s\n' "Registry ingress created 🍻"
 }
 
-
-if [ "${OS}" == 'Linux' ]; then
+if is_linux ; then
   SERVICE_TYPE='LoadBalancer'
-  create_namespace_service
+  create_namespace
+  create_service
   create_auth_secret
   create_tls_secret_linux
-  create_deployment
-  HOST_IP=$(hostname -I | awk '{print $1}')
-  echo "Registry login with: echo ${REG_PASSWORD} | docker login https://${EXTERNAL_IP}:${REG_PORT} --username ${REG_USERNAME} --password-stdin" >> services
+  deploy_registry
+  echo "Registry login with: echo ${PASSWORD} | docker login https://${EXTERNAL_IP}:${SERVICE_PORT} --username ${USERNAME} --password-stdin" 
 fi
 
-if [ "${OS}" == 'Darwin' ]; then
+if is_darwin ; then
   SERVICE_TYPE='LoadBalancer'
-  create_namespace_service
+  create_namespace
+  create_service
   create_auth_secret
   create_tls_secret_darwin
-  create_deployment
+  deploy_registry
   create_ingress
-  echo "Registry login with: echo ${REG_PASSWORD} | docker login ${REG_HOSTNAME}:443 --username ${REG_USERNAME} --password-stdin" >> services
+  echo "Registry login with: echo ${PASSWORD} | docker login ${HOSTNAME}:443 --username ${USERNAME} --password-stdin" | tee -a services
 fi
