@@ -5,83 +5,85 @@ set -e
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 NAMESPACE_TRIVY="$(jq -r '.services[] | select(.name=="trivy") | .namespace' config.json)"
 NAMESPACE_STARBOARD="$(jq -r '.services[] | select(.name=="starboard") | .namespace' config.json)"
-OS="$(uname)"
 
-function create_trivy_starboard_namespace {
+#######################################
+# Creates Kubernetes namespace
+# Globals:
+#   NAMESPACE
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_namespace() {
   printf '%s' "Create trivy namespace"
-
-  # create namespace
-  cat <<EOF | kubectl apply -f - -o yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${NAMESPACE_TRIVY}
-EOF
+  NAMESPACE=${NAMESPACE_TRIVY} envsubst <templates/namespace.yaml | kubectl apply -f - -o yaml > /dev/null
   printf '%s\n' " 🍼"
-
   printf '%s' "Create starboard namespace"
-  # create namespace
-  cat <<EOF | kubectl apply -f - -o yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${NAMESPACE_STARBOARD}
-EOF
+  NAMESPACE=${NAMESPACE_STARBOARD} envsubst <templates/namespace.yaml | kubectl apply -f - -o yaml > /dev/null
   printf '%s\n' " 🍼"
 }
 
-function whitelist_namsspaces {
-  printf '%s\n' "whitelist namespaces"
-
-  # whitelist some namespaces
+#######################################
+# Whitelists Kubernetes namespaces for
+# Trivy and Starboard
+# Globals:
+#   NAMESPACE_TRIVY
+#   NAMESPACE_STARBOARD
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function whitelist_namespace() {
+  printf '%s\n' "Whitelist namespaces"
   kubectl label namespace ${NAMESPACE_TRIVY} --overwrite ignoreAdmissionControl=true
   kubectl label namespace ${NAMESPACE_STARBOARD} --overwrite ignoreAdmissionControl=true
 }
 
 # helm show values aquasecurity/trivy
+#######################################
+# Deploys Trivy and Starboard to
+# Kubernetes
+# Globals:
+#   NAMESPACE_TRIVY
+#   NAMESPACE_STARBOARD
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
 function deploy_trivy_starboard {
-  ## deploy trivy
   printf '%s\n' "deploy trivy and starboard"
 
   mkdir -p overrides
-  cat <<EOF >overrides/overrides-trivy.yml
-trivy:
-  debugMode: true
-EOF
-
+  envsubst <templates/trivy-overrides.yaml >overrides/trivy-overrides.yaml
   helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
   helm repo update
-
   # image:
   #   registry: docker.io
   #   repository: aquasec/trivy
   #   tag: 0.18.3
   #   pullPolicy: IfNotPresent
   #   pullSecret: ""
-  IMAGEREF=$(helm show values aquasecurity/trivy --jsonpath='{.image.registry}/{.image.repository}:{.image.tag}')
-  cat <<EOF >overrides/overrides-starboard.yml
-targetNamespaces: ""
-trivy:
-  imageRef: ${IMAGEREF}
-  mode: ClientServer
-  serverURL: http://trivy.trivy:4954
-EOF
+  # IMAGEREF=$(helm show values aquasecurity/trivy --jsonpath='{.image.registry}/{.image.repository}:{.image.tag}') \
+  IMAGEREF=$(helm show values aquasecurity/trivy --jsonpath='{.image.registry}/{.image.repository}') \
+    envsubst <templates/starboard-overrides.yaml >overrides/starboard-overrides.yaml
 
   helm upgrade \
     trivy \
-    --values overrides/overrides-trivy.yml \
+    --values overrides/trivy-overrides.yaml \
     --namespace ${NAMESPACE_TRIVY} \
     --install \
     aquasecurity/trivy
-
   helm upgrade \
     starboard \
-    --values overrides/overrides-starboard.yml \
+    --values overrides/starboard-overrides.yaml \
     --namespace ${NAMESPACE_STARBOARD} \
     --install \
     aquasecurity/starboard-operator
 }
 
-create_trivy_starboard_namespace
-whitelist_namsspaces
+create_namespace
+whitelist_namespace
 deploy_trivy_starboard

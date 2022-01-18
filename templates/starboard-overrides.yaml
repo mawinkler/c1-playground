@@ -1,0 +1,5 @@
+targetNamespaces: ""
+trivy:
+  imageRef: ${IMAGEREF}
+  mode: ClientServer
+  serverURL: http://trivy.trivy:4954
