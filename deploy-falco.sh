@@ -145,23 +145,73 @@ function create_ingress() {
   printf '%s\n' "Falco ingress created 🍻"
 }
 
-if is_darwin ; then
-  echo "*** Falco currently not supported on MacOS ***"
-  exit 0
-fi
-
-create_namespace
-whitelist_namsspace
-deploy_falco
-
-if is_linux ; then
-  # test if we're using a kind cluster and need a proxy
-  if is_kind ; then
-    ./deploy-proxy.sh falco
-    HOST_IP=$(hostname -I | awk '{print $1}')
-    echo "Falco UI on: http://${HOST_IP}:${LISTEN_PORT}/ui/#/" | tee -a services
+#######################################
+# Main:
+# Deploys Falco
+#######################################
+function main() {
+  if is_darwin ; then
+    echo "*** Falco currently not supported on MacOS ***"
+    exit 0
   fi
-fi
-if is_darwin ; then
-  create_ingress
+
+  create_namespace
+  whitelist_namsspace
+  deploy_falco
+
+  if is_linux ; then
+    # test if we're using a kind cluster and need a proxy
+    if is_kind ; then
+      ./deploy-proxy.sh falco
+      echo "Falco UI on: http://$(hostname -I | awk '{print $1}'):${LISTEN_PORT}/ui/#/" | tee -a services
+    fi
+  fi
+  if is_darwin ; then
+    create_ingress
+  fi
+}
+
+function cleanup() {
+  helm -n ${NAMESPACE} delete \
+    falco || true
+  helm -n ${NAMESPACE} delete \
+    falco-exporter || true
+  kubectl delete namespace ${NAMESPACE} || true
+  sudo rm -Rf log/*
+  
+  for i in {1..10} ; do
+    sleep 2
+    if [ "$(kubectl get all -n ${NAMESPACE} | grep 'No resources found' || true)" == "" ] ; then
+      return
+    fi
+  done
+  false
+}
+
+function test() {
+  for i in {1..10} ; do
+    sleep 5
+    DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${NAMESPACE} | wc -l)
+    DEPLOYMENTS_READY=$(kubectl get deployments -n ${NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    PODS_TOTAL=$(kubectl get pods -n ${NAMESPACE} | wc -l)
+    PODS_READY=$(kubectl get pods -n ${NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    if [[ ( $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ) && ( $((${PODS_TOTAL} - 1)) -eq ${PODS_READY} ) ]] ; then
+      echo ${PODS_READY}
+      if is_kind ; then
+        for i in {1..10} ; do
+          sleep 2
+          if [ $(curl --write-out '%{http_code}' --silent --output /dev/null "http://$(hostname -I | awk '{print $1}'):${LISTEN_PORT}/ui/#") -eq 200 ] ; then
+            return
+          fi
+        done
+      fi
+      return
+    fi
+  done
+  false
+}
+
+# run main of no arguments given
+if [[ $# -eq 0 ]] ; then
+  main
 fi

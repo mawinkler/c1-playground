@@ -256,7 +256,7 @@ if is_linux ; then
   else
     ./deploy-proxy.sh smartcheck
     # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
-    echo "Smart check UI on: https://$(hostname) -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+    echo "Smart check UI on: https://$(hostname -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
   fi
 fi
 

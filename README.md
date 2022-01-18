@@ -13,6 +13,7 @@
       - [Tear Down](#tear-down)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
+  - [Testing the Playground](#testing-the-playground)
   - [TODO](#todo)
 
 Ultra fast and slim kubernetes playground.
@@ -331,6 +332,22 @@ If you're running the playground on MacOS, follow the lab guide [Play with the P
 Both guides are basically identical, but since access to some services is different on Linux and MacOS there are two guides available.
 
 Lastly, there is a [guide](docs/play-with-falco.md) to experiment with the runtime rules built into the playground to play with Falco. The rule set of the playground is located [here](falco/playground_rules.yaml).
+
+## Testing the Playground
+
+The Playground uses [Bats](https://github.com/sstephenson/bats) for unit testing.
+
+Install Bats with
+
+```sh
+# Linux
+npm install -g bats
+
+# MacOS
+brew install bats
+```
+
+Unit tests are in `./tests`.
 
 ## TODO
 

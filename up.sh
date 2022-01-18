@@ -6,8 +6,6 @@ set -o errexit
 
 # Get config
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
-HOST_REGISTRY_NAME=playground-host-registry
-HOST_REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-host-registry") | .port' config.json)"
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 printf '%s\n' "Target environment ${OS}"
@@ -161,25 +159,49 @@ function deploy_calico() {
 # cluster on linux and darwin operating
 # systems
 #######################################
-# flush services
-echo > services
+function main() {
+  # flush services
+  echo > services
 
-if is_linux ; then
-  create_cluster_linux
-  deploy_cadvisor
-  deploy_calico
-  create_load_balancer
-  create_ingress_controller
-  ./deploy_registry.sh
-  printf '\n%s\n' "Cluster ready 🍾"
-fi
+  if is_linux ; then
+    create_cluster_linux
+    deploy_cadvisor
+    deploy_calico
+    create_load_balancer
+    create_ingress_controller
+    printf '\n%s\n' "Cluster ready 🍾"
+  fi
 
-if is_darwin ; then
-  create_cluster_darwin
-  deploy_cadvisor
-  deploy_calico
-  create_load_balancer
-  create_ingress_controller
-  ./deploy_registry.sh
-  printf '\n%s\n' "Cluster ready 🍾"
+  if is_darwin ; then
+    create_cluster_darwin
+    deploy_cadvisor
+    deploy_calico
+    create_load_balancer
+    create_ingress_controller
+    printf '\n%s\n' "Cluster ready 🍾"
+  fi
+}
+
+function cleanup() {
+  ./down.sh
+  CLUSTER_NAME=sol
+  if [ "$(docker ps -q --filter name=${CLUSTER_NAME})" == "" ] ; then
+    return
+  fi
+  false
+}
+
+function test() {
+  DEPLOYMENTS_TOTAL=$(kubectl get deployments -A | wc -l)
+  DEPLOYMENTS_READY=$(kubectl get deployments -A | grep -E "([0-9]+)/\1" | wc -l)
+  if [ $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ] ; then
+    echo ${DEPLOYMENTS_READY}
+    return
+  fi
+  false
+}
+
+# run main of no arguments given
+if [[ $# -eq 0 ]] ; then
+  main
 fi

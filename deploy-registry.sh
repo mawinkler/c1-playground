@@ -64,8 +64,6 @@ function create_service() {
 #   None
 #######################################
 function create_auth_secret() {
-  # create auth secret
-
   printf '%s' "Create registry auth secret"
 
   mkdir -p auth
@@ -193,23 +191,49 @@ function create_ingress() {
   printf '%s\n' "Registry ingress created 🍻"
 }
 
-if is_linux ; then
-  SERVICE_TYPE='LoadBalancer'
-  create_namespace
-  create_service
-  create_auth_secret
-  create_tls_secret_linux
-  deploy_registry
-  echo "Registry login with: echo ${PASSWORD} | docker login https://${EXTERNAL_IP}:${SERVICE_PORT} --username ${USERNAME} --password-stdin" 
-fi
+function main() {
+  if is_linux ; then
+    SERVICE_TYPE='LoadBalancer'
+    create_namespace
+    create_service
+    create_auth_secret
+    create_tls_secret_linux
+    deploy_registry
+    echo "Registry login with: echo ${PASSWORD} | docker login https://${EXTERNAL_IP}:${SERVICE_PORT} --username ${USERNAME} --password-stdin" | tee -a services
+  fi
 
-if is_darwin ; then
-  SERVICE_TYPE='LoadBalancer'
-  create_namespace
-  create_service
-  create_auth_secret
-  create_tls_secret_darwin
-  deploy_registry
-  create_ingress
-  echo "Registry login with: echo ${PASSWORD} | docker login ${HOSTNAME}:443 --username ${USERNAME} --password-stdin" | tee -a services
+  if is_darwin ; then
+    SERVICE_TYPE='LoadBalancer'
+    create_namespace
+    create_service
+    create_auth_secret
+    create_tls_secret_darwin
+    deploy_registry
+    create_ingress
+    echo "Registry login with: echo ${PASSWORD} | docker login ${HOSTNAME}:443 --username ${USERNAME} --password-stdin" | tee -a services
+    kubectl -n ${NAMESPACE} get svc -o=jsonpath='{.items[].metadata.name}' &> /dev/null
+  fi
+}
+
+function cleanup() {
+  rm -f \
+    certs/req-reg.conf \
+    certs/tls.crt \
+    certs/tls.key
+  kubectl delete namespace ${NAMESPACE} || true
+  ! kubectl -n ${NAMESPACE} get svc -o=jsonpath='{.items[].metadata.name}'
+}
+
+function test() {
+  get_registry
+  echo ${PASSWORD} | docker login https://${REGISTRY} --username ${USERNAME} --password-stdin
+  IMAGE=busybox:latest
+  docker pull ${IMAGE}
+  docker tag ${IMAGE} ${REGISTRY}/${IMAGE}
+  docker push ${REGISTRY}/${IMAGE}
+}
+
+# run main of no arguments given
+if [[ $# -eq 0 ]] ; then
+  main
 fi
