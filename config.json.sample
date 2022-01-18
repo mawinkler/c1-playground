@@ -11,10 +11,6 @@
             "hostname": "playground-registry"
         },
         {
-            "name": "playground-host-registry",
-            "port": "5001"
-        },
-        {
             "name": "grafana",
             "namespace": "prometheus",
             "username": "admin",

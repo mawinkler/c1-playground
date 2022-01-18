@@ -15,8 +15,8 @@ while [[ $# -gt 0 ]]; do
   key="$1"
 
   case $key in
-    -s|--sync)
-      SYNC=true
+    -as|--async)
+      SYNC=false
       shift # past argument
       ;;
     *)    # should be the image name and tag

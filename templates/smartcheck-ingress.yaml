@@ -34,4 +34,4 @@ spec:
             service:
               name: proxy
               port:
-                number: 5000     
+                number: 5000

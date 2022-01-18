@@ -20,6 +20,7 @@ cloudOne:
     namespaces:
     - kube-system
     - calico-system
+    - tigera-operator
     - smartcheck
     - container-security
     # - kube-node-lease

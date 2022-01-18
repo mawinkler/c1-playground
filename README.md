@@ -7,7 +7,10 @@
   - [Tools](#tools)
   - [Configure](#configure)
   - [Start](#start)
-  - [Tear Down](#tear-down)
+    - [Using GKE, EKS or AKS](#using-gke-eks-or-aks)
+    - [Using a local Cluster running on your Machine](#using-a-local-cluster-running-on-your-machine)
+      - [Up](#up)
+      - [Tear Down](#tear-down)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
   - [TODO](#todo)
@@ -158,6 +161,27 @@ Typically you don't need to change anything here besides setting your api-key an
 }
 ```
 
+## Start
+
+### Using GKE, EKS or AKS
+
+Run one of the following scripts to quickly create a cluster in the clouds.
+
+```sh
+# GKE
+./clusters/rapid-gke.sh
+
+# AKS
+./clusters/rapid-aks.sh
+
+# EKS
+./clusters/rapid-eks.sh
+```
+
+You need to be authenticated to the cloud with the specific command line interface beforehand, of course.
+
+### Using a local Cluster running on your Machine
+
 If you're ***not*** using the public cloud clusters, follow the steps for your platform below.
 
 ***Linux***
@@ -259,7 +283,7 @@ $ ./stop.sh
 $ sudo systemctl restart docker
 ```
 
-## Start
+#### Up
 
 Simply run
 
@@ -277,7 +301,7 @@ $ ./deploy-registry.sh
 
 You can find the authentication instructions within the file `services`.
 
-## Tear Down
+#### Tear Down
 
 ```sh
 $ ./down.sh
