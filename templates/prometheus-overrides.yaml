@@ -1,0 +1,44 @@
+grafana:
+  enabled: true
+  adminPassword: ${GRAFANA_PASSWORD}
+  service:
+    type: ${SERVICE_TYPE}
+prometheusOperator:
+  enabled: true
+  service:
+    type: ${SERVICE_TYPE}
+  namespaces:
+    releaseNamespace: true
+    additional:
+    - kube-system
+    - smartcheck
+    - container-security
+    - registry
+    - falco
+prometheus:
+  enabled: true
+  service:
+    type: ${SERVICE_TYPE}
+  prometheusSpec:
+    additionalScrapeConfigs:
+    - job_name: api-collector
+      scrape_interval: 60s
+      scrape_timeout: 30s
+      scheme: http
+      metrics_path: /
+      static_configs:
+      - targets: ['api-collector:8000']
+    - job_name: falco
+      scrape_interval: 15s
+      scrape_timeout: 5s
+      scheme: http
+      metrics_path: /metrics
+      static_configs:
+      - targets: ['falco-exporter.falco:9376']
+    - job_name: smartcheck-metrics
+      scrape_interval: 15s
+      scrape_timeout: 5s
+      scheme: http
+      metrics_path: /metrics
+      static_configs:
+      - targets: ['metrics.smartcheck:8082']
