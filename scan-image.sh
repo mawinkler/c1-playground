@@ -47,7 +47,7 @@ function scan_image {
       --insecure-skip-registry-tls-verify \
       --insecure-skip-tls-verify &>/dev/null & disown || true
   else
-    docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/docker.sock --network host \
+    RESULT=$(docker run --rm --read-only --cap-drop ALL -v /var/run/docker.sock:/var/run/docker.sock --network host \
       deepsecurity/smartcheck-scan-action \
       --image-name "${IMAGE_NAME}" \
       --smartcheck-host="${SC_HOST}:${SC_PORT}" \
@@ -55,7 +55,8 @@ function scan_image {
       --smartcheck-password="${SC_PASSWORD}" \
       --image-pull-auth="${PULL_AUTH}" \
       --insecure-skip-registry-tls-verify \
-      --insecure-skip-tls-verify
+      --insecure-skip-tls-verify)
+    echo $RESULT | jq .
   fi
 }
 

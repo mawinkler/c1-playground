@@ -336,6 +336,10 @@ function test() {
   false
 }
 
+function scan() {
+  ./scan-image.sh nginx:latest
+}
+
 # run main of no arguments given
 if [[ $# -eq 0 ]] ; then
   main

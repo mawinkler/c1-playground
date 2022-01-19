@@ -14,3 +14,14 @@ setup() {
   [ "$status" -eq 0 ]
   [ "$output" > 0 ]
 }
+
+@test "scan with smartcheck | expect completed-with-findings result" {
+  run scan
+  if [ -z "${output##*completed-with-findings*}" ] ; then
+    result=0
+  else
+    result=1
+  fi
+  [ "$status" -eq 0 ]
+  [ "$result" -eq 0 ]
+}
