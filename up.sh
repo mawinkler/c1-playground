@@ -184,7 +184,6 @@ function main() {
 
 function cleanup() {
   ./down.sh
-  CLUSTER_NAME=sol
   if [ "$(docker ps -q --filter name=${CLUSTER_NAME})" == "" ] ; then
     return
   fi

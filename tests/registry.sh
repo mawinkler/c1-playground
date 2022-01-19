@@ -4,11 +4,6 @@ setup() {
   . ./deploy-registry.sh test
 }
 
-@test "delete registry | expect service gone" {
-  run cleanup
-  [ "$status" -eq 0 ]
-}
-
 @test "deploy registry | expect service available" {
   run main
   [ "$status" -eq 0 ]

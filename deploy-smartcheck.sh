@@ -79,11 +79,14 @@ function deploy_smartcheck() {
     https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
 
   printf '%s' "Waiting for smart check to be in active state"
-  SMARTCHECK_DEPLOYMENTS=$(kubectl -n smartcheck get deployments | grep -c "/")
-  while [ $(kubectl -n smartcheck get deployments | grep -cE "1/1|2/2|3/3|4/4|5/5") -ne ${SMARTCHECK_DEPLOYMENTS} ]
-  do
-    printf '%s' "."
+  for i in {1..60} ; do
     sleep 2
+    DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${SC_NAMESPACE} | wc -l)
+    DEPLOYMENTS_READY=$(kubectl get deployments -n ${SC_NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    if [[ $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ]] ; then
+      break
+    fi
+    printf '%s' "."
   done
   printf '\n'
 }
@@ -231,58 +234,109 @@ function create_ingress() {
 # Check deployment depending on the
 # host operating system
 #######################################
-if is_linux ; then
-  SERVICE_TYPE='LoadBalancer'
-  create_namespace
-  create_smartcheck_overrides
-  deploy_smartcheck
-  get_smartcheck
-
-  if [ "${SC_HOST}" == "" ]; then
-    echo Unable to get Smart Check LoadBalancer
-    exit -1
-  else
-    echo Smart Check on ${SC_HOST}
-  fi
-
-  echo $SC_HOST
-  password_change
-  create_ssl_certificate_linux
-  upgrade_smartcheck
-
-  # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
-  if is_gke || is_aks || is_eks ; then
-    echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
-  else
-    ./deploy-proxy.sh smartcheck
-    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
-    echo "Smart check UI on: https://$(hostname -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
-  fi
-fi
-
-if is_darwin ; then
-  if is_gke || is_aks || is_eks ; then
+function main() {
+  if is_linux ; then
     SERVICE_TYPE='LoadBalancer'
     create_namespace
     create_smartcheck_overrides
     deploy_smartcheck
     get_smartcheck
+
+    if [ "${SC_HOST}" == "" ]; then
+      echo Unable to get Smart Check LoadBalancer
+      exit -1
+    else
+      echo Smart Check on ${SC_HOST}
+    fi
+
+    echo $SC_HOST
     password_change
     create_ssl_certificate_linux
     upgrade_smartcheck
-    echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
-  else
-    SERVICE_TYPE='ClusterIP'
-    create_namespace
-    create_smartcheck_overrides
-    deploy_smartcheck
-    get_smartcheck
-    # SC_HOST="${SC_HOSTNAME}"
-    create_ingress
-    password_change
-    create_ssl_certificate_darwin
-    upgrade_smartcheck
-    # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
-    echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+
+    # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
+    if is_gke || is_aks || is_eks ; then
+      echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+    else
+      ./deploy-proxy.sh smartcheck
+      # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
+      echo "Smart check UI on: https://$(hostname -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+    fi
   fi
+
+  if is_darwin ; then
+    if is_gke || is_aks || is_eks ; then
+      SERVICE_TYPE='LoadBalancer'
+      create_namespace
+      create_smartcheck_overrides
+      deploy_smartcheck
+      get_smartcheck
+      password_change
+      create_ssl_certificate_linux
+      upgrade_smartcheck
+      echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+    else
+      SERVICE_TYPE='ClusterIP'
+      create_namespace
+      create_smartcheck_overrides
+      deploy_smartcheck
+      get_smartcheck
+      # SC_HOST="${SC_HOSTNAME}"
+      create_ingress
+      password_change
+      create_ssl_certificate_darwin
+      upgrade_smartcheck
+      # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
+      echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+    fi
+  fi
+}
+
+function cleanup() {
+  helm -n ${SC_NAMESPACE} delete \
+    smartcheck || true
+  kubectl delete namespace ${SC_NAMESPACE}
+
+  for i in {1..30} ; do
+    sleep 2
+    if [ "$(kubectl get all -n ${SC_NAMESPACE} | grep 'No resources found' || true)" == "" ] ; then
+      return
+    fi
+  done
+  false
+}
+
+function get_ui() {
+  get_smartcheck
+  UI_URL=https://${SC_HOST}
+}
+
+function test() {
+  for i in {1..60} ; do
+    sleep 5
+    # test deployments and pods
+    DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${SC_NAMESPACE} | wc -l)
+    DEPLOYMENTS_READY=$(kubectl get deployments -n ${SC_NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    PODS_TOTAL=$(kubectl get pods -n ${SC_NAMESPACE} | wc -l)
+    PODS_READY=$(kubectl get pods -n ${SC_NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    if [[ ( $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ) && ( $((${PODS_TOTAL} - 1)) -eq ${PODS_READY} ) ]] ; then
+      echo ${DEPLOYMENTS_READY}
+      # test web app
+      get_ui
+      echo ${UI_URL}
+      for i in {1..10} ; do
+        sleep 2
+        if [ $(curl -k --write-out '%{http_code}' --silent --output /dev/null ${UI_URL}) == 200 ] ; then
+          return
+        fi
+      done
+      return
+    fi
+  done
+  false
+}
+
+# run main of no arguments given
+if [[ $# -eq 0 ]] ; then
+  main
 fi

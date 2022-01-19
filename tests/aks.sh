@@ -1,10 +1,10 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./up.sh test
+  . ./clusters/rapid-aks.sh test
 }
 
-@test "start kind cluster | expect service available" {
+@test "start aks cluster | expect service available" {
   run main
   [ "$status" -eq 0 ]
 }

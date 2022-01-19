@@ -188,23 +188,41 @@ function cleanup() {
   false
 }
 
+function get_ui() {
+  if is_kind ; then
+    if is_linux ; then
+      UI_URL="http://$(hostname -I | awk '{print $1}'):${LISTEN_PORT}/ui/#"
+    else
+      echo "*** Falco currently not supported on MacOS ***"
+    fi
+  else
+    if is_eks ; then
+      UI_URL="http://$(kubectl -n ${NAMESPACE} get svc falco-falcosidekick-ui -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'):${LISTEN_PORT}/ui/#"
+    else
+      UI_URL="http://$(kubectl -n ${NAMESPACE} get svc falco-falcosidekick-ui -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):${LISTEN_PORT}/ui/#"
+    fi
+  fi
+}
+
 function test() {
-  for i in {1..10} ; do
+  for i in {1..20} ; do
     sleep 5
+    # test deployments and pods
     DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${NAMESPACE} | wc -l)
     DEPLOYMENTS_READY=$(kubectl get deployments -n ${NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
     PODS_TOTAL=$(kubectl get pods -n ${NAMESPACE} | wc -l)
     PODS_READY=$(kubectl get pods -n ${NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
     if [[ ( $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ) && ( $((${PODS_TOTAL} - 1)) -eq ${PODS_READY} ) ]] ; then
-      echo ${PODS_READY}
-      if is_kind ; then
-        for i in {1..10} ; do
-          sleep 2
-          if [ $(curl --write-out '%{http_code}' --silent --output /dev/null "http://$(hostname -I | awk '{print $1}'):${LISTEN_PORT}/ui/#") -eq 200 ] ; then
-            return
-          fi
-        done
-      fi
+      echo ${DEPLOYMENTS_READY}
+      # test web app
+      get_ui
+      echo ${UI_URL}
+      for i in {1..10} ; do
+        sleep 2
+        if [ $(curl --write-out '%{http_code}' --silent --output /dev/null ${UI_URL} -eq 200) ] ; then
+          return
+        fi
+      done
       return
     fi
   done

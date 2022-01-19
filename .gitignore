@@ -27,3 +27,4 @@ aws-iam-authenticator
 rapid-eks-down.sh
 cloud-one/api_key
 cloud-one/c1_url
+rapid-aks-down.sh

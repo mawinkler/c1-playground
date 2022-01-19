@@ -95,9 +95,9 @@ Follow the steps for your platform below and continue afterwards in a new shell.
 Download the repo and install required packages if not available.
 
 ```sh
-$ git clone https://github.com/mawinkler/c1-playground.git
-$ cd c1-playground
-$ ./tools.sh
+git clone https://github.com/mawinkler/c1-playground.git
+cd c1-playground
+./tools.sh
 ```
 
 ***MacOS***
@@ -105,9 +105,9 @@ $ ./tools.sh
 Download the repo and install required packages if not available.
 
 ```sh
-$ git clone https://github.com/mawinkler/c1-playground.git
-$ cd c1-playground
-$ ./tools.sh
+git clone https://github.com/mawinkler/c1-playground.git
+cd c1-playground
+./tools.sh
 ```
 
 If running the playground locally, go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker. This is not required when using the public clouds.
@@ -125,9 +125,9 @@ When it comes up, customize the environment by closing the welcome tab and lower
 Download the repo and install required packages if not available.
 
 ```sh
-$ git clone https://github.com/mawinkler/c1-playground.git
-$ cd c1-playground
-$ ./tools.sh
+git clone https://github.com/mawinkler/c1-playground.git
+cd c1-playground
+./tools.sh
 ```
 
 ## Configure
@@ -192,7 +192,7 @@ The `up.sh` script will deploy a load balancer amongst other cluster components 
 To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
 
 ```sh
-$ sudo vi /etc/docker/daemon.json
+sudo vi /etc/docker/daemon.json
 ```
 
 ```json
@@ -202,7 +202,7 @@ $ sudo vi /etc/docker/daemon.json
 Finally restart the docker daemon.
 
 ```sh
-$ sudo systemctl restart docker
+sudo systemctl restart docker
 ```
 
 In the following step [Start](#start), you'll create the cluster, typically followed by creating the cluster registry. The last line of the output from `./deploy-registry.sh` shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
@@ -210,7 +210,7 @@ In the following step [Start](#start), you'll create the cluster, typically foll
 If it failed, we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
 
 ```sh
-$ kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
+kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
 ```
 
 ```
@@ -220,8 +220,8 @@ $ kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type
 Adapt the file `/etc/docker/daemon.json` accordingly. Then
 
 ```sh
-$ ./stop.sh
-$ sudo systemctl restart docker
+./stop.sh
+sudo systemctl restart docker
 ```
 
 ***MacOS***
@@ -244,7 +244,7 @@ to
 You now need to resize the disk of the EC2 instance to 30GB, execute:
 
 ```sh
-$ ./resize.sh
+./resize.sh
 ```
 
 The `up.sh` script later on will deploy a load balancer amongst other cluster components. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
@@ -252,7 +252,7 @@ The `up.sh` script later on will deploy a load balancer amongst other cluster co
 To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
 
 ```sh
-$ sudo vi /etc/docker/daemon.json
+sudo vi /etc/docker/daemon.json
 ```
 
 ```json
@@ -262,7 +262,7 @@ $ sudo vi /etc/docker/daemon.json
 Finally restart the docker daemon.
 
 ```sh
-$ sudo systemctl restart docker
+sudo systemctl restart docker
 ```
 
 In the following step [Start](#start), you'll create the cluster, typically followed by creating the cluster registry. The last line of the output from `./deploy-registry.sh` shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
@@ -270,7 +270,7 @@ In the following step [Start](#start), you'll create the cluster, typically foll
 If it failed, we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
 
 ```sh
-$ kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
+kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
 ```
 
 ```
@@ -280,8 +280,8 @@ $ kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type
 Adapt the file `/etc/docker/daemon.json` accordingly. Then
 
 ```sh
-$ ./stop.sh
-$ sudo systemctl restart docker
+./stop.sh
+sudo systemctl restart docker
 ```
 
 #### Up
@@ -289,7 +289,7 @@ $ sudo systemctl restart docker
 Simply run
 
 ```sh
-$ ./up.sh
+./up.sh
 ```
 
 if using the playground cluster. Otherwise run one of the scripts within `clusters/`.
@@ -297,7 +297,7 @@ if using the playground cluster. Otherwise run one of the scripts within `cluste
 Typically, you want to deploy the cluster registry next. Do this by running
 
 ```sh
-$ ./deploy-registry.sh
+./deploy-registry.sh
 ```
 
 You can find the authentication instructions within the file `services`.
@@ -305,7 +305,7 @@ You can find the authentication instructions within the file `services`.
 #### Tear Down
 
 ```sh
-$ ./down.sh
+./down.sh
 ```
 
 if using the playground cluster. Otherwise follow the instructions printed after you did run one of the scripts within `clusters/`.
@@ -348,6 +348,40 @@ brew install bats
 ```
 
 Unit tests are in `./tests`.
+
+To run a full test on a local Kind cluster, AKS, GKE and AWS simply run
+
+```sh
+./playground-tests.sh
+```
+
+while being in the playground directory. Make sure, that you're authenticated on AWS, GCP and Azure beforehand.
+
+The following tests will be executed:
+
+```
+├── Build Kind cluster
+│   ├── Registry
+│   ├── Falco
+│   ├── Smart Check
+│   ├── Container Security
+│   └── Destroy cluster
+├── Build EKS cluster
+│   ├── Falco
+│   ├── Smart Check
+│   ├── Container Security
+│   └── Destroy cluster
+├── Build AKS cluster
+│   ├── Falco
+│   ├── Smart Check
+│   ├── Container Security
+│   └── Destroy cluster
+└── Build GKE cluster
+    ├── Falco
+    ├── Smart Check
+    ├── Container Security
+    └── Destroy cluster
+
 
 ## TODO
 

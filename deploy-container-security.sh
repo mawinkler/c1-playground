@@ -216,9 +216,79 @@ function create_scanner() {
 # deployment. Runtime Security is only
 # activated on GKE, AKS or EKS
 #######################################
-create_namespace
-whitelist_namsspaces
-cluster_policy
-create_cluster_object
-deploy_container_security
-kubectl -n smartcheck get service proxy && create_scanner || echo Smartcheck not found
+function main() {
+  create_namespace
+  whitelist_namsspaces
+  cluster_policy
+  create_cluster_object
+  deploy_container_security
+  kubectl -n smartcheck get service proxy && create_scanner || echo Smartcheck not found
+}
+
+function cleanup() {
+  printf '%s\n' "Get cluster id"
+  CLUSTER_ID=$(
+    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+    --header @overrides/cloudone-header.txt | \
+    jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.clusters[] | select(.name==$CLUSTER_NAME) | .id'
+  )
+  if [ "${CLUSTER_ID}" != "" ] ; then
+    printf '%s\n' "Delete cluster ${CLUSTER_ID}"
+    RESULT=$(
+      curl --silent --location --request DELETE 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters/'${CLUSTER_ID} \
+      --header @overrides/cloudone-header.txt 
+    )
+    echo $RESULT
+  else
+    printf '%s\n' "Cluster not found"
+  fi
+  printf '%s\n' "Get scanner id"
+  SCANNER_ID=$(
+    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+    --header @overrides/cloudone-header.txt | \
+    jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
+  )
+  if [ "${SCANNER_ID}" != "" ] ; then
+    printf '%s\n' "Delete scanner ${SCANNER_ID}"
+    RESULT=$(
+      curl --silent --location --request DELETE 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners/'${SCANNER_ID} \
+      --header @overrides/cloudone-header.txt 
+    )
+    echo $RESULT
+  else
+    printf '%s\n' "Scanner not found"
+  fi
+
+  helm -n ${CS_NAMESPACE} delete \
+    container-security || true
+  kubectl delete namespace ${CS_NAMESPACE}
+
+  for i in {1..15} ; do
+    sleep 2
+    if [ "$(kubectl get all -n ${CS_NAMESPACE} | grep 'No resources found' || true)" == "" ] ; then
+      return
+    fi
+  done
+  false
+}
+
+function test() {
+  for i in {1..10} ; do
+    sleep 5
+    # test deployments and pods
+    DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${CS_NAMESPACE} | wc -l)
+    DEPLOYMENTS_READY=$(kubectl get deployments -n ${CS_NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    PODS_TOTAL=$(kubectl get pods -n ${CS_NAMESPACE} | wc -l)
+    PODS_READY=$(kubectl get pods -n ${CS_NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    if [[ ( $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ) && ( $((${PODS_TOTAL} - 1)) -eq ${PODS_READY} ) ]] ; then
+      echo ${DEPLOYMENTS_READY}
+      return
+    fi
+  done
+  false
+}
+
+# run main of no arguments given
+if [[ $# -eq 0 ]] ; then
+  main
+fi

@@ -1,16 +1,21 @@
 #!/bin/bash
 
-# Exports
-export AWS_REGION=eu-central-1
-export KEY_NAME=playground-$(openssl rand -hex 4)
-aws ec2 import-key-pair --key-name ${KEY_NAME} --public-key-material fileb://~/.ssh/id_rsa.pub
-export KEY_ALIAS_NAME=alias/${KEY_NAME}
-aws kms create-alias --alias-name ${KEY_ALIAS_NAME} --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
-export MASTER_ARN=$(aws kms describe-key --key-id ${KEY_ALIAS_NAME} --query KeyMetadata.Arn --output text)
-echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bashrc
-export CLUSTER_NAME=$(jq -r '.cluster_name' config.json)-$(openssl rand -hex 4)
+#######################################
+# Main:
+# Deploys EKS Cluster
+#######################################
+function main() {
+  # Exports
+  export AWS_REGION=eu-central-1
+  export KEY_NAME=playground-$(openssl rand -hex 4)
+  aws ec2 import-key-pair --key-name ${KEY_NAME} --public-key-material fileb://~/.ssh/id_rsa.pub
+  export KEY_ALIAS_NAME=alias/${KEY_NAME}
+  aws kms create-alias --alias-name ${KEY_ALIAS_NAME} --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
+  export MASTER_ARN=$(aws kms describe-key --key-id ${KEY_ALIAS_NAME} --query KeyMetadata.Arn --output text)
+  echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bashrc
+  export CLUSTER_NAME=$(jq -r '.cluster_name' config.json)-$(openssl rand -hex 4)
 
-cat << EOF | eksctl create cluster -f -
+  cat << EOF | eksctl create cluster -f -
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -30,12 +35,12 @@ secretsEncryption:
   keyARN: ${MASTER_ARN}
 EOF
 
-# Deploy Calico
-kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-operator.yaml
-kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-crs.yaml
+  # Deploy Calico
+  kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-operator.yaml
+  kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-crs.yaml
 
-echo "Creating rapid-eks-down.sh script"
-cat <<EOF >rapid-eks-down.sh
+  echo "Creating rapid-eks-down.sh script"
+  cat <<EOF >rapid-eks-down.sh
 set -e
 
 AWS_REGION=${AWS_REGION}
@@ -57,5 +62,32 @@ eksctl delete cluster --name \${CLUSTER_NAME}
 aws ec2 delete-key-pair --key-name \${KEY_NAME}
 aws kms delete-alias --alias-name \${KEY_ALIAS_NAME}
 EOF
-chmod +x rapid-eks-down.sh
-echo "Run rapid-eks-down.sh to tear down everything"
+  chmod +x rapid-eks-down.sh
+  echo "Run rapid-eks-down.sh to tear down everything"
+}
+
+function cleanup() {
+  ./rapid-eks-down.sh
+  if [ $? -eq 0 ] ; then
+    return
+  fi
+  false
+}
+
+function test() {
+  for i in {1..60} ; do
+    sleep 5
+    DEPLOYMENTS_TOTAL=$(kubectl get deployments -A | wc -l)
+    DEPLOYMENTS_READY=$(kubectl get deployments -A | grep -E "([0-9]+)/\1" | wc -l)
+    if [ $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ] ; then
+      echo ${DEPLOYMENTS_READY}
+      return
+    fi
+  done
+  false
+}
+
+# run main of no arguments given
+if [[ $# -eq 0 ]] ; then
+  main
+fi
