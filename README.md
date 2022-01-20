@@ -349,7 +349,7 @@ brew install bats
 
 Unit tests are in `./tests`.
 
-To run a full test a cluster type simply run
+To run a full tests for a cluster type simply run
 
 ```sh
 # Local Kind cluster
@@ -365,37 +365,19 @@ To run a full test a cluster type simply run
 ./test-eks.sh
 ```
 
-while being in the playground directory. Make sure, that you're authenticated on AWS, GCP and Azure beforehand.
+while being in the playground directory. Make sure, that you're authenticated on AWS, GCP and / or Azure beforehand.
 
 The following playground modules will be executed:
 
 ```
-├── Build Kind cluster
-│   ├── Registry
-│   ├── Falco
-│   ├── Smart Check
-│   ├── Smart Check Scan
-│   ├── Container Security
-│   └── Destroy cluster
-├── Build EKS cluster
-│   ├── Falco
-│   ├── Smart Check
-│   ├── Smart Check Scan
-│   ├── Container Security
-│   └── Destroy cluster
-├── Build AKS cluster
-│   ├── Falco
-│   ├── Smart Check
-│   ├── Smart Check Scan
-│   ├── Container Security
-│   └── Destroy cluster
-└── Build GKE cluster
+├── Build Cluster
+    ├── Registry
     ├── Falco
     ├── Smart Check
     ├── Smart Check Scan
     ├── Container Security
     └── Destroy cluster
-
+```
 
 ## TODO
 
