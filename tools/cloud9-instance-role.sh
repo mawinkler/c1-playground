@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 
@@ -41,11 +43,9 @@ aws iam add-role-to-instance-profile --role-name ${ROLE_NAME} --instance-profile
 # Query the instance ID of our Cloud9 environment
 INSTANCE_ID=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.instanceId')
 # Attach the IAM role to an existing EC2 instance
+echo Waiting 10 seconds
+sleep 10
 aws ec2 associate-iam-instance-profile --instance-id ${INSTANCE_ID} --iam-instance-profile Name=${INSTANCE_PROFILE_NAME}
 
 # To ensure temporary credentials aren’t already in place we will also remove any existing credentials file:
 rm -vf ${HOME}/.aws/credentials
-
-# Use the GetCallerIdentity CLI command to validate that the Cloud9 IDE is using the correct IAM role.
-aws sts get-caller-identity --query Arn | grep ekscluster-admin -q && echo "IAM role valid" || echo "IAM role NOT valid"
-aws sts get-caller-identity --query Arn

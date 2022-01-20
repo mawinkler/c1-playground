@@ -16,6 +16,8 @@ SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_passw
 SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
 SC_TEMPPW='justatemppw'
 
+mkdir -p overrides
+
 #######################################
 # Creates Kubernetes namespace
 # Globals:
