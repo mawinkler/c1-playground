@@ -13,6 +13,7 @@ set -o errexit
 # 7    white     COLOR_WHITE     1,1,1
 YELLOW=$(tput setaf 3)
 BLUE=$(tput setaf 4)
+RED=$(tput setaf 1)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 
@@ -159,30 +160,6 @@ else
   printf "${YELLOW}%s${RESET}\n" "Kind already installed"
 fi
 
-# krew
-printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for krew"
-if ! command -v ~/.krew/bin/kubectl-krew &>/dev/null; then
-  if [ "${OS}" == 'Linux' ]; then
-    printf "${RED}${BOLD}%s${RESET}\n" "Installing krew on linux"
-    set -x; cd "$(mktemp -d)" &&
-      OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-      ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-      KREW="krew-${OS}_${ARCH}" &&
-      curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-      tar zxvf "${KREW}.tar.gz" &&
-      ./"${KREW}" install krew && \
-      rm -f "${KREW}.tar.gz" ./krew-* && \
-      echo 'export PATH=~/.krew/bin:$PATH' >> ~/.bashrc
-  fi
-  if [ "${OS}" == 'Darwin' ]; then
-    printf "${RED}${BOLD}%s${RESET}\n" "Installing krew on darwin"
-    brew install krew
-    echo 'export PATH="${PATH}:${HOME}/.krew/bin"' >> ~/.zshrc
-  fi
-else
-  printf "${YELLOW}%s${RESET}\n" "Krew already installed"
-fi
-
 # kubebox
 printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for kubebox"
 if ! command -v kubebox &>/dev/null; then
@@ -219,6 +196,30 @@ if ! command -v stern &>/dev/null; then
   fi
 else
   printf "${YELLOW}%s${RESET}\n" "Stern already installed"
+fi
+
+# krew
+printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for krew"
+if ! command -v ~/.krew/bin/kubectl-krew &>/dev/null; then
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing krew on linux"
+    cd "$(mktemp -d)" &&
+      OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+      ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+      KREW="krew-${OS}_${ARCH}" &&
+      curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+      tar zxvf "${KREW}.tar.gz" &&
+      ./"${KREW}" install krew
+    rm -f "${KREW}.tar.gz" ./krew-*
+    echo 'export PATH=~/.krew/bin:$PATH' >> ~/.bashrc
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing krew on darwin"
+    brew install krew
+    echo 'export PATH="${PATH}:${HOME}/.krew/bin"' >> ~/.zshrc
+  fi
+else
+  printf "${YELLOW}%s${RESET}\n" "Krew already installed"
 fi
 
 # linkerd
