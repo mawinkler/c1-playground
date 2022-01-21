@@ -6,7 +6,7 @@
 #######################################
 function main() {
   # Exports
-  export AWS_REGION=eu-central-1
+  export AWS_REGION=$(aws configure get region)
   export KEY_NAME=playground-$(openssl rand -hex 4)
   ssh-keygen -q -f ~/.ssh/id_rsa_pg -P ""
   aws ec2 import-key-pair --key-name ${KEY_NAME} --public-key-material fileb://~/.ssh/id_rsa_pg.pub
