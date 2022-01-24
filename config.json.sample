@@ -83,7 +83,7 @@
         {
             "name": "cloudone",
             "region": "trend-us-1",
-            "api_key": "YOUR KEY HERE",
+            "api_key": "YOUR KEY HERE"
         }
     ]
 }
