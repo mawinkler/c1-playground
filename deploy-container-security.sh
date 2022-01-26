@@ -110,21 +110,29 @@ function cluster_policy() {
 #   AP_SECRET
 #######################################
 function create_cluster_object() {
-  # create cluster object
-  printf '%s\n' "Create cluster object"
-  RESULT=$(
-    CLUSTER_NAME=${CLUSTER_NAME//-/_} \
-      CS_POLICYID=${CS_POLICYID} \
-      DEPLOY_RT=${DEPLOY_RT} \
-      envsubst <templates/container-security-cluster-object.json |
-        curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
-        --header @overrides/cloudone-header.txt \
-        --data-binary "@-"
+  CLUSTER_ID=$(
+    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+    --header @overrides/cloudone-header.txt | \
+    jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.clusters[] | select(.name==$CLUSTER_NAME) | .id'
   )
-  API_KEY_ADMISSION_CONTROLLER=$(echo ${RESULT} | jq -r ".apiKey")
-  CS_CLUSTERID=$(echo ${RESULT} | jq -r ".id")
-  AP_KEY=$(echo ${RESULT} | jq -r ".runtimeKey")
-  AP_SECRET=$(echo ${RESULT} | jq -r ".runtimeSecret")
+  if [ "${CLUSTER_ID}" != "" ] ; then
+    printf '%s\n' "Reusing cluster object with id ${CLUSTER_ID}"
+  else
+    printf '%s\n' "Create cluster object"
+    RESULT=$(
+      CLUSTER_NAME=${CLUSTER_NAME//-/_} \
+        CS_POLICYID=${CS_POLICYID} \
+        DEPLOY_RT=${DEPLOY_RT} \
+        envsubst <templates/container-security-cluster-object.json |
+          curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+          --header @overrides/cloudone-header.txt \
+          --data-binary "@-"
+    )
+    API_KEY_ADMISSION_CONTROLLER=$(echo ${RESULT} | jq -r ".apiKey")
+    CS_CLUSTERID=$(echo ${RESULT} | jq -r ".id")
+    AP_KEY=$(echo ${RESULT} | jq -r ".runtimeKey")
+    AP_SECRET=$(echo ${RESULT} | jq -r ".runtimeSecret")
+  fi
 }
 
 #######################################
@@ -141,12 +149,19 @@ function create_cluster_object() {
 #######################################
 function deploy_container_security() {
   ## deploy container security
-  printf '%s\n' "Deploy container security"
-  API_KEY_ADMISSION_CONTROLLER=${API_KEY_ADMISSION_CONTROLLER} \
-    REGION=${REGION} \
-    DEPLOY_RT=${DEPLOY_RT} \
-    envsubst <templates/container-security-overrides.yaml >overrides/container-security-overrides.yaml
+  if [ -f "overrides/container-security-overrides.yaml" ] ; then
+    printf '%s\n' "Reusing cluster existing cluster overrides"
+  elif [ "${API_KEY_ADMISSION_CONTROLLER}" == "" ] ; then
+    printf '%s\n' "Missing container security api key"
+    exit 0
+  else
+    API_KEY_ADMISSION_CONTROLLER=${API_KEY_ADMISSION_CONTROLLER} \
+      REGION=${REGION} \
+      DEPLOY_RT=${DEPLOY_RT} \
+      envsubst <templates/container-security-overrides.yaml >overrides/container-security-overrides.yaml
+  fi
 
+  printf '%s\n' "(Re-)deploy container security"
   helm upgrade \
     container-security \
     --values overrides/container-security-overrides.yaml \
@@ -187,21 +202,33 @@ function deploy_container_security() {
 #   None
 #######################################
 function create_scanner() {
-  # create scanner
-  printf '%s\n' "Create scanner object"
-  RESULT=$(
-    CLUSTER_NAME=${CLUSTER_NAME//-/_} \
-      envsubst <templates/container-security-scanner.json |
-        curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
-        --header @overrides/cloudone-header.txt \
-        --data-binary "@-"
+  SCANNER_ID=$(
+    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+    --header @overrides/cloudone-header.txt | \
+    jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
   )
-  # bind smartcheck to container security
-  printf '%s\n' "Bind smartcheck to container security"
-  API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
-  REGION=${REGION} \
-    envsubst <templates/container-security-overrides-image-security-bind.yaml >overrides/container-security-overrides-image-security-bind.yaml
+  if [ "${SCANNER_ID}" != "" ] ; then
+    printf '%s\n' "Reusing scanner with id ${SCANNER_ID}"
+  fi
+  if [ -f "overrides/container-security-overrides-image-security-bind.yaml" ] ; then
+    printf '%s\n' "Reusing existing image security bind overrides"
+  else
+    printf '%s\n' "Create scanner object"
+    RESULT=$(
+      CLUSTER_NAME=${CLUSTER_NAME//-/_} \
+        envsubst <templates/container-security-scanner.json |
+          curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+          --header @overrides/cloudone-header.txt \
+          --data-binary "@-"
+    )
+    # bind smartcheck to container security
+    API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
+      REGION=${REGION} \
+      envsubst <templates/container-security-overrides-image-security-bind.yaml >overrides/container-security-overrides-image-security-bind.yaml
+  fi
 
+  # create scanner
+  printf '%s\n' "(Re-)bind smartcheck to container security"
   helm upgrade \
     smartcheck \
     --reuse-values \
@@ -238,7 +265,6 @@ function cleanup() {
       curl --silent --location --request DELETE 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters/'${CLUSTER_ID} \
       --header @overrides/cloudone-header.txt 
     )
-    echo $RESULT
   else
     printf '%s\n' "Cluster not found"
   fi
@@ -254,7 +280,6 @@ function cleanup() {
       curl --silent --location --request DELETE 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners/'${SCANNER_ID} \
       --header @overrides/cloudone-header.txt 
     )
-    echo $RESULT
   else
     printf '%s\n' "Scanner not found"
   fi
