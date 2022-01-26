@@ -6,29 +6,6 @@
 # source helpers
 . ./playground-helpers.sh
 
-OS="$(uname)"
-# If no parameter was given and TARGET_IMAGE is not set in env, default to rhel7
-TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7:latest}
-SYNC=true
-
-while [[ $# -gt 0 ]]; do
-  key="$1"
-
-  case $key in
-    -as|--async)
-      SYNC=false
-      shift # past argument
-      ;;
-    *)    # should be the image name and tag
-      TARGET_IMAGE=${1}
-      shift # past argument
-      ;;
-  esac
-done
-
-echo "Scanning Image ${TARGET_IMAGE}"
-
-
 # ##############################################################
 # Scan Image
 # ##############################################################
@@ -74,15 +51,16 @@ function pullpush_registry {
 
   echo ${REG_PASSWORD} | docker login ${REGISTRY} --username ${REG_USERNAME} --password-stdin
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
-  docker push ${REGISTRY}/${TARGET_IMAGE}
+  # Tag and push, but strip hash
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
+  docker push ${REGISTRY}/${TARGET_IMAGE%@*}
 }
 
 function scan_registry {
 
   printf '%s\n' "Create Registry Pull Auth"
   PULL_AUTH='{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'
-  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE%@*}"
 
   # Scan
   scan_image
@@ -111,8 +89,9 @@ function pullpush_gcp {
 
   cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME}
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
-  docker push ${REGISTRY}/${TARGET_IMAGE}
+  # Tag and push, but strip hash
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
+  docker push ${REGISTRY}/${TARGET_IMAGE%@*}
 }
 
 function scan_gcp {
@@ -120,7 +99,7 @@ function scan_gcp {
   printf '%s\n' "Create Registry Pull Auth"
   JSON_KEY=$(cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | jq tostring)
   PULL_AUTH='{"username":"_json_key","password":'${JSON_KEY}'}'
-  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE%@*}"
   
   # Scan
   scan_image
@@ -143,15 +122,16 @@ function pullpush_aks {
   printf '%s\n' "Login to Container Registry, pull, tag and push"
   echo ${ACR_PASSWORD} | docker login -u ${ACR_USERNAME} --password-stdin https://${REGISTRY}
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
-  docker push ${REGISTRY}/${TARGET_IMAGE}
+  # Tag and push, but strip hash
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
+  docker push ${REGISTRY}/${TARGET_IMAGE%@*}
 }
 
 function scan_aks {
 
   printf '%s\n' "Create Registry Pull Auth"
   PULL_AUTH='{"username":"'${ACR_USERNAME}'","password":"'${ACR_PASSWORD}'"}'
-  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE%@*}"
   
   # Scan
   scan_image
@@ -169,7 +149,7 @@ function pullpush_eks {
 
   AWS_REGION=$(aws configure get region)
   IMAGE_TAG=(${TARGET_IMAGE//:/ })
-  if [ $(aws ecr describe-repositories --repository-names ${IMAGE_TAG[0]} --output text --query repositories[].repositoryName) == ${IMAGE_TAG[0]} ] ; then
+  if [ $(aws ecr describe-repositories --repository-names ${IMAGE_TAG[0]} --output text --query repositories[].repositoryName 2>/dev/null) ] ; then
     printf '%s\n' "Using Container Repository ${IMAGE_TAG[0]}"
   else
     printf '%s\n' "Creating Container Repository ${IMAGE_TAG[0]}"
@@ -182,14 +162,15 @@ function pullpush_eks {
   echo ${ECR_PASSWORD} | 
     docker login --username ${ECR_USERNAME} --password-stdin ${REGISTRY}
   docker pull ${TARGET_IMAGE}
-  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE}
-  docker push ${REGISTRY}/${TARGET_IMAGE}
+  # Tag and push, but strip hash
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
+  docker push ${REGISTRY}/${TARGET_IMAGE%@*}
 }
 
 function scan_eks {
 
   PULL_AUTH='{"aws":{"region":"'${AWS_REGION}'"}}'
-  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE}"
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE%@*}"
 
   # Scan
   scan_image
@@ -198,6 +179,30 @@ function scan_eks {
 # ##############################################################
 # Main
 # ##############################################################
+# If no parameter was given and TARGET_IMAGE is not set in env, default to rhel7
+TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7:latest}
+SYNC=true
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+    -as|--async)
+      SYNC=false
+      shift # past argument
+      ;;
+    -so|--source-only)
+      return
+      ;;
+    *)    # should be the image name and tag
+      TARGET_IMAGE=${1}
+      shift # past argument
+      ;;
+  esac
+done
+
+echo "Scanning Image ${TARGET_IMAGE}"
+
 if [[ $(kubectl config current-context) =~ gke_.* ]]; then
   printf '%s\n' "Running on GKE"
   pullpush_gcp
