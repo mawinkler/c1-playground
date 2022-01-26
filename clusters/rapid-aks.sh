@@ -23,6 +23,7 @@ function main() {
 #!/bin/bash
 export APP_NAME="$(jq -r '.cluster_name' config.json)"
 az group delete --name ${APP_NAME} -y
+sudo rm -Rf auth certs overrides audit/audit-webhook.yaml /tmp/passthrough.conf log/* services opa
 EOF
   chmod +x rapid-aks-down.sh
   echo "Run rapid-aks-down.sh to tear down everything"

@@ -62,6 +62,7 @@ eksctl delete cluster --name \${CLUSTER_NAME}
 # Delete Keys
 aws ec2 delete-key-pair --key-name \${KEY_NAME}
 aws kms delete-alias --alias-name \${KEY_ALIAS_NAME}
+sudo rm -Rf auth certs overrides audit/audit-webhook.yaml /tmp/passthrough.conf log/* services opa
 EOF
   chmod +x rapid-eks-down.sh
   echo "Run rapid-eks-down.sh to tear down everything"

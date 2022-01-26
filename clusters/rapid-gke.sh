@@ -46,6 +46,8 @@ function main() {
 #!/bin/bash
 gcloud -q container clusters delete ${CLUSTER}
 gcloud -q projects delete ${PROJECT_ID}
+sudo rm -Rf auth certs overrides audit/audit-webhook.yaml /tmp/passthrough.conf log/* services opa
+rm -f service-gcrsvc_keyfile.json
 EOF
   chmod +x rapid-gke-down.sh
   echo "Run rapid-gke-down.sh to tear down everything"
