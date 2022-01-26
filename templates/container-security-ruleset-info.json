@@ -1,0 +1,16 @@
+{
+    "name": "${CS_RULESET_NAME}",
+    "labels": [],
+    "rules": [
+        {
+            "ruleID": "TM-00000005",
+            "enabled": true,
+            "mitigation": "log"
+        },
+        {
+            "ruleID": "TM-00000031",
+            "enabled": true,
+            "mitigation": "log"
+        }
+    ]
+}

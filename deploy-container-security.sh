@@ -78,9 +78,12 @@ function cluster_policy() {
     get_registry
     printf '%s\n' "Registry is on ${REGISTRY}"
 
+    cluster_rulesets
+
     RESULT=$(
       CS_POLICY_NAME=${CS_POLICY_NAME} \
         REGISTRY=${REGISTRY} \
+        RULESETS_JSON=${RULESETS_JSON} \
         envsubst <templates/container-security-policy.json | \
           curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
           --header @overrides/cloudone-header.txt \
@@ -91,6 +94,51 @@ function cluster_policy() {
   else
     printf '%s\n' "Reusing cluster policy with id ${CS_POLICYID}"
   fi
+}
+
+#######################################
+# Checks for an already existing
+# cluster policy. If there is not the
+# desired one it gets created
+# Globals:
+#   REGION
+#   CS_POLICY_NAME
+#   REGISTRY
+# Arguments:
+#   None
+# Outputs:
+#   CS_POLICYID
+#######################################
+function cluster_rulesets() {
+  RULESETS_JSON='"runtime":{"default":{"rulesets":['
+
+  for ruleset in info notice warning critical error ; do
+    # query cluster policy
+    CS_RULESET_NAME=${CS_POLICY_NAME}_${ruleset}
+    CS_RULESETID=$(
+      curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/rulesets' \
+      --header @overrides/cloudone-header.txt |
+        jq -r --arg CS_RULESET_NAME "${CS_RULESET_NAME}" '.rulesets[] | select(.name==$CS_RULESET_NAME) | .id'
+    )
+    # create policy if not exist
+    if [ "${CS_RULESETID}" == "" ]; then
+      RESULT=$(
+        CS_RULESET_NAME=${CS_RULESET_NAME} \
+          envsubst <templates/container-security-ruleset-${RULESET}.json | \
+            curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/rulesets' \
+            --header @overrides/cloudone-header.txt \
+            --data-binary "@-"
+      )
+      CS_RULESETID=$(echo ${RESULT} | jq -r ".id")
+      printf '%s\n' "Ruleset with id ${CS_RULESETID} created"
+    else
+      printf '%s\n' "Reusing ruleset with id ${CS_RULESETID}"
+    fi
+
+    RULESETS_JSON=${RULESETS_JSON}'{"name":"'${CS_RULESET_NAME}'","id":"'${CS_RULESETID}'"},'
+  done
+
+  RULESETS_JSON=${RULESETS_JSON::-1}']}}'
 }
 
 #######################################

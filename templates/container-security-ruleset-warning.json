@@ -1,0 +1,81 @@
+{
+    "name": "${CS_RULESET_NAME}",
+    "labels": [],
+    "rules": [
+        {
+            "ruleID": "TM-00000001",
+            "enabled": true,
+            "mitigation": "log"
+        },
+        {
+            "ruleID": "TM-00000002",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000003",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000004",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000011",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000012",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000015",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000016",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000021",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000022",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000023",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000032",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000033",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000041",
+            "enabled": true,
+            "mitigation": "terminate"
+        },
+        {
+            "ruleID": "TM-00000042",
+            "enabled": true,
+            "mitigation": "terminate"
+        }
+    ]
+}
