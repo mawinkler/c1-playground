@@ -124,7 +124,7 @@ function cluster_rulesets() {
     if [ "${CS_RULESETID}" == "" ]; then
       RESULT=$(
         CS_RULESET_NAME=${CS_RULESET_NAME} \
-          envsubst <templates/container-security-ruleset-${RULESET}.json | \
+          envsubst <templates/container-security-ruleset-${ruleset}.json | \
             curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/rulesets' \
             --header @overrides/cloudone-header.txt \
             --data-binary "@-"
