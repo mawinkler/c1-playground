@@ -1,5 +1,6 @@
 .DS_Store
-# directories
+
+# Directories
 auth
 certs
 overrides
@@ -7,24 +8,31 @@ opa
 demos
 log/*
 
-# config
+# Config
 config.json
-report_*.pdf
-*.log
-audit/audit-webhook.yaml
-overrides-falco.yaml
-additional_rules.yaml
 services
-busybox.yaml
-nginx.yaml
-additional_rules.sh
-cloudone-container-security-helm
-rapid-gke-down.sh
-service-gcrsvc_keyfile.json
-falco/additional_rules_tm.yaml
-nginx.yml
-aws-iam-authenticator
-rapid-eks-down.sh
+
+# Cloud One
 cloud-one/api_key
 cloud-one/c1_url
+
+# GCP
+rapid-gke-down.sh
+service-gcrsvc_keyfile.json
+
+# Azure
 rapid-aks-down.sh
+
+# AWS
+rapid-eks-down.sh
+aws-iam-authenticator
+
+# Migrate
+migrate/migrated/*.yaml
+migrate/source/*.json
+migrate/kustomization.yaml
+
+# Falco
+audit/audit-webhook.yaml
+falco/additional_rules_tm.yaml
+additional_rules.sh

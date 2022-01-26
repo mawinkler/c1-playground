@@ -13,6 +13,8 @@
       - [Tear Down](#tear-down)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
+  - [Experimenting](#experimenting)
+    - [Migrate](#migrate)
   - [Testing the Playground](#testing-the-playground)
   - [TODO](#todo)
 
@@ -63,7 +65,7 @@ Within the directory `clusters` are scripts to rapidly create a kubernetes clust
 
 Add-On | Ubuntu | Cloud9 | MacOS | GKE | EKS | AKS
 ------ | ------ | ------ | ----- | --- | --- | ---
-Registry | X | X | X | | |
+Internal Registry | X | X | X | | |
 Scanning Scripts | X | X | X | X | X | X
 C1CS Admission & Continuous | X | X | X | X | X | X
 C1CS Runtime Security | | | | X | X | X
@@ -83,7 +85,8 @@ In all of these possible environments you're going to run a script called `tools
 - `kustomize`,
 - `helm`,
 - `kind`,
-- `krew` and
+- `krew`,
+- `stern` and
 - `kubebox`
 
 installed.
@@ -156,7 +159,7 @@ Typically you don't need to change anything here besides setting your api-key an
         {
             "name": "cloudone",
             "region": "YOUR REGION HERE",
-            "api_key": "YOUR KEY HERE",
+            "api_key": "YOUR KEY HERE"
         }
     ]
 }
@@ -332,6 +335,36 @@ If you're running the playground on MacOS, follow the lab guide [Play with the P
 Both guides are basically identical, but since access to some services is different on Linux and MacOS there are two guides available.
 
 Lastly, there is a [guide](docs/play-with-falco.md) to experiment with the runtime rules built into the playground to play with Falco. The rule set of the playground is located [here](falco/playground_rules.yaml).
+
+## Experimenting
+
+Working with Kubernetes is likely to raise the one or the other challenge.
+
+### Migrate
+
+This tries to solve the challenge to migrate workload of an existing cluster using public image registries to a trusted, private one (without breaking the services).
+
+To try it, being in the playground directory run
+
+```sh
+migrate/save-cluster.sh
+```
+
+This scripts dumps the full cluster to json files separated by namespace. The namespaces `kube-system`, `registry` and `default` are currently excluded.
+
+Effectively, this is a **backup** of your cluster including ConfigMaps and Secrets etc. which you can deploy on a different cluster easily (`kubectl create -f xxx.json`)
+
+To migrate the images currently in use run
+
+```sh
+migrate/migrate-images.sh
+```
+
+This second script updates the saved manifests in regards the image location to point them to the private registry. If the image has a digest within it's name it is stripped.
+
+The image get's then pulled from the public repo and pushed to the internal one. This is followed by an image scan and the redeployment.
+
+> Note: at the time of writing the only supported private registry is the internal one.
 
 ## Testing the Playground
 
