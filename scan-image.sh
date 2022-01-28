@@ -203,15 +203,15 @@ done
 
 echo "Scanning Image ${TARGET_IMAGE}"
 
-if [[ $(kubectl config current-context) =~ gke_.* ]]; then
+if is_gke ; then
   printf '%s\n' "Running on GKE"
   pullpush_gcp
   scan_gcp
-elif [[ $(kubectl config current-context) =~ .*-aks ]]; then
+elif is_aks ; then
   printf '%s\n' "Running on AKS"
   pullpush_aks
   scan_aks
-elif [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
+elif is_eks ; then
   printf '%s\n' "Running on EKS"
   pullpush_eks
   scan_eks

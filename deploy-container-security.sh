@@ -13,12 +13,6 @@ SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' c
 API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
 REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
 
-DEPLOY_RT=false
-if is_gke || is_aks || is_eks ; then
-  printf '%s\n' "Deploying with Runtime Security"
-  DEPLOY_RT=true
-fi
-
 # Create API header
 API_KEY=${API_KEY} envsubst <templates/cloudone-header.txt >overrides/cloudone-header.txt
 
@@ -98,8 +92,8 @@ function cluster_policy() {
 
 #######################################
 # Checks for an already existing
-# cluster policy. If there is not the
-# desired one it gets created
+# runtime rulesets. If there are not the
+# desired ones they get created
 # Globals:
 #   REGION
 #   CS_POLICY_NAME
@@ -107,7 +101,7 @@ function cluster_policy() {
 # Arguments:
 #   None
 # Outputs:
-#   CS_POLICYID
+#   RULESETS_JSON
 #######################################
 function cluster_rulesets() {
   RULESETS_JSON='"runtime":{"default":{"rulesets":['
@@ -163,7 +157,9 @@ function create_cluster_object() {
     --header @overrides/cloudone-header.txt | \
     jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.clusters[] | select(.name==$CLUSTER_NAME) | .id'
   )
-  if [ "${CLUSTER_ID}" != "" ] ; then
+  if [ "${CLUSTER_ID}" != "" ] && \
+     [ -f "overrides/container-security-overrides.yaml" ] && \
+     [ -f "overrides/container-security-overrides-image-security-bind.yaml" ]; then
     printf '%s\n' "Reusing cluster object with id ${CLUSTER_ID}"
   else
     printf '%s\n' "Create cluster object"
@@ -292,6 +288,12 @@ function create_scanner() {
 # activated on GKE, AKS or EKS
 #######################################
 function main() {
+  DEPLOY_RT=false
+  if is_gke || is_aks || is_eks ; then
+    printf '%s\n' "Deploying with Runtime Security"
+    DEPLOY_RT=true
+  fi
+
   create_namespace
   whitelist_namsspaces
   cluster_policy
@@ -346,7 +348,7 @@ function cleanup() {
 }
 
 function test() {
-  for i in {1..10} ; do
+  for i in {1..24} ; do
     sleep 5
     # test deployments and pods
     DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${CS_NAMESPACE} | wc -l)

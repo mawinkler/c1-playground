@@ -16,6 +16,10 @@ nodes:
 - role: control-plane
   extraMounts:
 
+  # Docker Hub
+  - hostPath: ${HOME}/.docker/config.json
+    containerPath: /var/lib/kubelet/config.json
+
   # Falco
   - hostPath: /dev
     containerPath: /dev
@@ -72,15 +76,13 @@ containerdConfigPatches:
   [plugins."io.containerd.grpc.v1.cri"]
     [plugins."io.containerd.grpc.v1.cri".registry]
       [plugins."io.containerd.grpc.v1.cri".registry.configs]
-        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.1:5000".tls]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.250.255.1:5000".tls]
           insecure_skip_verify = true
-        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.2:5000".tls]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.250.255.2:5000".tls]
           insecure_skip_verify = true
-        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.18.255.3:5000".tls]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.250.255.3:5000".tls]
           insecure_skip_verify = true
-        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.1:5000".tls]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.250.255.4:5000".tls]
           insecure_skip_verify = true
-        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.2:5000".tls]
-          insecure_skip_verify = true
-        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.19.255.3:5000".tls]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."172.250.255.5:5000".tls]
           insecure_skip_verify = true

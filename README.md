@@ -2,15 +2,17 @@
 
 - [Playground](#playground)
   - [Requirements and Support Matrix](#requirements-and-support-matrix)
-    - [Cluster Variants](#cluster-variants)
+    - [Supported Cluster Variants](#supported-cluster-variants)
     - [Suport Matrix](#suport-matrix)
   - [Tools](#tools)
   - [Configure](#configure)
   - [Start](#start)
-    - [Using GKE, EKS or AKS](#using-gke-eks-or-aks)
-    - [Using a local Cluster running on your Machine](#using-a-local-cluster-running-on-your-machine)
-      - [Up](#up)
-      - [Tear Down](#tear-down)
+    - [Create Ubuntu Local, MacOS Local or Cloud9 Local Clousters](#create-ubuntu-local-macos-local-or-cloud9-local-clousters)
+    - [Create GKE, EKS or AKS Clusters](#create-gke-eks-or-aks-clusters)
+  - [Deployments](#deployments)
+  - [Tear Down](#tear-down)
+    - [Tear Down Ubuntu Local, MacOS Local or Cloud9 Local Clusters](#tear-down-ubuntu-local-macos-local-or-cloud9-local-clusters)
+    - [Tear Down GKE, EKS or AKS Clusters](#tear-down-gke-eks-or-aks-clusters)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
   - [Experimenting](#experimenting)
@@ -20,22 +22,11 @@
 
 Ultra fast and slim kubernetes playground.
 
-Currently, the following services are integrated:
-
-- Prometheus & Grafana
-- Starboard
-- Falco Runtime Security including Kubernetes Auditing
-- Container Security
-  - Smart Check
-  - Deployment Admission Control, Continuous Compliance
-- Open Policy Agent
-- Gatekeeper
-
 The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and most parts on MacOS as well.
 
 ## Requirements and Support Matrix
 
-> Note: The Playgound is designed to work on this operating systems
+> ***Note:*** The Playgound is designed to work on this operating systems
 >
 > - Ubuntu Bionic and newer
 > - Cloud9 with Ubuntu
@@ -49,7 +40,7 @@ The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and m
 > - EKS
 > - AKS
 
-### Cluster Variants
+### Supported Cluster Variants
 
 Originally, the playground was desigined to create a kubernetes cluster locally on the host running the playground scripts. This is still the fastest way of getting a cluster up and running.
 
@@ -57,23 +48,27 @@ In addition to the local cluster, it is also possible to use most functionality 
 
 Before or after you've authenticated to the cloud, be sure to install the required tools as described in the next section.
 
-> Using managed clusters with the playground scripts is not 100% tested, so some things might not work as expected. If you find a bug, please raise an issue.
+Within the directory `clusters` are scripts to rapidly create a kubernetes cluster on the three major public clouds. This comes in handy, if you want to play on these public clouds or have no possibility to run an Ubuntu or MacOS.
 
-Within the directory `clusters` are scripts to rapidly create a kubernetes cluster on the three major public clouds. This comes in handy, if you want to play on these public clouds or have no possibility to run an Ubuntu or MacOS. Do not run `up.sh` or `down.sh` when using these clusters.
+> ***NOTE:*** Do not run `up.sh` or `down.sh` when using these clusters.
 
 ### Suport Matrix
 
-Add-On | Ubuntu | Cloud9 | MacOS | GKE | EKS | AKS
+Add-On | **Ubuntu**<br>*Local* | **MacOS**<br>*Local* | **Cloud9**<br>*Local* | GKE<br>*Cloud* | EKS<br>*Cloud* | AKS<br>*Cloud*
 ------ | ------ | ------ | ----- | --- | --- | ---
 Internal Registry | X | X | X | | |
 Scanning Scripts | X | X | X | X | X | X
 C1CS Admission & Continuous | X | X | X | X | X | X
 C1CS Runtime Security | | | | X | X | X
-Falco | X | X | | X | X | X | X
+Falco | X | | X | X | X | X | X
 Gatekeeper | X | X | X | X | X | X | X
 Open Policy Agent | X | X | X | X | X | X | X
 Prometheus & Grafana | X | X | X | X | X | X | X
 Starboard | X | X | X | X | X | X | X
+
+*Local* means, the cluster will run on the machine you're working on.
+
+*Cloud* means, that the cluster is a cloud services cluster using the named service.
 
 ## Tools
 
@@ -91,41 +86,19 @@ In all of these possible environments you're going to run a script called `tools
 
 installed.
 
-Follow the steps for your platform below and continue afterwards in a new shell.
+> ***MacOS Local:***
+>
+> If running the playground locally with Docker for Mac, go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker. This is not required when using the public clouds.
+>
+> ***Cloud9 Local:***
+>
+> - Select Create Cloud9 environment
+> - Give it a name
+> - Choose “t3.xlarge” or better for instance type and
+> - Ubuntu Server 18.04 LTS as the platform.
+> - For the rest take all default values and click Create environment
 
-***Linux***
-
-Download the repo and install required packages if not available.
-
-```sh
-git clone https://github.com/mawinkler/c1-playground.git
-cd c1-playground
-./tools.sh
-```
-
-***MacOS***
-
-Download the repo and install required packages if not available.
-
-```sh
-git clone https://github.com/mawinkler/c1-playground.git
-cd c1-playground
-./tools.sh
-```
-
-If running the playground locally, go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker. This is not required when using the public clouds.
-
-***Cloud9***
-
-- Select Create Cloud9 environment
-- Give it a name
-- Choose “t3.xlarge” or better for instance type and
-- Ubuntu Server 18.04 LTS as the platform.
-- For the rest take all default values and click Create environment
-
-When it comes up, customize the environment by closing the welcome tab and lower work area, and opening a new terminal tab in the main work area.
-
-Download the repo and install required packages if not available.
+Clone the repo and install required packages if not available.
 
 ```sh
 git clone https://github.com/mawinkler/c1-playground.git
@@ -135,15 +108,13 @@ cd c1-playground
 
 ## Configure
 
-First step is to clone the repo to your machine and second you create your personal configuration file.
+Now, you create your personal configuration file. Do this by making a copy of the supplied sample.
 
 ```sh
 cp config.json.sample config.json
 ```
 
 Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you intent to run multiple clusters (e.g. a local and a GKE), adapt the `cluster_name` and the `policy_name`.
-
-> ***Note:*** Please use a real Cloud One API Key, not the one from Workload Security.
 
 ```json
 {
@@ -165,9 +136,89 @@ Typically you don't need to change anything here besides setting your api-key an
 }
 ```
 
+> ***Ubuntu Local:***
+>
+> The cluster will get it's own docker network which is configured as follows:
+>
+> Config | Value
+> ------ | -----
+> Name | kind
+> Driver | Bridge
+> Subnet | 172.250.0.0/16
+> IP-Range | 172.250.255.0/24
+> Gateway | 172.250.255.254
+>
+> The `up.sh` script will deploy a load balancer amongst other cluster components later on. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `172.250.255.1-172.250.255.250`.  
+> If the registry is deployed it will get an IP assigned by the load blancer. To allow access to the registry from your host, please configure your docker daemon to accept insecure registries and specified ip addresses.  
+> To do this, create or modify `/etc/docker/daemon.json` to include a small subset of probable ips for the registry.
+>
+> ```sh
+> sudo vi /etc/docker/daemon.json
+> ```
+>
+> ```json
+> {
+>   "insecure-registries": [
+>     "172.250.255.1:5000",
+>     "172.250.255.2:5000",
+>     "172.250.255.3:5000",
+>     "172.250.255.4:5000",
+>     "172.250.255.5:5000"
+>   ]
+> }
+> ```
+>
+> Finally restart the docker daemon.
+>
+> ```sh
+> sudo systemctl restart docker
+> ```
+>
+> Since the network configuration is fixed, you don't need to do the configuration from above the next time you deploy a local cluster using the playground.
+>
+> ***MacOS Local:***
+>
+> Due to the fact, that there is no `docker0` bridge on MacOS, we need to use ingresses to enable access to services running on our cluster. To make this work, you need to modify your local `hosts`-file.
+>
+> Change the line for `127.0.0.1` from
+>
+> ```txt
+> 127.0.0.1 localhost
+> ```
+>
+> to
+>
+> ```txt
+> 127.0.0.1 localhost playground-registry smartcheck grafana prometheus
+> ```
+>
+> ***Cloud9 Local:***
+>
+> You now need to resize the disk of the EC2 instance to 30GB, execute:
+>
+> ```sh
+> ./resize.sh
+> ```
+
 ## Start
 
-### Using GKE, EKS or AKS
+### Create Ubuntu Local, MacOS Local or Cloud9 Local Clousters
+
+Simply run
+
+```sh
+./up.sh
+```
+
+Typically, you want to deploy the cluster registry next. Do this by running
+
+```sh
+./deploy-registry.sh
+```
+
+You can find the authentication instructions within the file `services`.
+
+### Create GKE, EKS or AKS Clusters
 
 Run one of the following scripts to quickly create a cluster in the clouds.
 
@@ -182,136 +233,42 @@ Run one of the following scripts to quickly create a cluster in the clouds.
 ./clusters/rapid-eks.sh
 ```
 
-You need to be authenticated to the cloud with the specific command line interface beforehand, of course.
+You don't need to create a registry here since you're going to use the cloud provided registries GCR, ACR or ECR.
 
-### Using a local Cluster running on your Machine
+## Deployments
 
-If you're ***not*** using the public cloud clusters, follow the steps for your platform below.
+The playground provides a couple of scripts which deploy preconfigured versions of several products. This includes currently:
 
-***Linux***
+- Container Security (`./deploy-container-security.sh`)
+- Smart Check (`./deploy-smartcheck.sh`)
+- Prometheus & Grafana (`./deploy-prometheus.sh`)
+- Starboard (`./deploy-starboard.sh`)
+- Falco Runtime Security (`./deploy-falco.sh`)
+- Open Policy Agent (`./deploy-opa.sh`)
+- Gatekeeper (`./deploy-gatekeeper`)
 
-The `up.sh` script will deploy a load balancer amongst other cluster components later on. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
+## Tear Down
 
-To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
-
-```sh
-sudo vi /etc/docker/daemon.json
-```
-
-```json
-{"insecure-registries": ["172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000"]}
-```
-
-Finally restart the docker daemon.
-
-```sh
-sudo systemctl restart docker
-```
-
-In the following step [Start](#start), you'll create the cluster, typically followed by creating the cluster registry. The last line of the output from `./deploy-registry.sh` shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
-
-If it failed, we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
-
-```sh
-kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
-```
-
-```
-172.18.0.2
-```
-
-Adapt the file `/etc/docker/daemon.json` accordingly. Then
-
-```sh
-./stop.sh
-sudo systemctl restart docker
-```
-
-***MacOS***
-Due to the fact, that there is no `docker0` bridge on MacOS, we need to use ingresses to enable access to services running on our cluster. To make this work, you need to modify your local `hosts`-file.
-
-Change the line for 127.0.0.1 from
-
-```txt
-127.0.0.1 localhost
-```
-
-to
-
-```txt
-127.0.0.1 localhost playground-registry smartcheck grafana prometheus
-```
-
-***Cloud9***
-
-You now need to resize the disk of the EC2 instance to 30GB, execute:
-
-```sh
-./resize.sh
-```
-
-The `up.sh` script later on will deploy a load balancer amongst other cluster components. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `X.X.255.1-X.X.255.250`. If the registry is deployed it will very likely be the second service requesting a load balancer IP, so typically it will get the `172.18.255.2` assignend which we define as an insecure registry for our local docker daemon.
-
-To do this, create or modify `/etc/docker/daemon.json` to include a small subset probable ips for the registry.
-
-```sh
-sudo vi /etc/docker/daemon.json
-```
-
-```json
-{"insecure-registries": ["172.18.255.1:5000","172.18.255.2:5000","172.18.255.3:5000"]}
-```
-
-Finally restart the docker daemon.
-
-```sh
-sudo systemctl restart docker
-```
-
-In the following step [Start](#start), you'll create the cluster, typically followed by creating the cluster registry. The last line of the output from `./deploy-registry.sh` shows you a docker login example. Try this. If it fails you need to verify the IP address range of the integrated load balancer that it matches the IPs from above. Typically, this is not required.
-
-If it failed, we need to determine the network that is being used for the node ip pool. For that, we need to run `up.sh` and then query the nodes.
-
-```sh
-kubectl get nodes -o json | jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address'
-```
-
-```
-172.18.0.2
-```
-
-Adapt the file `/etc/docker/daemon.json` accordingly. Then
-
-```sh
-./stop.sh
-sudo systemctl restart docker
-```
-
-#### Up
-
-Simply run
-
-```sh
-./up.sh
-```
-
-if using the playground cluster. Otherwise run one of the scripts within `clusters/`.
-
-Typically, you want to deploy the cluster registry next. Do this by running
-
-```sh
-./deploy-registry.sh
-```
-
-You can find the authentication instructions within the file `services`.
-
-#### Tear Down
+### Tear Down Ubuntu Local, MacOS Local or Cloud9 Local Clusters
 
 ```sh
 ./down.sh
 ```
 
-if using the playground cluster. Otherwise follow the instructions printed after you did run one of the scripts within `clusters/`.
+### Tear Down GKE, EKS or AKS Clusters
+
+Run one of the following scripts to quickly create a cluster in the clouds.
+
+```sh
+# GKE
+./rapid-gke-down.sh
+
+# AKS
+./rapid-aks-down.sh
+
+# EKS
+./rapid-eks-down.sh
+```
 
 ## Add-Ons
 
@@ -403,8 +360,8 @@ while being in the playground directory. Make sure, that you're authenticated on
 The following playground modules will be executed:
 
 ```
-├── Build Cluster
-    ├── Registry
+└── Build Cluster
+    ├── (Registry)
     ├── Falco
     ├── Smart Check
     ├── Smart Check Scan
@@ -414,5 +371,4 @@ The following playground modules will be executed:
 
 ## TODO
 
-- Add runtime policy when supported
 - ...

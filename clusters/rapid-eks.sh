@@ -8,7 +8,7 @@ function main() {
   # Exports
   export AWS_REGION=$(aws configure get region)
   export KEY_NAME=playground-$(openssl rand -hex 4)
-  ssh-keygen -q -f ~/.ssh/id_rsa_pg -P ""
+  ssh-keygen -q -y -f ~/.ssh/id_rsa_pg -P ""
   aws ec2 import-key-pair --key-name ${KEY_NAME} --public-key-material fileb://~/.ssh/id_rsa_pg.pub
   export KEY_ALIAS_NAME=alias/${KEY_NAME}
   aws kms create-alias --alias-name ${KEY_ALIAS_NAME} --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
@@ -62,7 +62,7 @@ eksctl delete cluster --name \${CLUSTER_NAME}
 # Delete Keys
 aws ec2 delete-key-pair --key-name \${KEY_NAME}
 aws kms delete-alias --alias-name \${KEY_ALIAS_NAME}
-sudo rm -Rf auth certs overrides audit/audit-webhook.yaml /tmp/passthrough.conf log/* services opa
+sudo rm -Rf auth certs audit/audit-webhook.yaml /tmp/passthrough.conf log/* services opa
 EOF
   chmod +x rapid-eks-down.sh
   echo "Run rapid-eks-down.sh to tear down everything"

@@ -8,8 +8,33 @@ set -o errexit
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 HOST_IP=$(hostname -I | awk '{print $1}')
 
-printf '%s\n' "Target environment ${OS}"
 mkdir -p overrides
+
+#######################################
+# Configure Docker network
+# Globals:
+#   CLUSTER_NAME
+#   HOST_IP
+#   HOST_REGISTRY_NAME
+#   HOST_REGISTRY_PORT
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function configure_networking() {
+  if [ $(docker network list --filter name=kind --format "{{.Name}}") == "kind" ] ; then
+    printf '%s\n' "Reusing existing docker network"
+  else
+    printf '%s\n' "Creating docker network"
+    docker network create \
+      --driver=bridge \
+      --subnet=172.250.0.0/16 \
+      --ip-range=172.250.255.0/24 \
+      --gateway=172.250.255.254 \
+      kind
+  fi
+}
 
 #######################################
 # Creates a local Kubernetes cluster
@@ -163,6 +188,7 @@ function main() {
   # flush services
   echo > services
 
+  configure_networking
   if is_linux ; then
     create_cluster_linux
     deploy_cadvisor
