@@ -26,7 +26,7 @@ The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and m
 
 ## Requirements and Support Matrix
 
-> ***Note:*** The Playgound is designed to work on this operating systems
+> ***Note:*** The Playgound is designed to work on these operating systems
 >
 > - Ubuntu Bionic and newer
 > - Cloud9 with Ubuntu
@@ -42,7 +42,7 @@ The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and m
 
 ### Supported Cluster Variants
 
-Originally, the playground was desigined to create a kubernetes cluster locally on the host running the playground scripts. This is still the fastest way of getting a cluster up and running.
+Originally, the playground was designed to create a kubernetes cluster locally on the host running the playground scripts. This is still the fastest way of getting a cluster up and running.
 
 In addition to the local cluster, it is also possible to use most functionality of the playground on the managed clusters of the main cloud providers AWS, GCP & Azure as well. Going into this direction requires you to work on a Linux / MacOS shell and an authenticated CLI to the chosen cloud provider (`aws`, `az` or `gcloud`).
 
