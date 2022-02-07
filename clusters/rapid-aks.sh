@@ -7,7 +7,7 @@
 function main() {
   # Exports
   export APP_NAME="$(jq -r '.cluster_name' config.json)"
-  export CLUSTER_NAME=${APP_NAME}
+  export CLUSTER_NAME=${APP_NAME}-aks
 
   az group create --name ${APP_NAME} --location westeurope
   az aks create \
