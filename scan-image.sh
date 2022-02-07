@@ -113,8 +113,8 @@ function pullpush_aks {
   get_registry
 
   printf '%s\n' "Retrieving Container Registry Credentials"
-  az acr update -n ${REGISTRY_NAME} --admin-enabled true 1>/dev/null
-  ACR_CREDENTIALS=$(az acr credential show --name ${REGISTRY_NAME})
+  az acr update -n ${REGISTRY} --admin-enabled true 1>/dev/null
+  ACR_CREDENTIALS=$(az acr credential show --name ${REGISTRY})
   ACR_PASSWORD=$(jq -r '.passwords[] | select(.name=="password") | .value' <<< $ACR_CREDENTIALS)
   ACR_USERNAME=$(jq -r '.username' <<< $ACR_CREDENTIALS)
 
