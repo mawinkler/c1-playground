@@ -191,25 +191,37 @@ EOF
 #######################################
 function password_change() {
   # initial password change
-  printf '%s' "Executing initial password change"
-  SC_BEARERTOKEN=""
-  while [[ "${SC_BEARERTOKEN}" == "" ]]; do
-    sleep 1
-    SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                  --header @templates/smartcheck-header.txt \
-                  -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
-                    jq '.user.id' | tr -d '"' 2>/dev/null)
-    SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
-                      --header @templates/smartcheck-header.txt \
-                      -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
-                        jq '.token' | tr -d '"' 2>/dev/null)
-  done
-  # create header
-  SC_BEARERTOKEN=${SC_BEARERTOKEN} envsubst <templates/smartcheck-header-token.txt >overrides/smartcheck-header-token.txt
-  X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
-        --header @overrides/smartcheck-header-token.txt \
-        -d '{"oldPassword":"'${SC_TEMPPW}'","newPassword":"'${SC_PASSWORD}'"}')
-  printf '%s\n' " 🎀"
+  printf '%s\n' "Testing current password"
+  SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                --header @templates/smartcheck-header.txt \
+                -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_PASSWORD}'"}}' | \
+                  jq '.user.id' | tr -d '"' 2>/dev/null)
+  SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                    --header @templates/smartcheck-header.txt \
+                    -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_PASSWORD}'"}}' | \
+                      jq '.token' | tr -d '"' 2>/dev/null)
+  if [[ "${SC_BEARERTOKEN}" == "" ]]; then
+    printf '%s' "Executing initial password change"
+    while [[ "${SC_BEARERTOKEN}" == "" ]]; do
+      sleep 1
+      SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                    --header @templates/smartcheck-header.txt \
+                    -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
+                      jq '.user.id' | tr -d '"' 2>/dev/null)
+      SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                        --header @templates/smartcheck-header.txt \
+                        -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
+                          jq '.token' | tr -d '"' 2>/dev/null)
+    done
+    # create header
+    SC_BEARERTOKEN=${SC_BEARERTOKEN} envsubst <templates/smartcheck-header-token.txt >overrides/smartcheck-header-token.txt
+    X=$(curl -s -k -X POST https://${SC_HOST}/api/users/${SC_USERID}/password \
+          --header @overrides/smartcheck-header-token.txt \
+          -d '{"oldPassword":"'${SC_TEMPPW}'","newPassword":"'${SC_PASSWORD}'"}')
+    printf '%s\n' " 🎀"
+  else
+    printf '%s\n' "Password already changed 🎀"
+  fi
 }
 
 #######################################
