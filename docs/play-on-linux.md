@@ -155,7 +155,7 @@ error: failed to create deployment: admission webhook "trendmicro-admission-cont
 Do trigger a scan of the image
 
 ```sh
-$ ./scan-image.sh nginx:latest -s
+$ ./scan-image.sh nginx:latest
 ```
 
 The script above downloads the `nginx`, pushes it to our internal cluster registry and initiates a regular scan (not a pre-registry-scan).

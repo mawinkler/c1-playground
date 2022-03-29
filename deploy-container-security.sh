@@ -289,11 +289,11 @@ function create_scanner() {
 #######################################
 function main() {
   DEPLOY_RT=false
-  if is_gke || is_aks || is_eks ; then
-    printf '%s\n' "Deploying with Runtime Security"
-    DEPLOY_RT=true
-  fi
-
+  # if is_gke || is_aks || is_eks ; then
+  #   printf '%s\n' "Deploying with Runtime Security"
+  #   DEPLOY_RT=true
+  # fi
+  DEPLOY_RT=true
   create_namespace
   whitelist_namsspaces
   cluster_policy

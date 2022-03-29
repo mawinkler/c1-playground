@@ -14,7 +14,9 @@ cloudOne:
     syncPeriod: 600s
     enableNetworkPolicyCreation: true
   runtimeSecurity:
-    enabled: ${DEPLOY_RT}  
+    enabled: ${DEPLOY_RT}
+  auditlog:
+    enabled: true
   exclusion:
     ## List of namespaces for which Deploy and Continuous feature will not trigger events.
     namespaces:
@@ -25,9 +27,22 @@ cloudOne:
     - container-security
     # - kube-node-lease
     # - kube-public
-    # - prometheus
-    # - trivy
-    # - falco
-    # - starboard
+    - prometheus
+    - trivy
+    - falco
+    - starboard
+# proxy:
+#   httpProxy: 172.17.0.1:3128
+#   httpsProxy: 172.17.0.1:3128
+#   noProxy:
+#   - localhost
+#   - 127.0.0.1
+# images:
+#   defaults:
+#     registry: 172.250.255.1:5000
+#     tag: 2.2.9
+#     imagePullSecret: regcred
 scout:
   excludeSameNamespace: true
+  # auditlog:
+  #   enabled: true
