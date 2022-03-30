@@ -197,7 +197,7 @@ Typically you don't need to change anything here besides setting your api-key an
 > You now need to resize the disk of the EC2 instance to 30GB, execute:
 >
 > ```sh
-> ./resize.sh
+> ./tools/cloud9-resize.sh
 > ```
 
 ## Start
