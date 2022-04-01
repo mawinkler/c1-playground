@@ -4,10 +4,16 @@
   - [Requirements and Support Matrix](#requirements-and-support-matrix)
     - [Supported Cluster Variants](#supported-cluster-variants)
     - [Suport Matrix](#suport-matrix)
-  - [Tools](#tools)
+  - [Prepare your Environment](#prepare-your-environment)
+    - [Ubuntu with built in Cluster](#ubuntu-with-built-in-cluster)
+    - [MacOS with built in Cluster](#macos-with-built-in-cluster)
+    - [Cloud9 with built in Cluster](#cloud9-with-built-in-cluster)
+    - [Ubuntu or MacOS with Managed Cluster](#ubuntu-or-macos-with-managed-cluster)
+    - [Cloud9 with AWS EKS Managed Cluster](#cloud9-with-aws-eks-managed-cluster)
+  - [Get the Playground](#get-the-playground)
   - [Configure](#configure)
   - [Start](#start)
-    - [Create Ubuntu Local, MacOS Local or Cloud9 Local Clousters](#create-ubuntu-local-macos-local-or-cloud9-local-clousters)
+    - [Create Playgrounds built-in Cluster](#create-playgrounds-built-in-cluster)
     - [Create GKE, EKS or AKS Clusters](#create-gke-eks-or-aks-clusters)
   - [Deployments](#deployments)
   - [Tear Down](#tear-down)
@@ -34,7 +40,7 @@ The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and m
 >
 > for a locally running cluster.
 >
-> The deployment scripts are supporting the following managed cluster types:
+> The deployment scripts for managed cloud clusters are supporting the following cluster types:
 >
 > - GKE
 > - EKS
@@ -59,7 +65,7 @@ Add-On | **Ubuntu**<br>*Local* | **MacOS**<br>*Local* | **Cloud9**<br>*Local* | 
 Internal Registry | X | X | X | | |
 Scanning Scripts | X | X | X | X | X | X
 C1CS Admission & Continuous | X | X | X | X | X | X
-C1CS Runtime Security | | | | X | X | X
+C1CS Runtime Security | X (1) | | | X | X | X
 Falco | X | | X | X | X | X | X
 Gatekeeper | X | X | X | X | X | X | X
 Open Policy Agent | X | X | X | X | X | X | X
@@ -68,76 +74,21 @@ Starboard | X | X | X | X | X | X | X
 
 *Local* means, the cluster will run on the machine you're working on.
 
-*Cloud* means, that the cluster is a cloud services cluster using the named service.
+*Cloud* means, that the cluster is a cloud managed cluster using the named service.
 
-## Tools
+*(1)* Depending on the Kernel in use. Currently the kernels 4.15.x and 5.4.x are supported.
 
-In all of these possible environments you're going to run a script called `tools.sh` either on the host running the playground cluster or the host running the CLI tools of the public clouds. This will ensure you have the latest versions of
+## Prepare your Environment
 
-- `brew` (MacOS only),
-- `docker` or `Docker for Mac`.
-- `kubectl`,
-- `kustomize`,
-- `helm`,
-- `kind`,
-- `krew`,
-- `stern` and
-- `kubebox`
+In the following chapters I'm describing on how to prepare for the Playground in various environments. Choose one and proceed afterwards with section [Get the Playground](#get-the-playground).
 
-installed.
+### Ubuntu with built in Cluster
 
-> ***MacOS Local:***
->
-> If running the playground locally with Docker for Mac, go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker. This is not required when using the public clouds.
->
-> ***Cloud9 Local:***
->
-> - Select Create Cloud9 environment
-> - Give it a name
-> - Choose “t3.xlarge” or better for instance type and
-> - Ubuntu Server 18.04 LTS as the platform.
-> - For the rest take all default values and click Create environment
+Follow this chapter if...
 
-Clone the repo and install required packages if not available.
+- you're using the Playground on a Ubuntu machine and
+- are going to use the built in cluster.
 
-```sh
-git clone https://github.com/mawinkler/c1-playground.git
-cd c1-playground
-./tools.sh
-```
-
-## Configure
-
-Now, you create your personal configuration file. Do this by making a copy of the supplied sample.
-
-```sh
-cp config.json.sample config.json
-```
-
-Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you intent to run multiple clusters (e.g. a local and a GKE), adapt the `cluster_name` and the `policy_name`.
-
-```json
-{
-    "cluster_name": "playground",
-    "services": [
-...
-        {
-            "name": "container_security",
-            "policy_name": "relaxed_playground",
-            "namespace": "container-security"
-        },
-...
-        {
-            "name": "cloudone",
-            "region": "YOUR REGION HERE",
-            "api_key": "YOUR KEY HERE"
-        }
-    ]
-}
-```
-
-> ***Ubuntu Local:***
->
 > The cluster will get it's own docker network which is configured as follows:
 >
 > Config | Value
@@ -148,7 +99,7 @@ Typically you don't need to change anything here besides setting your api-key an
 > IP-Range | 172.250.255.0/24
 > Gateway | 172.250.255.254
 >
-> The `up.sh` script will deploy a load balancer amongst other cluster components later on. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `172.250.255.1-172.250.255.250`.  
+> The `up.sh` script will create the cluster and deploy a load balancer amongst other cluster components later on. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `172.250.255.1-172.250.255.250`.  
 > If the registry is deployed it will get an IP assigned by the load blancer. To allow access to the registry from your host, please configure your docker daemon to accept insecure registries and specified ip addresses.  
 > To do this, create or modify `/etc/docker/daemon.json` to include a small subset of probable ips for the registry.
 >
@@ -175,10 +126,22 @@ Typically you don't need to change anything here besides setting your api-key an
 > ```
 >
 > Since the network configuration is fixed, you don't need to do the configuration from above the next time you deploy a local cluster using the playground.
->
-> ***MacOS Local:***
->
+
+### MacOS with built in Cluster
+
+Follow this chapter if...
+
+- you're using the Playground on a MacOS environment with
+- Docker Desktop for Mac and
+- are going to use the built in cluster
+
+> Go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker. (This is not required when using the public clouds.)
+> 
 > Due to the fact, that there is no `docker0` bridge on MacOS, we need to use ingresses to enable access to services running on our cluster. To make this work, you need to modify your local `hosts`-file.
+>
+> ```sh
+> sudo vi /etc/hosts
+> ```
 >
 > Change the line for `127.0.0.1` from
 >
@@ -191,18 +154,176 @@ Typically you don't need to change anything here besides setting your api-key an
 > ```txt
 > 127.0.0.1 localhost playground-registry smartcheck grafana prometheus
 > ```
+
+### Cloud9 with built in Cluster
+
+Follow this chapter if...
+
+- you're using the Playground on a AWS Cloud9 environment and
+- are going to use the built in cluster
+
+> Follow the steps below to create a Cloud9 suitable for the Playground.
 >
-> ***Cloud9 Local:***
+> - Point your browser to AWS
+> - Choose your default AWS region in the top right
+> - Go to the Cloud9 service
+> - Select `[Create Cloud9 environment]`
+> - Name it as you like
+> - Choose `[t3.xlarge]` for instance type and
+> - `Ubuntu 18.04 LTS` as the platform
+> - For the rest take all default values and click `[Create environment]`
 >
-> You now need to resize the disk of the EC2 instance to 30GB, execute:
+> Install the latest version of the AWS CLI v2
 >
 > ```sh
-> ./tools/cloud9-resize.sh
+> curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+>   -o "/tmp/awscliv2.zip"
+> unzip /tmp/awscliv2.zip -d /tmp
+> sudo /tmp/aws/install
 > ```
+
+### Ubuntu or MacOS with Managed Cluster
+
+Follow this chapter if...
+
+- you're using the Playground on a Ubuntu machine and
+- are going to use either EKS, AKS or GKE
+
+> The only preparation needed is to have an authenticated CLI for the chosen cloud provider.
+
+### Cloud9 with AWS EKS Managed Cluster
+
+Follow this chapter if...
+
+- you're using the Playground on a AWS Cloud9 environment and
+- are going to use EKS as the cluster
+
+> Follow the steps below to create a Cloud9 suitable for the Playground with EKS
+>
+> - Point your browser to AWS
+> - Choose your default AWS region in the top right
+> - Go to the Cloud9 service
+> - Select `[Create Cloud9 environment]`
+> - Name it as you like
+> - Choose `[t3.medium]` for instance type and
+> - `Ubuntu 18.04 LTS` as the platform
+> - For the rest take all default values and click `[Create environment]`
+>
+> Install the latest version of the AWS CLI v2
+>
+> ```sh
+> curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+>   -o "/tmp/awscliv2.zip"
+> unzip /tmp/awscliv2.zip -d /tmp
+> sudo /tmp/aws/install
+> ```
+>
+> Update IAM Settings for the Workspace
+>
+> - Click the gear icon (in top right corner), or click to open a new tab and choose `[Open Preferences]`
+> - Select AWS SETTINGS
+> - Turn off `[AWS managed temporary credentials]`
+> - Close the Preferences tab
+>
+> To create an IAM role which we want to attach to our Cloud9 instance, we need temporarily ***administrative privileges*** in our current shell. To get these, we need to configure our `aws` cli with our AWS credentials and the current region. Directly after assigning the created role to the instance, we're removing the credentials from the environment, of course.
+>
+> ```sh
+> aws configure
+> ```
+>
+> In this example I'm using `eu-central-1`. Change it to your current AWS region.
+>
+> ```sh
+> AWS Access Key ID [None]: <KEY>
+> AWS Secret Access Key [None]: <SECRET>
+> Default region name [None]: eu-central-1
+> Default output format [None]: json
+> ```
+>
+> Now, run the following script, which creates and assigns the required instance role to your Cloud9 instance.
+>
+> ```sh
+> REPO=https://raw.githubusercontent.com/mawinkler/c1-playground/master
+> sudo apt install -y jq && \
+>   curl -L ${REPO}/tools/cloud9-instance-role.sh | bash
+> ```
+>
+> Use the GetCallerIdentity CLI command to validate that the Cloud9 IDE is using the correct IAM role.
+>
+> ```sh
+> aws sts get-caller-identity --query Arn | \
+>   grep ekscluster-admin -q && \
+>   echo "IAM role valid" || echo "IAM role NOT valid"
+> ```
+>
+> Finally, resize the virtual disk of your Cloud9 by running
+>
+> ```sh
+> curl -L ${REPO}/tools/cloud9-resize.sh | bash
+> ```
+
+## Get the Playground
+
+Clone the repo and install required packages if not available.
+
+```sh
+git clone https://github.com/mawinkler/c1-playground.git
+cd c1-playground
+```
+
+In all of these possible environments you're going to run a script called `tools.sh` either on the host running the playground cluster or the host running the CLI tools of the public clouds. This will ensure you have the latest versions of
+
+- `brew` (MacOS only),
+- `docker` or `Docker for Mac`.
+- `kubectl`,
+- `kustomize`,
+- `helm`,
+- `kind`,
+- `krew`,
+- `stern` and
+- `kubebox`
+
+installed.
+
+Run it with
+
+```sh
+./tools.sh
+```
+
+## Configure
+
+Now, you create your personal configuration file. Do this by making a copy of the supplied sample.
+
+```sh
+cp config.json.sample config.json
+```
+
+Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you intent to run multiple clusters (e.g. a local and a GKE), adapt the `cluster_name` and the `policy_name`.
+
+```json
+{
+    "cluster_name": "playground",
+    "services": [
+...
+        {
+            "name": "container_security",
+            "policy_name": "relaxed_playground",
+            "namespace": "container-security"
+        },
+...
+        {
+            "name": "cloudone",
+            "region": "YOUR CLOUD ONE REGION HERE",
+            "api_key": "YOUR CLOUD ONE API KEY HERE"
+        }
+    ]
+}
+```
 
 ## Start
 
-### Create Ubuntu Local, MacOS Local or Cloud9 Local Clousters
+### Create Playgrounds built-in Cluster
 
 Simply run
 
