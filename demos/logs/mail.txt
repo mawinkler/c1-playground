@@ -1,0 +1,32 @@
+To: <dev@corp.com>
+Subject: New security controls for Kubernetes in place
+X-Mailer: mail (GNU Mailutils 3.7)
+Message-Id: <20220425095520.CDE7E623E02@dev.corp.com>
+Date: Mon, 25 Apr 2022 09:55:20 +0000 (UTC)
+From: security <security@corp.com>
+
+Hi Folks,
+
+I'm happy to announce new security controls are now deployed to all of our 
+Kubernetes clusters.
+
+In a nutshell the following policy is now enforced by default:
+
+- Pods must not run in host namespaces.
+- Containers must not run as root and can't be privileged.
+- The single image source is our private registry.
+- All images needs to be version tagged. Latest is not advised and will
+  create a security event.
+- All images are required to be scanned for security issues.
+
+The security office is aware of the fact, that images with zero vulnerabilities
+are sometimes hard to achieve. To ensure the availability of services we
+decided to not simply block deployment on every vulnerability but to
+incorporate the attack vector, complexitity and some more specifics before
+blocking a deployment.
+
+If you have any question or encounter problems please contact us.
+
+Regards,
+Security
+

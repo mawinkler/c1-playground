@@ -33,7 +33,7 @@ function scan_image {
       --image-pull-auth="${PULL_AUTH}" \
       --insecure-skip-registry-tls-verify \
       --insecure-skip-tls-verify)
-    echo $RESULT | jq .
+    echo $RESULT | jq -r '.findings'
   fi
 }
 
@@ -49,7 +49,7 @@ function pullpush_registry {
 
   printf '%s\n' "Cluster registry is on ${REGISTRY}"
 
-  echo ${REG_PASSWORD} | docker login ${REGISTRY} --username ${REG_USERNAME} --password-stdin
+  echo ${REG_PASSWORD} | docker login ${REGISTRY} --username ${REG_USERNAME} --password-stdin > /dev/null 2>&1
   docker pull ${TARGET_IMAGE}
   # Tag and push, but strip hash
   docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}

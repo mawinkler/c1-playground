@@ -5,7 +5,6 @@ auth
 certs
 overrides
 opa
-demos
 log/*
 deploy-from-private-registry
 
@@ -37,3 +36,5 @@ migrate/kustomization.yaml
 audit/audit-webhook.yaml
 falco/additional_rules_tm.yaml
 additional_rules.sh
+demos/nginx.yaml
+.dccache

@@ -12,11 +12,12 @@ Assumes, that the IP of the docker bridge is 172.17.0.1 if using kind. Otherwise
 
 ```yaml
 proxy:
-  httpProxy: 172.17.0.1:3128
-  httpsProxy: 172.17.0.1:3128
+  httpProxy: 172.17.0.1:8081
+  httpsProxy: 172.17.0.1:8081
   noProxy:
   - localhost
   - 127.0.0.1
+  - .cluster.local
 ```
 
 ## Kind
