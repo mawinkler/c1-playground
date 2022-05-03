@@ -87,7 +87,7 @@ function pullpush_gcp {
     gcloud iam service-accounts keys create ${GCR_SERVICE_ACCOUNT}_keyfile.json --iam-account ${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com
   fi
 
-  cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME}
+  cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | docker login -u _json_key --password-stdin https://${GCP_HOSTNAME} > /dev/null 2>&1
   docker pull ${TARGET_IMAGE}
   # Tag and push, but strip hash
   docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
@@ -120,7 +120,7 @@ function pullpush_aks {
 
   # Login, pull, push
   printf '%s\n' "Login to Container Registry, pull, tag and push"
-  echo ${ACR_PASSWORD} | docker login -u ${ACR_USERNAME} --password-stdin https://${REGISTRY}
+  echo ${ACR_PASSWORD} | docker login -u ${ACR_USERNAME} --password-stdin https://${REGISTRY} > /dev/null 2>&1
   docker pull ${TARGET_IMAGE}
   # Tag and push, but strip hash
   docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
@@ -160,7 +160,7 @@ function pullpush_eks {
   ECR_USERNAME=AWS
   ECR_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
   echo ${ECR_PASSWORD} | 
-    docker login --username ${ECR_USERNAME} --password-stdin ${REGISTRY}
+    docker login --username ${ECR_USERNAME} --password-stdin ${REGISTRY} > /dev/null 2>&1
   docker pull ${TARGET_IMAGE}
   # Tag and push, but strip hash
   docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
