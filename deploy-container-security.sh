@@ -13,6 +13,8 @@ SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' c
 API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
 REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
 
+mkdir -p overrides
+
 # Create API header
 API_KEY=${API_KEY} envsubst <templates/cloudone-header.txt >overrides/cloudone-header.txt
 
