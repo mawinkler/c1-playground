@@ -31,24 +31,18 @@
 #   Block - attempts to execute in/attach to a container
 #   Log - attempts to establish port-forward on a container
 
-. ./third_party/demo-magic/demo-magic.sh
+. ./demos/third_party/demo-magic/demo-magic.sh
 
 # demo-magic
 TYPE_SPEED=50
 PROMPT_TIMEOUT=3
 DEMO_PROMPT="${GREEN}➜ ${CYAN}\W "
 
-# playground
-# configure the directory of your playground clone here
-PLAYGROUND_DIR="../"
+# Source helpers
+. ./playground-helpers.sh
+
 # get registry parameters
-REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' ${PLAYGROUND_DIR}/config.json)"
-REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' ${PLAYGROUND_DIR}/config.json)"
-REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' ${PLAYGROUND_DIR}/config.json)"
-REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' ${PLAYGROUND_DIR}/config.json)"
-REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
-                -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' ${PLAYGROUND_DIR}/config.json)"
+get_registry_credentials
 
 # script
 clear
@@ -78,7 +72,7 @@ p "${GREEN}# Let me check his mail again..."
 wait
 
 p "mail"
-cat ./logs/mail.txt
+cat ./demos/logs/mail.txt
 wait
 wait
 wait
@@ -94,8 +88,8 @@ p "${GREEN}# Afterwards, I need to patch the deployment to satisfy the required 
 wait
 
 NO_WAIT=false
-p "./scan-image.sh -s nginx:1.21.6"
-/bin/bash -c "cd ${PLAYGROUND_DIR} && ./scan-image.sh -s nginx:1.21.6"
+pe "./scan-image.sh -s nginx:1.21.6"
+# /bin/bash -c "./scan-image.sh -s nginx:1.21.6"
 echo
 
 NO_WAIT=true
@@ -140,7 +134,7 @@ spec:
         app: nginx
     spec:
       containers:
-      - image: ${REG_HOST}:${REG_PORT}/nginx:1.21.6
+      - image: ${REGISTRY}/nginx:1.21.6
         name: nginx
         resources: {}
         securityContext:
@@ -160,14 +154,20 @@ p "${GREEN}# Now, create the image pull secrets and try to deploy nginx again."
 wait
 
 IMAGE_PULL_SECRETS="kubectl create secret docker-registry regcred \\
-  --docker-server=${REG_HOST}:${REG_PORT} \\
-  --docker-username=${REG_USERNAME} \\
-  --docker-password=${REG_PASSWORD} \\
+  --docker-server=${REGISTRY} \\
+  --docker-username=${REGISTRY_USERNAME} \\
+  --docker-password=**************** \\
   --docker-email=dev@corp.com \\
   --namespace nginx"
 
 NO_WAIT=false
-pe "${IMAGE_PULL_SECRETS}"
+p "${IMAGE_PULL_SECRETS}"
+kubectl create secret docker-registry regcred \
+  --docker-server=${REGISTRY} \
+  --docker-username=${REGISTRY_USERNAME} \
+  --docker-password=${REGISTRY_PASSWORD} \
+  --docker-email=dev@corp.com \
+  --namespace nginx
 echo
 
 pe "kubectl -n nginx apply -f nginx.yaml"

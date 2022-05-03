@@ -219,3 +219,56 @@ function get_registry() {
     REGISTRY="${REG_HOST}:${REG_PORT}"
   fi
 }
+
+#######################################
+# Retrieves the username, password,
+# and url of the registry
+# Globals:
+#   GCP_HOSTNAME
+#   GCP_PROJECTID
+#   PLAYGROUND_NAME
+#   REGISTRY_NAME
+#   REG_NAMESPACE
+#   REG_NAME
+# Arguments:
+#   None
+# Outputs:
+#   REGISTRY
+#   REGISTRY_USERNAME
+#   REGISTRY_PASSWORD
+#######################################
+function get_registry_credentials() {
+  get_registry
+  # gke
+  if is_gke ; then
+    GCP_HOSTNAME="gcr.io"
+    GCP_PROJECTID=$(gcloud config list --format 'value(core.project)' 2>/dev/null)
+    printf '%s\n' "GCP Project is ${GCP_PROJECTID}"
+    GCR_SERVICE_ACCOUNT=service-gcrsvc
+    if test -f "${GCR_SERVICE_ACCOUNT}_keyfile.json"; then
+      printf '%s\n' "Using existing key file"
+    else
+      printf '%s\n' "Creating Service Account"
+      echo ${GCR_SERVICE_ACCOUNT}_keyfile.json
+      gcloud iam service-accounts create ${GCR_SERVICE_ACCOUNT}
+      gcloud projects add-iam-policy-binding ${GCP_PROJECTID} --member "serviceAccount:${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com" --role "roles/storage.admin"
+      gcloud iam service-accounts keys create ${GCR_SERVICE_ACCOUNT}_keyfile.json --iam-account ${GCR_SERVICE_ACCOUNT}@${GCP_PROJECTID}.iam.gserviceaccount.com
+    fi
+    REGISTRY_USERNAME="_json_key"
+    REGISTRY_PASSWORD=$(cat ${GCR_SERVICE_ACCOUNT}_keyfile.json | jq tostring)
+  # aks
+  elif is_aks ; then
+    az acr update -n ${REGISTRY} --admin-enabled true 1>/dev/null
+    ACR_CREDENTIALS=$(az acr credential show --name ${REGISTRY})
+    REGISTRY_USERNAME=$(jq -r '.username' <<< $ACR_CREDENTIALS)
+    REGISTRY_PASSWORD=$(jq -r '.passwords[] | select(.name=="password") | .value' <<< $ACR_CREDENTIALS)
+  # eks
+  elif is_eks ; then
+    REGISTRY_USERNAME="AWS"
+    REGISTRY_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
+  # local
+  else
+    REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+    REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
+  fi
+}
