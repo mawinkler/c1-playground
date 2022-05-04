@@ -73,12 +73,13 @@ function create_smartcheck_overrides() {
 #######################################
 function deploy_smartcheck() {
   printf '%s\n' "Install smart check"
+  curl -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
   helm upgrade --namespace ${SC_NAMESPACE} \
     --values overrides/smartcheck-overrides.yaml \
     smartcheck \
     --install \
     --reuse-values \
-    https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
+    master-sc.tar.gz > /dev/null
 
   printf '%s' "Waiting for smart check to be in active state"
   for i in {1..60} ; do
@@ -109,7 +110,19 @@ function upgrade_smartcheck() {
     --values overrides/smartcheck-overrides-upgrade.yaml \
     smartcheck \
     --reuse-values \
-    https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz > /dev/null
+    master-sc.tar.gz > /dev/null
+
+  printf '%s' "Waiting for smart check to be in active state"
+  for i in {1..60} ; do
+    sleep 2
+    DEPLOYMENTS_TOTAL=$(kubectl get deployments -n ${SC_NAMESPACE} | wc -l)
+    DEPLOYMENTS_READY=$(kubectl get deployments -n ${SC_NAMESPACE} | grep -E "([0-9]+)/\1" | wc -l)
+    if [[ $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ]] ; then
+      break
+    fi
+    printf '%s' "."
+  done
+  printf '\n'
 }
 
 #######################################
@@ -225,6 +238,43 @@ function password_change() {
 }
 
 #######################################
+# Adds Playground registry to
+# Smart Check
+# Globals:
+#   SC_HOST
+#   SC_USERNAME
+#   SC_PASSWORD
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function add_registry() {
+
+  SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                --header @templates/smartcheck-header.txt \
+                -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_PASSWORD}'"}}' | \
+                  jq '.user.id' | tr -d '"' 2>/dev/null)
+  SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
+                    --header @templates/smartcheck-header.txt \
+                    -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_PASSWORD}'"}}' | \
+                      jq '.token' | tr -d '"' 2>/dev/null)
+  SC_BEARERTOKEN=${SC_BEARERTOKEN} envsubst <templates/smartcheck-header-token.txt >overrides/smartcheck-header-token.txt
+
+  get_registry_credentials
+
+  # if is_eks ; then
+  #   SC_REPOID=$(curl -s -k -X POST https://${SC_HOST}/api/registries?scan=false \
+  #                 --header @overrides/smartcheck-header-token.txt
+  #                 -d '{"name":"Playground Registry","description":"","credentials":{"aws":{"region":"'${AWS_REGION}'"}},"insecureSkipVerify":true,"filter":{"include":["*"]},"schedule":true}"' | jq '.id')
+  # else
+  printf '%s\n' "Adding registry"
+  SC_REPOID=$(curl -s -k -X POST https://${SC_HOST}/api/registries?scan=false \
+                --header @overrides/smartcheck-header-token.txt \
+                -d '{"name":"Playground Registry","description":"","host":"'${REGISTRY}'","credentials":{"username":"'${REGISTRY_USERNAME}'","password":"'${REGISTRY_PASSWORD}'"},"insecureSkipVerify":true,"filter":{"include":["*"]},"schedule":true}' | jq '.id')
+}
+
+#######################################
 # Creates Kubernetes ingress
 # Globals:
 #   SC_HOSTNAME
@@ -249,6 +299,7 @@ function create_ingress() {
 # host operating system
 #######################################
 function main() {
+
   if is_linux ; then
     SERVICE_TYPE='LoadBalancer'
     create_namespace
@@ -267,6 +318,7 @@ function main() {
     password_change
     create_ssl_certificate_linux
     upgrade_smartcheck
+    add_registry
 
     # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
     if is_gke || is_aks || is_eks ; then

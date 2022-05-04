@@ -7,6 +7,7 @@ overrides
 opa
 log/*
 deploy-from-private-registry
+demos/pod
 
 # Config
 config.json
@@ -38,3 +39,9 @@ falco/additional_rules_tm.yaml
 additional_rules.sh
 demos/nginx.yaml
 .dccache
+get_helm.sh
+master-sc.tar.gz
+nginx.yaml
+README.pdf
+test.sh
+master-cs.tar.gz

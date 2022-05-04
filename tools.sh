@@ -25,7 +25,7 @@ OS="$(uname)"
 if [ "${OS}" == 'Linux' ]; then
   printf "${BLUE}${BOLD}%s${RESET}\n" "Installing essential packages on linux"
   sudo apt update && \
-    sudo apt install -y jq apt-transport-https gnupg2 curl nginx apache2-utils
+    sudo apt install -y jq apt-transport-https gnupg2 curl nginx apache2-utils pv
 fi
 
 # brew

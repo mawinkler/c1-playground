@@ -29,7 +29,11 @@ service:
   ## The service will automatically redirect all HTTP requests to HTTPS.
   httpPort: 80
 networkPolicy:
-  enabled: false
+  enabled: true
+  additionalWebhookTargetPorts: []
+  additionalRegistryPorts:
+  - 5000
+  additionalOutboundPorts: []
 scan:
   malwareCache:
     enabled: true

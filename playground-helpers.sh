@@ -238,7 +238,9 @@ function get_registry() {
 #   REGISTRY_PASSWORD
 #######################################
 function get_registry_credentials() {
+
   get_registry
+
   # gke
   if is_gke ; then
     GCP_HOSTNAME="gcr.io"

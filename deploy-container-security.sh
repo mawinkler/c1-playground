@@ -208,12 +208,13 @@ function deploy_container_security() {
   fi
 
   printf '%s\n' "(Re-)deploy container security"
+  curl -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
   helm upgrade \
     container-security \
     --values overrides/container-security-overrides.yaml \
     --namespace ${CS_NAMESPACE} \
     --install \
-    https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz
+   master-cs.tar.gz
 
   # if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
   #   echo Running on GKE, AKS or EKS
@@ -275,12 +276,13 @@ function create_scanner() {
 
   # create scanner
   printf '%s\n' "(Re-)bind smartcheck to container security"
+  curl -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
   helm upgrade \
     smartcheck \
     --reuse-values \
     --values overrides/container-security-overrides-image-security-bind.yaml \
     --namespace ${SC_NAMESPACE} \
-    https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz >/dev/null
+    master-sc.tar.gz >/dev/null
 }
 
 #######################################
