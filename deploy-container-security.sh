@@ -208,7 +208,7 @@ function deploy_container_security() {
   fi
 
   printf '%s\n' "(Re-)deploy container security"
-  curl -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
+  curl -s -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
   helm upgrade \
     container-security \
     --values overrides/container-security-overrides.yaml \
@@ -276,7 +276,7 @@ function create_scanner() {
 
   # create scanner
   printf '%s\n' "(Re-)bind smartcheck to container security"
-  curl -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
+  curl -s -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
   helm upgrade \
     smartcheck \
     --reuse-values \
@@ -303,7 +303,7 @@ function main() {
   cluster_policy
   create_cluster_object
   deploy_container_security
-  kubectl -n smartcheck get service proxy && create_scanner || echo Smartcheck not found
+  kubectl -n ${SC_NAMESPACE} get service proxy && create_scanner || echo Smartcheck not found
 }
 
 function cleanup() {

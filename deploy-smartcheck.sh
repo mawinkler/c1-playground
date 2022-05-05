@@ -73,7 +73,7 @@ function create_smartcheck_overrides() {
 #######################################
 function deploy_smartcheck() {
   printf '%s\n' "Install smart check"
-  curl -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
+  curl -s -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
   helm upgrade --namespace ${SC_NAMESPACE} \
     --values overrides/smartcheck-overrides.yaml \
     smartcheck \
@@ -268,10 +268,15 @@ function add_registry() {
   #                 --header @overrides/smartcheck-header-token.txt
   #                 -d '{"name":"Playground Registry","description":"","credentials":{"aws":{"region":"'${AWS_REGION}'"}},"insecureSkipVerify":true,"filter":{"include":["*"]},"schedule":true}"' | jq '.id')
   # else
-  printf '%s\n' "Adding registry"
-  SC_REPOID=$(curl -s -k -X POST https://${SC_HOST}/api/registries?scan=false \
+  printf '%s\n' "Adding registry ${REGISTRY}"
+  SC_REGID=$(curl -s -k -X POST https://${SC_HOST}/api/registries?scan=false \
                 --header @overrides/smartcheck-header-token.txt \
-                -d '{"name":"Playground Registry","description":"","host":"'${REGISTRY}'","credentials":{"username":"'${REGISTRY_USERNAME}'","password":"'${REGISTRY_PASSWORD}'"},"insecureSkipVerify":true,"filter":{"include":["*"]},"schedule":true}' | jq '.id')
+                -d '{"name":"Playground Registry","description":"","host":"'${REGISTRY}'","credentials":{"username":"'${REGISTRY_USERNAME}'","password":"'${REGISTRY_PASSWORD}'"},"insecureSkipVerify":true,"filter":{"include":["*"]},"schedule":true}' | jq -r '.id')
+  if [[ "${SC_REGID}" == "null" ]]; then
+    printf '%s\n' "Registry already existing"
+  else
+    printf '%s\n' "Registry added with ID ${SC_REGID}"
+  fi
 }
 
 #######################################
@@ -308,13 +313,10 @@ function main() {
     get_smartcheck
 
     if [ "${SC_HOST}" == "" ]; then
-      echo Unable to get Smart Check LoadBalancer
+      printf '%s\n' "Unable to get Smart Check LoadBalancer"
       exit -1
-    else
-      echo Smart Check on ${SC_HOST}
     fi
 
-    echo $SC_HOST
     password_change
     create_ssl_certificate_linux
     upgrade_smartcheck
@@ -322,11 +324,11 @@ function main() {
 
     # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
     if is_gke || is_aks || is_eks ; then
-      echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+      printf '%s\n' "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
     else
       ./deploy-proxy.sh smartcheck
       # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login https://$(hostname) -I | awk '{print $1}'):5000 --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
-      echo "Smart check UI on: https://$(hostname -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+      printf '%s\n' "Smart check UI on: https://$(hostname -I | awk '{print $1}'):${SC_LISTEN_PORT} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
     fi
   fi
 
@@ -340,7 +342,7 @@ function main() {
       password_change
       create_ssl_certificate_linux
       upgrade_smartcheck
-      echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+      printf '%s\n' "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
     else
       SERVICE_TYPE='ClusterIP'
       create_namespace
@@ -353,7 +355,7 @@ function main() {
       create_ssl_certificate_darwin
       upgrade_smartcheck
       # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
-      echo "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
+      printf '%s\n' "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
     fi
   fi
 }

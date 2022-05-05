@@ -132,12 +132,17 @@ function create_ingress_controller() {
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml -o yaml
   # wating for the cluster be ready
   printf '%s' "Wating for the cluster be ready"
-  while [ $(kubectl -n kube-system get deployments | \
-          grep -cE "1/1|2/2|3/3|4/4|5/5") -ne $(kubectl -n kube-system get deployments | \
-          grep -c "/") ]; do
-    printf '%s' "."
+  for i in {1..60} ; do
     sleep 2
+    DEPLOYMENTS_TOTAL=$(kubectl -n kube-system get deployments | wc -l)
+    DEPLOYMENTS_READY=$(kubectl -n kube-system get deployments | grep -E "([0-9]+)/\1" | wc -l)
+    if [[ $((${DEPLOYMENTS_TOTAL} - 1)) -eq ${DEPLOYMENTS_READY} ]] ; then
+      break
+    fi
+    printf '%s' "."
   done
+  printf '\n'
+
   kubectl wait --namespace ingress-nginx \
     --for=condition=ready pod \
     --selector=app.kubernetes.io/component=controller \
