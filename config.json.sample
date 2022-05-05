@@ -40,7 +40,7 @@
         },
         {
             "name": "smartcheck",
-            "namespace": "smartcheck",
+            "namespace": "trendmicro-smartcheck",
             "username": "admin",
             "password": "trendmicro",
             "hostname": "smartcheck",
@@ -54,7 +54,7 @@
         {
             "name": "container_security",
             "policy_name": "relaxed_playground",
-            "namespace": "container-security"
+            "namespace": "trendmicro-system"
         },
         {
             "name": "trivy",
