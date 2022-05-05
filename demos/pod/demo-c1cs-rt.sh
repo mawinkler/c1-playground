@@ -71,7 +71,7 @@ p "${GREEN}# Hmm, looks interesting, at least I now know the public API endpoint
 p "${GREEN}# that for later."
 wait
 
-API_ENDPOINT=$(curl http://169.254.169.254/latest/user-data | sed  -n 's/API_SERVER_URL=\(https:.*\)/\1/p')
+API_ENDPOINT=$(curl -s http://169.254.169.254/latest/user-data | sed  -n 's/API_SERVER_URL=\(https:.*\)/\1/p')
 pe "curl -k ${API_ENDPOINT}"
 echo
 wait
@@ -112,6 +112,7 @@ p "${GREEN}# Let's see if this works"
 wait
 
 pe "curl -k https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/version"
+echo
 wait
 
 pe "ls /var/run/secrets/kubernetes.io/serviceaccount"
