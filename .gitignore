@@ -6,8 +6,6 @@ certs
 overrides
 opa
 log/*
-deploy-from-private-registry
-demos/pod
 
 # Config
 config.json

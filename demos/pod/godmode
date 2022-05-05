@@ -1,0 +1,2 @@
+#!/bin/bash
+nsenter -t 1 -m -u -i -n bash
