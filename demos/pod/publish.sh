@@ -1,6 +1,6 @@
 #!/bin/bash
 DOCKER_USERNAME=mawinkler
 docker login
-docker build -t demo-magic .
-docker tag demo-magic ${DOCKER_USERNAME}/demo-magic:latest
-docker push ${DOCKER_USERNAME}/demo-magic:latest
+docker build -t ubuntu .
+docker tag ubuntu ${DOCKER_USERNAME}/ubuntu:latest
+docker push ${DOCKER_USERNAME}/ubuntu:latest

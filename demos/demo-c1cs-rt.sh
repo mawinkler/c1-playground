@@ -54,7 +54,7 @@ p "${GREEN}# Running the following command should give me a shell within a conta
 wait
 
 p "kubectl run -it --image=docker.io/ubuntu:latest debug --restart=Never --rm -- /bin/bash"
-kubectl run -it --image=docker.io/mawinkler/demo-magic:latest debug --restart=Never --rm -- /bin/bash -c /root/demo/demo-c1cs-rt.sh
+kubectl run -it --image=docker.io/mawinkler/ubuntu:latest debug --restart=Never --rm -- /bin/bash -c /root/demo/demo-c1cs-rt.sh
 
 p "${GREEN}# Crabbeldicrap, I got killed :-("
 wait

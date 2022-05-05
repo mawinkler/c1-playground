@@ -33,7 +33,7 @@ echo
 
 p "${GREEN}# Uh, got a terminal shell running on one of our clusters..."
 p "${GREEN}# hmm. Shell was created within the pod debug running in the default namespace."
-p "${GREEN}# The container is using the ubuntu base image and the running process is bash."
+p "${GREEN}# The container is using an ubuntu (???) image and the running process is bash."
 p "${GREEN}# Let's see what happens..."
 wait
 wait
@@ -53,6 +53,7 @@ p "${GREEN}# Let's see what we can do now. First, query some info about the node
 wait
 
 pe "curl http://169.254.169.254/latest/meta-data/local-hostname"
+echo
 wait
 
 p "${GREEN}# So, this my current hostname"
@@ -63,13 +64,16 @@ p "${GREEN}# valuable information..."
 wait
 
 pe "curl http://169.254.169.254/latest/user-data"
+echo
 wait
 
 p "${GREEN}# Hmm, looks interesting, at least I now know the public API endpoint of the cluster. I save"
 p "${GREEN}# that for later."
 wait
 
-pe "curl -k https://BF7289BB8B092FBB9AC296B4F00BB2B2.gr7.eu-central-1.eks.amazonaws.com"
+API_ENDPOINT=$(curl http://169.254.169.254/latest/user-data | sed  -n 's/API_SERVER_URL=\(https:.*\)/\1/p')
+pe "curl -k ${API_ENDPOINT}"
+echo
 wait
 wait
 
@@ -83,6 +87,7 @@ echo
 
 p "${GREEN}# Someone seems to dig around... He checked the user-data provided at instance creation"
 p "${GREEN}# curl http://169.254.169.254/latest/user-data"
+echo
 wait
 
 p "${GREEN}# Let's continue watching..."
