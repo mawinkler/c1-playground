@@ -21,6 +21,9 @@
     - [Tear Down GKE, EKS or AKS Clusters](#tear-down-gke-eks-or-aks-clusters)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
+  - [Demo Scripts](#demo-scripts)
+    - [Deployment Control Demo](#deployment-control-demo)
+    - [Runtime Security Demo](#runtime-security-demo)
   - [Experimenting](#experimenting)
     - [Migrate](#migrate)
   - [Testing the Playground](#testing-the-playground)
@@ -65,12 +68,14 @@ Add-On | **Ubuntu**<br>*Local* | **MacOS**<br>*Local* | **Cloud9**<br>*Local* | 
 Internal Registry | X | X | X | | |
 Scanning Scripts | X | X | X | X | X | X
 C1CS Admission & Continuous | X | X | X | X | X | X
-C1CS Runtime Security | X (1) | | | X | X | X
+C1CS Runtime Security | X (1) | | X | X | X | X
 Falco | X | | X | X | X | X | X
 Gatekeeper | X | X | X | X | X | X | X
 Open Policy Agent | X | X | X | X | X | X | X
 Prometheus & Grafana | X | X | X | X | X | X | X
 Starboard | X | X | X | X | X | X | X
+Cilium | X | | X | X | X | X | X
+Kubescape | X | | X | X | X | X | X
 
 *Local* means, the cluster will run on the machine you're working on.
 
@@ -285,6 +290,11 @@ In all of these possible environments you're going to run a script called `tools
 
 installed.
 
+> ***Note:*** as of 05/05/2022 there is a bug in combination of ths aws-cli and `kubectl` in version 1.24.0. The reason is that Kubernetes deprecated `client.authentication.k8s.io/v1alpha1` from the `exec` plugin in [PR108616](https://github.com/kubernetes/kubernetes/pull/108616). For this reason, the `kubectl` version is currently fixed to 1.23.6-00 in the `tools.sh`-script.  
+> 
+> If you accidentally installed `kubectl` version 1.24.0, simply downgrade it by running  
+> `sudo apt-get install -y --allow-downgrades kubectl=1.23.6-00`.
+
 Run it with
 
 ```sh
@@ -309,7 +319,7 @@ Typically you don't need to change anything here besides setting your api-key an
         {
             "name": "container_security",
             "policy_name": "relaxed_playground",
-            "namespace": "container-security"
+            "namespace": "trendmicro-system"
         },
 ...
         {
@@ -395,14 +405,17 @@ Run one of the following scripts to quickly create a cluster in the clouds.
 
 The documentation for the add-ons are located inside the `./docs` directory.
 
-- [Registry](docs/add-on-registry.md)
+- [Cilium](docs/add-on-cilium.md)
 - [Container Security](docs/add-on-container-security.md)
-- [Prometheus & Grafana](docs/add-on-prometheus-grafana.md)
 - [Falco](docs/add-on-falco.md)
-- [Krew](docs/add-on-krew.md)
-- [Starboard](docs/add-on-starboard.md)
-- [Open Policy Agent](docs/add-on-opa.md)
 - [Gatekeeper](docs/add-on-gatekeeper.md)
+- [Istio](docs/add-on-istio.md)
+- [Krew](docs/add-on-krew.md)
+- [Kubescape](docs/add-on-kubescape.md)
+- [Open Policy Agent](docs/add-on-opa.md)
+- [Prometheus & Grafana](docs/add-on-prometheus-grafana.md)
+- [Registry](docs/add-on-registry.md)
+- [Starboard](docs/add-on-starboard.md)
 
 ## Play with the Playground
 
@@ -413,6 +426,91 @@ If you're running the playground on MacOS, follow the lab guide [Play with the P
 Both guides are basically identical, but since access to some services is different on Linux and MacOS there are two guides available.
 
 Lastly, there is a [guide](docs/play-with-falco.md) to experiment with the runtime rules built into the playground to play with Falco. The rule set of the playground is located [here](falco/playground_rules.yaml).
+
+## Demo Scripts
+
+The Playground supports automated scripts to demonstrate functionalies of deployments. Currently, there are two scripts available showing some capabilities of Cloud One Container Security.
+
+To run them, ensure to have an EKS cluster up and running and have Smart Check and Container Security deployed.
+
+After configuring the policy and rule set as shown below, you can run the demos with
+
+```sh
+# Deployment Control Demo
+./demos/demo-c1cs-dc.sh
+
+# Runtime Security Demo
+./demos/demo-c1cs-rt.sh
+```
+
+### Deployment Control Demo
+
+> ***Storyline:*** A developer wants to try out a new `nginx` image but fails since the image has critical vulnerabilities, he tries to deploy from docker hub etc. Lastly he tries to attach to the pod, which is prevented by Container Security.
+
+To prepare for the demo verify that the cluster policy is set as shown below:
+
+- Pod properties
+  - uncheck - containers that run as root
+  - Block - containers that run in the host network namespace
+  - Block - containers that run in the host IPC namespace
+  - Block - containers that run in the host PID namespace
+- Container properties
+  - Block - containers that are permitted to run as root
+  - Block - privileged containers
+  - Block - containers with privilege escalation rights
+  - Block - containers that can write to the root filesystem
+- Image properties
+  - Block - images from registries with names that DO NOT EQUAL REGISTRY:PORT
+  - uncheck - images with names that
+  - Log - images with tags that EQUAL latest
+  - uncheck - images with image paths that
+- Scan Results
+  - Block - images that are not scanned
+  - Block - images with malware
+  - Log - images with content findings whose severity is CRITICAL OR HIGHER
+  - Log - images with checklists whose severity is CRITICAL OR HIGHER
+  - Log - images with vulnerabilities whose severity is CRITICAL OR HIGHER
+  - Block - images with vulnerabilities whose CVSS attack vector is NETWORK and whose severity is HIGH OR HIGHER
+  - Block - images with vulnerabilities whose CVSS attack complexity is LOW and whose severity is HIGH OR HIGHER
+  - Block - images with vulnerabilities whose CVSS availability impact is HIGH and whose severity is HIGH OR HIGHER
+  - Log - images with a negative PCI-DSS checklist result with severity CRITICAL OR HIGHER
+- Kubectl Access
+  - Block - attempts to execute in/attach to a container
+  - Log - attempts to establish port-forward on a container
+
+Most of it should already configured by the `deploy-container-security.sh` script.
+
+Run the demo with
+
+```sh
+./demos/demo-c1cs-dc.sh
+```
+
+### Runtime Security Demo
+
+> ***Storyline:*** A kubernetes admin newbie executes some information gathering about the kubernetes cluster from within a running pod. Finally, he gets kicked by Container Security because of the `kubectl` usage.
+
+To successfully run the runtime demo you need adjust the aboves policy slightly.
+
+Change:
+
+- Kubectl Access
+  - Log - attempts to execute in/attach to a container
+
+- Exceptions
+  - Allow images with paths that equal `docker.io/mawinkler/ubuntu:latest`
+
+Additionally, set the runtime rule `(T1543)Launch Package Management Process in Container` to ***Log***. Normally you'll find that rule in the `*_error` ruleset.
+
+Run the demo with
+
+```sh
+./demos/demo-c1cs-rt.sh
+```
+
+The demo starts locally on your system, but creates a pod in the `default` namespace of your cluster using a slightly pimped ubuntu image which is pulled from my docker hub account. The main demo runs within that pod on the cluster, not on your local machine.
+
+The Dockerfile for this image is in `./demos/pod/Dockerfile` for you to verify, but you do not need to build it yourself.
 
 ## Experimenting
 
