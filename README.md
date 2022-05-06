@@ -388,7 +388,7 @@ The playground provides a couple of scripts which deploy preconfigured versions 
 
 ### Tear Down GKE, EKS or AKS Clusters
 
-Run one of the following scripts to quickly create a cluster in the clouds.
+Run one of the following scripts to quickly tear down a cluster in the clouds. These scripts are created automatically by the cluster scripts.
 
 ```sh
 # GKE
