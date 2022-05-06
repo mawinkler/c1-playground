@@ -83,7 +83,7 @@ if ! command -v kubectl &>/dev/null; then
     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
       echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list && \
       sudo apt-get update && \
-      sudo apt-get install -y kubectl
+      sudo apt-get install -y kubectl=1.23.6-00
   fi
   if [ "${OS}" == 'Darwin' ]; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing kubectl on darwin"
