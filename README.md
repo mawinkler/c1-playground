@@ -214,11 +214,13 @@ Follow this chapter if...
 > - `Ubuntu 18.04 LTS` as the platform
 > - For the rest take all default values and click `[Create environment]`
 >
-> Install the latest version of the AWS CLI v2
+> Install the version 2.6.1 of the AWS CLI v2
 >
 > ```sh
-> curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
->   -o "/tmp/awscliv2.zip"
+> #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+> #  -o "/tmp/awscliv2.zip"
+> curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.6.1.zip" \
+>   -o "awscliv2.zip"
 > unzip /tmp/awscliv2.zip -d /tmp
 > sudo /tmp/aws/install
 > ```
@@ -291,15 +293,25 @@ In all of these possible environments you're going to run a script called `tools
 installed.
 
 > ***Note:*** as of 05/05/2022 there is a bug in combination of ths aws-cli and `kubectl` in version 1.24.0. The reason is that Kubernetes deprecated `client.authentication.k8s.io/v1alpha1` from the `exec` plugin in [PR108616](https://github.com/kubernetes/kubernetes/pull/108616). For this reason, the `kubectl` version is currently fixed to 1.23.6-00 in the `tools.sh`-script.  
-> 
+>
 > If you accidentally installed `kubectl` version 1.24.0, simply downgrade it by running  
 > `sudo apt-get install -y --allow-downgrades kubectl=1.23.6-00`.
+
+> ***Note:*** as of 05/06/2022 there is a bug in the `eksctl` version 0.96.0. If you accidentally installed a newer `eksctl` version as 0.95.0 you need to downgrade eksctl to 0.95.0. Execute:
+>
+> ```sh
+> curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.95.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+> sudo mv /tmp/eksctl /usr/local/bin
+> ```
+>
+> Then, recreate the eks cluster with `rapid-eks-down.sh` followed by `clusters/rapid-eks.sh`
 
 Run it with
 
 ```sh
 ./tools.sh
 ```
+
 
 ## Configure
 
