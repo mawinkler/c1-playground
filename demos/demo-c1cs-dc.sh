@@ -84,9 +84,6 @@ wait
 p "${GREEN}# As being told, I should not use latest so I go for the version 1.21.6."
 wait
 
-p "${GREEN}# Afterwards, I need to patch the deployment to satisfy the required security context as shown, of course."
-wait
-
 NO_WAIT=false
 pe "./scan-image.sh -s nginx:1.21.6"
 # /bin/bash -c "./scan-image.sh -s nginx:1.21.6"
@@ -106,6 +103,9 @@ p "${GREEN}# Uuups, still not working! It's telling me (amongst others), that th
 wait
 
 p "${GREEN}# Right... I scanned the image in the internal registry but tried to deploy from docker hub."
+wait
+
+p "${GREEN}# Additionally, I need to patch the deployment to satisfy the required security context as shown, of course."
 wait
 
 p "${GREEN}# Let's do it correctly."
@@ -176,14 +176,19 @@ echo
 NO_WAIT=true
 p "${GREEN}# Stupid me, I should have known that. Scanning the nginx image already told me that."
 wait
-p "${GREEN}# I need to modify the Dockerfile to run nginx without root."
+
+p "${GREEN}# Additionally, I need to modify the Dockerfile to run nginx without root."
 wait
+
 p "${GREEN}# Nginx needs read and write access to /var/run/nginx.pid and /var/cache/nginx."
 wait
-p "${GREEN}# Additionally, it can't listen on ports 80 and 443."
+
+p "${GREEN}# Lastly, it can't listen on ports 80 and 443."
 wait
+
 p "${GREEN}# I keep that for later, though."
 wait
+
 p "${GREEN}# Let me ping the admin if he can set an exception for now."
 wait
 wait
