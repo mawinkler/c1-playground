@@ -312,7 +312,6 @@ Run it with
 ./tools.sh
 ```
 
-
 ## Configure
 
 Now, you create your personal configuration file. Do this by making a copy of the supplied sample.
@@ -345,11 +344,14 @@ Typically you don't need to change anything here besides setting your api-key an
 
 ## Start
 
+If you want to deploy the built-in cluster go through the next chapter. If you want to use a cloud managed cluster jump to [Create GKE, EKS or AKS Clusters](#create-gke-eks-or-aks-clusters).
+
 ### Create Playgrounds built-in Cluster
 
 Simply run
 
 ```sh
+# Local built-in Cluster
 ./up.sh
 ```
 
@@ -360,6 +362,8 @@ Typically, you want to deploy the cluster registry next. Do this by running
 ```
 
 You can find the authentication instructions within the file `services`.
+
+Now, head over to [Deployments](#deployments).
 
 ### Create GKE, EKS or AKS Clusters
 
