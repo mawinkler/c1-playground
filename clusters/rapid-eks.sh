@@ -41,6 +41,8 @@ EOF
   kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-operator.yaml
   kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/master/calico-crs.yaml
 
+  aws eks update-kubeconfig --region ${CLUSTER_NAME} --name ${AWS_REGION}
+  
   echo "Creating rapid-eks-down.sh script"
   cat <<EOF >rapid-eks-down.sh
 set -e
