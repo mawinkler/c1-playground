@@ -153,7 +153,7 @@ EOF
     -keyout certs/sc.key -out certs/sc.crt \
     -subj "/CN=${SC_HOST_IP//./-}.nip.io" -extensions san -config certs/req-sc.conf
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
-    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
+    --dry-run=true -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍵"
 }
 
@@ -185,7 +185,7 @@ EOF
     -keyout certs/sc.key -out certs/sc.crt \
     -subj "/CN=${SC_HOSTNAME}" -extensions san -config certs/req-sc.conf
   kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
-    --dry-run=client -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
+    --dry-run=true -n ${SC_NAMESPACE} -o yaml | kubectl apply -f - -o yaml
   printf '%s\n' " 🍵"
 }
 

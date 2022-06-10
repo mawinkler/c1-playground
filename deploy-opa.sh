@@ -84,11 +84,11 @@ function deploy_opa() {
   ## deploy opa
   printf '%s\n' "deploy opa"
   envsubst <templates/opa-admission-controller.yaml >opa/admission-controller.yaml
-  kubectl apply -f opa/admission-controller.yaml --dry-run=client -o yaml | kubectl apply -f -
+  kubectl apply -f opa/admission-controller.yaml --dry-run=true -o yaml | kubectl apply -f -
 
   CABUNDLE=$(cat opa/admission-ca.crt | base64 | tr -d '\n') \
     envsubst <templates/opa-webhook-configuration.yaml >opa/webhook-configuration.yaml
-  kubectl apply -f opa/webhook-configuration.yaml --dry-run=client -o yaml | kubectl apply -f -
+  kubectl apply -f opa/webhook-configuration.yaml --dry-run=true -o yaml | kubectl apply -f -
 }
 
 create_namespace

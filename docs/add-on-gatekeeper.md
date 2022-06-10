@@ -43,7 +43,7 @@ From now on, any new namespace being created requires labels set for `stage`, `s
 To test it, run
 
 ```sh
-$ kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f -
+$ kubectl create namespace nginx --dry-run=true -o yaml | kubectl apply -f -
 ```
 
 ```

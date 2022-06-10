@@ -141,7 +141,7 @@ Try it:
 
 ```sh
 $ # try to deploy nginx pod in its own namspace - fail if you set the policy to block
-$ kubectl create namespace nginx --dry-run=client -o yaml | kubectl apply -f - > /dev/null
+$ kubectl create namespace nginx --dry-run=true -o yaml | kubectl apply -f - > /dev/null
 $ kubectl create deployment --image=nginx --namespace nginx nginx
 ```
 
@@ -178,7 +178,7 @@ The reason for this is, that we scanned the nginx image within the cluster regis
 Now the nginx was scanned, we need to change the deployment manfest for it, that it is pulled from our internal registry and not docker hub.
 
 ```
-$ kubectl create deployment --image=nginx --namespace nginx --dry-run=client nginx -o yaml > nginx.yaml
+$ kubectl create deployment --image=nginx --namespace nginx --dry-run=true nginx -o yaml > nginx.yaml
 ```
 
 Now edit the `nginx.yaml`

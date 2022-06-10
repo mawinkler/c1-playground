@@ -33,7 +33,7 @@ for ns in migrate/source/*.json ; do
               end
             else . end
           )' | \
-        kubectl create -o yaml --dry-run=client -f - > migrate/migrated/${bs%.*}.yaml
+        kubectl create -o yaml --dry-run=true -f - > migrate/migrated/${bs%.*}.yaml
 
     # Initiate a scan with pull and push to cluster registry
     for image in ${IMAGES} ; do
