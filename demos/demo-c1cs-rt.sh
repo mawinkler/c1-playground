@@ -2,34 +2,13 @@
 
 # Prepare the following Deployment policy
 #
-# Pod properties
-#   uncheck - containers that run as root
-#   Block - containers that run in the host network namespace
-#   Block - containers that run in the host IPC namespace
-#   Block - containers that run in the host PID namespace
-# Container properties
-#   Block - containers that are permitted to run as root
-#   Block - privileged containers
-#   Block - containers with privilege escalation rights
-#   Block - containers that can write to the root filesystem
-# Image properties
-#   Block - images from registries with names that DO NOT EQUAL REGISTRY:PORT
-#   uncheck - images with names that
-#   Log - images with tags that EQUAL latest
-#   uncheck - images with image paths that
-# Scan Results
-#   Block - images that are not scanned
-#   Block - images with malware
-#   Log - images with content findings whose severity is CRITICAL OR HIGHER
-#   Log - images with checklists whose severity is CRITICAL OR HIGHER
-#   Log - images with vulnerabilities whose severity is CRITICAL OR HIGHER
-#   Block - images with vulnerabilities whose CVSS attack vector is NETWORK and whose severity is HIGH OR HIGHER
-#   Block - images with vulnerabilities whose CVSS attack complexity is LOW and whose severity is HIGH OR HIGHER
-#   Block - images with vulnerabilities whose CVSS availability impact is HIGH and whose severity is HIGH OR HIGHER
-#   Log - images with a negative PCI-DSS checklist result with severity CRITICAL OR HIGHER
 # Kubectl Access
-#   Block - attempts to execute in/attach to a container
+#   Log - attempts to execute in/attach to a container
 #   Log - attempts to establish port-forward on a container
+# Exceptions
+#   Check - Allow images with paths that equal docker.io/mawinkler/ubuntu:latest
+# Error Ruleset
+#   Log - TM-00000010 - (T1543)Launch Package Management Process in Container
 
 . ./demos/third_party/demo-magic/demo-magic.sh
 
