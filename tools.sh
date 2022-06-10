@@ -84,7 +84,7 @@ if ! command -v kubectl &>/dev/null; then
       echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list && \
       sudo apt-get update && \
       # TODO: Check whats changed in versions after 1.23.6
-      sudo apt-get install -y kubectl=1.23.6-00
+      sudo apt-get install -y kubectl=1.14.1-00
   fi
   if [ "${OS}" == 'Darwin' ]; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing kubectl on darwin"
@@ -101,7 +101,7 @@ if ! command -v eksctl &>/dev/null; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing eksctl on linux"
     # TODO: Check whats changed in versions after 0.95.0
     #curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-    curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.95.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+    curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.100.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
     sudo mv /tmp/eksctl /usr/local/bin
   fi
   if [ "${OS}" == 'Darwin' ]; then

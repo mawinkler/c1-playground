@@ -45,8 +45,7 @@ function is_aks() {
 #   false: if not EKS
 #######################################
 function is_eks() {
-  # if [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
-  if [[ $(kubectl config current-context) =~ arn:aws:eks:* ]]; then
+  if [[ $(kubectl config current-context) =~ arn:aws:eks:* ]] || [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
     return
   fi
   false
