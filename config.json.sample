@@ -81,6 +81,18 @@
             "namespace": "cadvisor"
         },
         {
+            "name": "harbor",
+            "namespace": "harbor",
+            "common_name": "172.250.255.2.nip.io",
+            "admin_password": "trendmicro",
+            "reg_username": "admin",
+            "reg_password": "trendmicro",
+            "reg_htpasswd": "admin:$2y$10$lA2oNWrQ0WEvIzRs/1FxiOIzmW0GA1s8wjXHYa7C.Dsw0/8z47u8u",
+            "proxy_service_name": "harbor",
+            "proxy_service_port": "5000",
+            "proxy_listen_port": "8085"
+        },
+        {
             "name": "cloudone",
             "region": "trend-us-1",
             "api_key": "YOUR KEY HERE"
