@@ -9,9 +9,9 @@ unset NAMESPACE
 
 KUBECTL=kubectl
 HELM=helm
-RELEASE=${RELEASE:-deepsecurity-smartcheck}
+RELEASE=${RELEASE:-trendmicro-smartcheck}
 CURRENT_NS=$(kubectl config view --minify --output 'jsonpath={..namespace}')
-CURRENT_NS=${CURRENT_NS:-deepsecurity-smartcheck}
+CURRENT_NS=${CURRENT_NS:-trendmicro-smartcheck}
 NAMESPACE=${NAMESPACE:-$CURRENT_NS}
 
 # By default, no core dump files are collected.
