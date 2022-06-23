@@ -208,11 +208,11 @@ function password_change() {
   SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
                 --header @templates/smartcheck-header.txt \
                 -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_PASSWORD}'"}}' | \
-                  jq '.user.id' | tr -d '"' 2>/dev/null)
+                  jq '.user.id' 2>/dev/null | tr -d '"' 2>/dev/null)
   SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
                     --header @templates/smartcheck-header.txt \
                     -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_PASSWORD}'"}}' | \
-                      jq '.token' | tr -d '"' 2>/dev/null)
+                      jq '.token' 2>/dev/null | tr -d '"' 2>/dev/null)
   if [[ "${SC_BEARERTOKEN}" == "" ]]; then
     printf '%s' "Executing initial password change"
     while [[ "${SC_BEARERTOKEN}" == "" ]]; do
@@ -220,11 +220,11 @@ function password_change() {
       SC_USERID=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
                     --header @templates/smartcheck-header.txt \
                     -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
-                      jq '.user.id' | tr -d '"' 2>/dev/null)
+                      jq '.user.id' 2>/dev/null | tr -d '"' 2>/dev/null)
       SC_BEARERTOKEN=$(curl -s -k -X POST https://${SC_HOST}/api/sessions \
                         --header @templates/smartcheck-header.txt \
                         -d '{"user":{"userid":"'${SC_USERNAME}'","password":"'${SC_TEMPPW}'"}}' | \
-                          jq '.token' | tr -d '"' 2>/dev/null)
+                          jq '.token' 2>/dev/null | tr -d '"' 2>/dev/null)
     done
     # create header
     SC_BEARERTOKEN=${SC_BEARERTOKEN} envsubst <templates/smartcheck-header-token.txt >overrides/smartcheck-header-token.txt
