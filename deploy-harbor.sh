@@ -7,7 +7,7 @@ set -e
 
 # Get config
 NAMESPACE="$(jq -r '.services[] | select(.name=="harbor") | .namespace' config.json)"
-COMMON_NAME="$(jq -r '.services[] | select(.name=="harbor") | .hostname' config.json)"
+COMMON_NAME="$(jq -r '.services[] | select(.name=="harbor") | .common_name' config.json)"
 SERVICE_NAME="$(jq -r '.services[] | select(.name=="harbor") | .proxy_service_name' config.json)"
 LISTEN_PORT="$(jq -r '.services[] | select(.name=="harbor") | .proxy_service_port' config.json)"
 ADMIN_PASSWORD="$(jq -r '.services[] | select(.name=="harbor") | .admin_password' config.json)"
@@ -17,7 +17,7 @@ REG_HTPASSWD="$(jq -r '.services[] | select(.name=="harbor") | .reg_htpasswd' co
 # SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
 
 SERVICE_TYPE=loadBalancer
-HARBOR_URL=${COMMON_NAME}
+HARBOR_URL=https://${COMMON_NAME}
 
 #######################################
 # Creates Kubernetes namespace
@@ -48,6 +48,37 @@ function create_namespace() {
 function whitelist_namsspace() {
   # whitelist some namespace for container security
   kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=true
+}
+
+#######################################
+# Creates SSL certificate for linux
+# playgrounds
+# Globals:
+#   SC_HOST
+#   SC_NAMESPACE
+# Arguments:
+#   None
+# Outputs:
+#   certs/sc.crt
+#   certs/sc.key
+#######################################
+function create_ssl_certificate_linux() {
+  # create ssl certificate
+  printf '%s' "Create ssl certificate (linux)"
+  mkdir -p certs
+  cat <<EOF >certs/req-sc.conf
+[req]
+  distinguished_name=req
+[san]
+  subjectAltName=DNS:${COMMON_NAME//./-}.nip.io,IP:${COMMON_NAME}
+EOF
+
+  openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+    -keyout certs/sc.key -out certs/sc.crt \
+    -subj "/CN=${COMMON_NAME//./-}.nip.io" -extensions san -config certs/req-sc.conf
+  kubectl create secret tls k8s-certificate --cert=certs/sc.crt --key=certs/sc.key \
+    --dry-run=true -n ${NAMESPACE} -o yaml | kubectl apply -f - -o yaml
+  printf '%s\n' " 🍵"
 }
 
 #######################################
@@ -113,7 +144,7 @@ function create_ingress() {
 #######################################
 function main() {
   echo "*** Harbor deployment currently in BETA ***"
-  
+
   if is_darwin ; then
     echo "*** Harbor currently not supported on MacOS ***"
     exit 0
@@ -121,6 +152,7 @@ function main() {
 
   create_namespace
   whitelist_namsspace
+  create_ssl_certificate_linux
   deploy_harbor
 
   if is_linux ; then

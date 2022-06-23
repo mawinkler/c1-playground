@@ -76,12 +76,15 @@ Prometheus & Grafana | X | X | X | X | X | X | X
 Starboard | X | X | X | X | X | X | X
 Cilium | X | | X | X | X | X | X
 Kubescape | X | | X | X | X | X | X
+Harbor | X (2) | | | | | |
 
 *Local* means, the cluster will run on the machine you're working on.
 
 *Cloud* means, that the cluster is a cloud managed cluster using the named service.
 
 *(1)* Depending on the Kernel in use. Currently the kernels 4.15.x and 5.4.x are supported.
+
+*(2)* Currently in beta.
 
 ## Prepare your Environment
 
@@ -115,6 +118,11 @@ Follow this chapter if...
 > ```json
 > {
 >   "insecure-registries": [
+>     "172.250.255.1",
+>     "172.250.255.2",
+>     "172.250.255.3",
+>     "172.250.255.4",
+>     "172.250.255.5"
 >     "172.250.255.1:5000",
 >     "172.250.255.2:5000",
 >     "172.250.255.3:5000",
@@ -425,6 +433,7 @@ The documentation for the add-ons are located inside the `./docs` directory.
 - [Container Security](docs/add-on-container-security.md)
 - [Falco](docs/add-on-falco.md)
 - [Gatekeeper](docs/add-on-gatekeeper.md)
+- [Harbor](docs/add-on-harbor.md)
 - [Istio](docs/add-on-istio.md)
 - [Krew](docs/add-on-krew.md)
 - [Kubescape](docs/add-on-kubescape.md)
