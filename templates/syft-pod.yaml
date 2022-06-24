@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: syft-k8s
+  namespace: syft
+spec:
+  containers:
+    - image: anchore/syft:latest
+      name: syft-private-registry
+      env:
+        - name: DOCKER_CONFIG
+          value: /config
+      volumeMounts:
+      - mountPath: /config
+        name: registry-config
+        readOnly: true
+      args:
+        - -o json
+        - ${SCAN_IMAGE}
+  volumes:
+  - name: registry-config
+    secret:
+      secretName: registry-config

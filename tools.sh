@@ -215,6 +215,7 @@ if ! command -v ~/.krew/bin/kubectl-krew &>/dev/null; then
       ./"${KREW}" install krew
     rm -f "${KREW}.tar.gz" ./krew-*
     echo 'export PATH=~/.krew/bin:$PATH' >> ~/.bashrc
+    export PATH=~/.krew/bin:$PATH
   fi
   if [ "${OS}" == 'Darwin' ]; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing krew on darwin"
@@ -223,6 +224,44 @@ if ! command -v ~/.krew/bin/kubectl-krew &>/dev/null; then
   fi
 else
   printf "${YELLOW}%s${RESET}\n" "Krew already installed"
+fi
+
+# syft
+printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for syft"
+if ! command -v ~/.syft/bin/syft &>/dev/null; then
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing syft on linux"
+    mkdir -p ~/.syft/bin
+    curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b ~/.syft/bin
+    echo 'export PATH=~/.syft/bin:$PATH' >> ~/.bashrc
+    export PATH=~/.syft/bin:$PATH
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing syft on darwin"
+    brew tap anchore/syft
+    brew install syft
+  fi
+else
+  printf "${YELLOW}%s${RESET}\n" "Syft already installed"
+fi
+
+# grype
+printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for grype"
+if ! command -v ~/.grype/bin/grype &>/dev/null; then
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing grype on linux"
+    mkdir -p ~/.grype/bin
+    curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ~/.grype/bin
+    echo 'export PATH=~/.grype/bin:$PATH' >> ~/.bashrc
+    export PATH=~/.grype/bin:$PATH
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing grype on darwin"
+    brew tap anchore/grype
+    brew install grype
+  fi
+else
+  printf "${YELLOW}%s${RESET}\n" "Grype already installed"
 fi
 
 # linkerd
