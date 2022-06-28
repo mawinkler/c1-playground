@@ -9,6 +9,7 @@ CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 mkdir -p overrides
+mkdir -p ${HOME}/smarthome/homeassistant
 
 #######################################
 # Configure Docker network

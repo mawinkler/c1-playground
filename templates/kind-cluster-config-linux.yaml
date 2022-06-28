@@ -32,6 +32,10 @@ nodes:
   - hostPath: ${PLAYGROUND_HOME}/audit/
     containerPath: /var/lib/k8s-audit/
 
+  # Smart Home
+  - hostPath: ${HOME}/smarthome/
+    containerPath: /smarthome/
+  
   kubeadmConfigPatches:
 
   # Ingress

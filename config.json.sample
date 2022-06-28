@@ -93,6 +93,13 @@
             "proxy_listen_port": "8085"
         },
         {
+            "name": "smarthome",
+            "namespace": "smarthome",
+            "proxy_service_name": "home-assistant",
+            "proxy_service_port": "8123",
+            "proxy_listen_port": "8123"
+        },
+        {
             "name": "cloudone",
             "region": "trend-us-1",
             "api_key": "YOUR KEY HERE"
