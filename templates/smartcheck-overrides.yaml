@@ -33,6 +33,7 @@ networkPolicy:
   additionalWebhookTargetPorts: []
   additionalRegistryPorts:
   - 5000
+  - 8085
   additionalOutboundPorts: []
 scan:
   malwareCache:
