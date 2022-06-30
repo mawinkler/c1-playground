@@ -205,6 +205,7 @@ function main() {
     deploy_calico
     create_load_balancer
     create_ingress_controller
+    ./deploy-registry.sh
     printf '\n%s\n' "Cluster ready 🍾"
   fi
 
@@ -214,6 +215,7 @@ function main() {
     deploy_calico
     create_load_balancer
     create_ingress_controller
+    ./deploy-registry.sh
     printf '\n%s\n' "Cluster ready 🍾"
   fi
 }

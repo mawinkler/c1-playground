@@ -30,7 +30,9 @@ service:
   httpPort: 80
 networkPolicy:
   enabled: true
-  additionalWebhookTargetPorts: []
+  additionalWebhookTargetPorts:
+  - 8000
+  - 8888
   additionalRegistryPorts:
   - 5000
   - 8085

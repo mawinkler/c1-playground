@@ -248,7 +248,7 @@
                 }
             },
             {
-                "action": "block",
+                "action": "log",
                 "mitigation": "log",
                 "type": "registry",
                 "enabled": true,

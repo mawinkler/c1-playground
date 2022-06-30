@@ -35,6 +35,21 @@ function create_namespace() {
 }
 
 #######################################
+# Whitelists Kubernetes namespace for
+# Container Security
+# Globals:
+#   None
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function whitelist_namsspaces() {
+  # whitelist some namespace for container security
+  kubectl label namespace ${SC_NAMESPACE} --overwrite ignoreAdmissionControl=true
+}
+
+#######################################
 # Creates Smart Check overrides
 # Globals:
 #   SC_USERNAME
@@ -73,6 +88,7 @@ function create_smartcheck_overrides() {
 #######################################
 function deploy_smartcheck() {
   printf '%s\n' "Install smart check"
+  # curl -s -L https://github.com/deep-security/smartcheck-helm/archive/refs/tags/1.2.68.tar.gz -o master-sc.tar.gz
   curl -s -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
   helm upgrade --namespace ${SC_NAMESPACE} \
     --values overrides/smartcheck-overrides.yaml \
@@ -308,6 +324,7 @@ function main() {
   if is_linux ; then
     SERVICE_TYPE='LoadBalancer'
     create_namespace
+    whitelist_namsspaces
     create_smartcheck_overrides
     deploy_smartcheck
     get_smartcheck
@@ -336,6 +353,7 @@ function main() {
     if is_gke || is_aks || is_eks ; then
       SERVICE_TYPE='LoadBalancer'
       create_namespace
+      whitelist_namsspaces
       create_smartcheck_overrides
       deploy_smartcheck
       get_smartcheck
@@ -346,6 +364,7 @@ function main() {
     else
       SERVICE_TYPE='ClusterIP'
       create_namespace
+      whitelist_namsspaces
       create_smartcheck_overrides
       deploy_smartcheck
       get_smartcheck
