@@ -43,3 +43,5 @@ nginx.yaml
 README.pdf
 test.sh
 master-cs.tar.gz
+*-scan.json
+*-sbom.json

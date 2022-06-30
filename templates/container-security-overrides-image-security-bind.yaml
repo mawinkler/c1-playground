@@ -1,3 +1,3 @@
 cloudOne:
   apiKey: ${API_KEY_SCANNER}
-  endpoint: https://container.${REGION}.cloudone.trendmicro.com
+  endpoint: https://container.${REGION}.${INSTANCE}.trendmicro.com

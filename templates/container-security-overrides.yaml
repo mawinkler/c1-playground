@@ -1,6 +1,6 @@
 cloudOne:
   apiKey: ${API_KEY_ADMISSION_CONTROLLER}
-  endpoint: https://container.${REGION}.cloudone.trendmicro.com
+  endpoint: https://container.${REGION}.${INSTANCE}.trendmicro.com
   admissionController:
     enabled: true
     validationNamespaceSelector:

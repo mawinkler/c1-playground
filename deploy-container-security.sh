@@ -5,13 +5,22 @@ set -e
 # Source helpers
 . ./playground-helpers.sh
 
+STAGING=false
+
 # Get config
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 CS_POLICY_NAME="$(jq -r '.services[] | select(.name=="container_security") | .policy_name' config.json)"
 CS_NAMESPACE="$(jq -r '.services[] | select(.name=="container_security") | .namespace' config.json)"
 SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
-API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
-REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
+if [ "${STAGING}" = true ]; then
+  API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' config.json)"
+  REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' config.json)"
+  INSTANCE="$(jq -r '.services[] | select(.name=="staging-cloudone") | .instance' config.json)"
+else
+  API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
+  REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
+  INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+fi
 
 mkdir -p overrides
 
@@ -47,6 +56,8 @@ function create_namespace() {
 function whitelist_namsspaces() {
   # whitelist some namespace for container security
   kubectl label namespace kube-system --overwrite ignoreAdmissionControl=true
+  kubectl label namespace ${CS_NAMESPACE} --overwrite ignoreAdmissionControl=true
+  kubectl label namespace ${SC_NAMESPACE} --overwrite ignoreAdmissionControl=true
 }
 
 #######################################
@@ -65,7 +76,7 @@ function whitelist_namsspaces() {
 function cluster_policy() {
   # query cluster policy
   CS_POLICYID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
+    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/policies' \
     --header @overrides/cloudone-header.txt |
       jq -r --arg CS_POLICY_NAME "${CS_POLICY_NAME}" '.policies[] | select(.name==$CS_POLICY_NAME) | .id'
   )
@@ -81,7 +92,7 @@ function cluster_policy() {
         REGISTRY=${REGISTRY} \
         RULESETS_JSON=${RULESETS_JSON} \
         envsubst <templates/container-security-policy.json | \
-          curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/policies' \
+          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/policies' \
           --header @overrides/cloudone-header.txt \
           --data-binary "@-"
     )
@@ -112,7 +123,7 @@ function cluster_rulesets() {
     # query cluster policy
     CS_RULESET_NAME=${CS_POLICY_NAME}_${ruleset}
     CS_RULESETID=$(
-      curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/rulesets' \
+      curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/rulesets' \
       --header @overrides/cloudone-header.txt |
         jq -r --arg CS_RULESET_NAME "${CS_RULESET_NAME}" '.rulesets[] | select(.name==$CS_RULESET_NAME) | .id'
     )
@@ -121,7 +132,7 @@ function cluster_rulesets() {
       RESULT=$(
         CS_RULESET_NAME=${CS_RULESET_NAME} \
           envsubst <templates/container-security-ruleset-${ruleset}.json | \
-            curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/rulesets' \
+            curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/rulesets' \
             --header @overrides/cloudone-header.txt \
             --data-binary "@-"
       )
@@ -155,7 +166,7 @@ function cluster_rulesets() {
 #######################################
 function create_cluster_object() {
   CLUSTER_ID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
     --header @overrides/cloudone-header.txt | \
     jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.clusters[] | select(.name==$CLUSTER_NAME) | .id'
   )
@@ -170,7 +181,7 @@ function create_cluster_object() {
         CS_POLICYID=${CS_POLICYID} \
         DEPLOY_RT=${DEPLOY_RT} \
         envsubst <templates/container-security-cluster-object.json |
-          curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
           --header @overrides/cloudone-header.txt \
           --data-binary "@-"
     )
@@ -203,6 +214,7 @@ function deploy_container_security() {
   else
     API_KEY_ADMISSION_CONTROLLER=${API_KEY_ADMISSION_CONTROLLER} \
       REGION=${REGION} \
+      INSTANCE=${INSTANCE} \
       DEPLOY_RT=${DEPLOY_RT} \
       envsubst <templates/container-security-overrides.yaml >overrides/container-security-overrides.yaml
   fi
@@ -250,7 +262,7 @@ function deploy_container_security() {
 #######################################
 function create_scanner() {
   SCANNER_ID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
     --header @overrides/cloudone-header.txt | \
     jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
   )
@@ -264,13 +276,14 @@ function create_scanner() {
     RESULT=$(
       CLUSTER_NAME=${CLUSTER_NAME//-/_} \
         envsubst <templates/container-security-scanner.json |
-          curl --silent --location --request POST 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
           --header @overrides/cloudone-header.txt \
           --data-binary "@-"
     )
     # bind smartcheck to container security
     API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
       REGION=${REGION} \
+      INSTANCE=${INSTANCE} \
       envsubst <templates/container-security-overrides-image-security-bind.yaml >overrides/container-security-overrides-image-security-bind.yaml
   fi
 
@@ -309,14 +322,14 @@ function main() {
 function cleanup() {
   printf '%s\n' "Get cluster id"
   CLUSTER_ID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters' \
+    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
     --header @overrides/cloudone-header.txt | \
     jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.clusters[] | select(.name==$CLUSTER_NAME) | .id'
   )
   if [ "${CLUSTER_ID}" != "" ] ; then
     printf '%s\n' "Delete cluster ${CLUSTER_ID}"
     RESULT=$(
-      curl --silent --location --request DELETE 'https://container.'${REGION}'.cloudone.trendmicro.com/api/clusters/'${CLUSTER_ID} \
+      curl --silent --location --request DELETE 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters/'${CLUSTER_ID} \
       --header @overrides/cloudone-header.txt 
     )
   else
@@ -324,14 +337,14 @@ function cleanup() {
   fi
   printf '%s\n' "Get scanner id"
   SCANNER_ID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners' \
+    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
     --header @overrides/cloudone-header.txt | \
     jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
   )
   if [ "${SCANNER_ID}" != "" ] ; then
     printf '%s\n' "Delete scanner ${SCANNER_ID}"
     RESULT=$(
-      curl --silent --location --request DELETE 'https://container.'${REGION}'.cloudone.trendmicro.com/api/scanners/'${SCANNER_ID} \
+      curl --silent --location --request DELETE 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners/'${SCANNER_ID} \
       --header @overrides/cloudone-header.txt 
     )
   else

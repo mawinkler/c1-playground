@@ -96,6 +96,11 @@
             "name": "cloudone",
             "region": "trend-us-1",
             "api_key": "YOUR KEY HERE"
+        },
+        {
+            "name": "staging-cloudone",
+            "region": "us-1",
+            "api_key": "YOUR KEY HERE"
         }
     ]
 }

@@ -7,10 +7,14 @@
                 "action": "log",
                 "mitigation": "log",
                 "type": "podSecurityContext",
-                "enabled": true,
+                "enabled": false,
                 "statement": {
-                    "key": "runAsNonRoot",
-                    "value": "false"
+                    "properties": [
+                        {
+                            "key": "runAsNonRoot",
+                            "value": "false"
+                        }
+                    ]
                 }
             },
             {
@@ -19,8 +23,12 @@
                 "type": "podSecurityContext",
                 "enabled": true,
                 "statement": {
-                    "key": "hostNetwork",
-                    "value": "true"
+                    "properties": [
+                        {
+                            "key": "hostNetwork",
+                            "value": "true"
+                        }
+                    ]
                 }
             },
             {
@@ -29,8 +37,12 @@
                 "type": "podSecurityContext",
                 "enabled": true,
                 "statement": {
-                    "key": "hostIPC",
-                    "value": "true"
+                    "properties": [
+                        {
+                            "key": "hostIPC",
+                            "value": "true"
+                        }
+                    ]
                 }
             },
             {
@@ -39,18 +51,12 @@
                 "type": "podSecurityContext",
                 "enabled": true,
                 "statement": {
-                    "key": "hostPID",
-                    "value": "true"
-                }
-            },
-            {
-                "action": "log",
-                "mitigation": "log",
-                "type": "containerSecurityContext",
-                "enabled": true,
-                "statement": {
-                    "key": "runAsNonRoot",
-                    "value": "false"
+                    "properties": [
+                        {
+                            "key": "hostPID",
+                            "value": "true"
+                        }
+                    ]
                 }
             },
             {
@@ -59,32 +65,86 @@
                 "type": "containerSecurityContext",
                 "enabled": true,
                 "statement": {
-                    "key": "privileged",
-                    "value": "true"
+                    "properties": [
+                        {
+                            "key": "runAsNonRoot",
+                            "value": "false"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "privileged",
+                            "value": "true"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "allowPrivilegeEscalation",
+                            "value": "true"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "readOnlyRootFilesystem",
+                            "value": "false"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "podexec",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "podExec",
+                            "value": "true"
+                        }
+                    ]
                 }
             },
             {
                 "action": "log",
                 "mitigation": "log",
-                "type": "containerSecurityContext",
+                "type": "portforward",
                 "enabled": true,
                 "statement": {
-                    "key": "allowPrivilegeEscalation",
-                    "value": "true"
+                    "properties": [
+                        {
+                            "key": "podPortForward",
+                            "value": "true"
+                        }
+                    ]
                 }
             },
             {
-                "action": "log",
-                "mitigation": "log",
-                "type": "containerSecurityContext",
-                "enabled": true,
-                "statement": {
-                    "key": "readOnlyRootFilesystem",
-                    "value": "false"
-                }
-            },
-            {
-                "action": "log",
+                "action": "block",
                 "mitigation": "log",
                 "type": "unscannedImage",
                 "enabled": true
@@ -95,8 +155,54 @@
                 "type": "malware",
                 "enabled": true,
                 "statement": {
-                    "key": "count",
-                    "value": "0"
+                    "properties": [
+                        {
+                            "key": "count",
+                            "value": "0"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "block",
+                "mitigation": "log",
+                "type": "podexec",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "podExec",
+                            "value": "true"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "portforward",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "podPortForward",
+                            "value": "true"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "containerSecurityContext",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "capabilities-rule",
+                            "value": "baseline"
+                        }
+                    ]
                 }
             },
             {
@@ -105,8 +211,12 @@
                 "type": "vulnerabilities",
                 "enabled": true,
                 "statement": {
-                    "key": "max-severity",
-                    "value": "high"
+                    "properties": [
+                        {
+                            "key": "max-severity",
+                            "value": "high"
+                        }
+                    ]
                 }
             },
             {
@@ -115,8 +225,12 @@
                 "type": "contents",
                 "enabled": true,
                 "statement": {
-                    "key": "max-severity",
-                    "value": "high"
+                    "properties": [
+                        {
+                            "key": "max-severity",
+                            "value": "high"
+                        }
+                    ]
                 }
             },
             {
@@ -125,18 +239,26 @@
                 "type": "checklists",
                 "enabled": true,
                 "statement": {
-                    "key": "max-severity",
-                    "value": "high"
+                    "properties": [
+                        {
+                            "key": "max-severity",
+                            "value": "high"
+                        }
+                    ]
                 }
             },
             {
-                "action": "log",
+                "action": "block",
                 "mitigation": "log",
                 "type": "registry",
                 "enabled": true,
                 "statement": {
-                    "key": "not-equals",
-                    "value": "${REGISTRY}"
+                    "properties": [
+                        {
+                            "key": "not-equals",
+                            "value": "${REGISTRY}"
+                        }
+                    ]
                 }
             },
             {
@@ -145,8 +267,12 @@
                 "type": "tag",
                 "enabled": true,
                 "statement": {
-                    "key": "equals",
-                    "value": "latest"
+                    "properties": [
+                        {
+                            "key": "equals",
+                            "value": "latest"
+                        }
+                    ]
                 }
             },
             {
@@ -217,6 +343,36 @@
                         {
                             "key": "max-severity",
                             "value": "high"
+                        }
+                    ]
+                }
+            }
+        ],
+        "exceptions": [
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "imagePath",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "equals",
+                            "value": "docker.io/mawinkler/demo-magic:latest"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "imagePath",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "equals",
+                            "value": "docker.io/ubuntu:latest"
                         }
                     ]
                 }
