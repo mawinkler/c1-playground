@@ -5,6 +5,7 @@
   - [Access Container Security](#access-container-security)
   - [Access Smart Check](#access-smart-check)
   - [Use Scan-Image and Scan-Namespace](#use-scan-image-and-scan-namespace)
+  - [Support for Staging-CloudOne](#support-for-staging-cloudone)
 
 ## Deploy
 
@@ -92,3 +93,13 @@ $ ./scan-namespace.sh
 ```
 
 scans all used images within the current namespace. Eventually do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
+
+## Support for Staging-CloudOne
+
+The Container Security deployment script does now support the use of CloudOnes staging environment. To use this one instead the of the production one add your staging API key in the relevant section of the `config.json`.
+
+Additionally, in the `deploy-container-security.sh`-script set
+
+```sh
+STAGING=true
+```
