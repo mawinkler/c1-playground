@@ -70,14 +70,21 @@ function deploy_trivy_starboard {
   IMAGEREF=$(helm show values aquasecurity/trivy --jsonpath='{.image.registry}/{.image.repository}') \
     envsubst <templates/starboard-overrides.yaml >overrides/starboard-overrides.yaml
 
+  # helm upgrade \
+  #   trivy \
+  #   --values overrides/trivy-overrides.yaml \
+  #   --namespace ${NAMESPACE_TRIVY} \
+  #   --install \
+  #   aquasecurity/trivy
   helm upgrade \
-    trivy \
+    trivy-operator \
     --values overrides/trivy-overrides.yaml \
     --namespace ${NAMESPACE_TRIVY} \
+    --create-namespace \
     --install \
-    aquasecurity/trivy
+    aquasecurity/trivy-operator
   helm upgrade \
-    starboard \
+    starboard-operator \
     --values overrides/starboard-overrides.yaml \
     --namespace ${NAMESPACE_STARBOARD} \
     --install \
@@ -87,3 +94,6 @@ function deploy_trivy_starboard {
 create_namespace
 whitelist_namespace
 deploy_trivy_starboard
+
+# krew
+kubectl krew install starboard
