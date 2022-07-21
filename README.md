@@ -77,6 +77,7 @@ Starboard | X | X | X | X | X | X | X
 Cilium | X | | X | X | X | X | X
 Kubescape | X | | X | X | X | X | X
 Harbor | X (2) | | | | | |
+Smarthome | X (2) | | | | | |
 
 *Local* means, the cluster will run on the machine you're working on.
 
@@ -122,7 +123,7 @@ Follow this chapter if...
 >     "172.250.255.2",
 >     "172.250.255.3",
 >     "172.250.255.4",
->     "172.250.255.5"
+>     "172.250.255.5",
 >     "172.250.255.1:5000",
 >     "172.250.255.2:5000",
 >     "172.250.255.3:5000",
