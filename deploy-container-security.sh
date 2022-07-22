@@ -59,7 +59,6 @@ function whitelist_namsspaces() {
   kubectl label namespace local-path-storage --overwrite ignoreAdmissionControl=true
   kubectl label namespace ingress-nginx --overwrite ignoreAdmissionControl=true
   kubectl label namespace ${CS_NAMESPACE} --overwrite ignoreAdmissionControl=true
-  kubectl label namespace ${SC_NAMESPACE} --overwrite ignoreAdmissionControl=true
 }
 
 #######################################
@@ -228,7 +227,7 @@ function deploy_container_security() {
     --values overrides/container-security-overrides.yaml \
     --namespace ${CS_NAMESPACE} \
     --install \
-   master-cs.tar.gz
+    master-cs.tar.gz
 
   # if [[ $(kubectl config current-context) =~ gke_.*|aks-.*|.*eksctl.io ]]; then
   #   echo Running on GKE, AKS or EKS
