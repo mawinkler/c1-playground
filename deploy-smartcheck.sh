@@ -5,7 +5,10 @@ set -e
 # Source helpers
 . ./playground-helpers.sh
 
+STAGING=false
+
 # Get config
+CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
 SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' config.json)"
 SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' config.json)"
@@ -15,6 +18,15 @@ SC_REG_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_usern
 SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' config.json)"
 SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
 SC_TEMPPW='justatemppw'
+if [ "${STAGING}" = true ]; then
+  API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' config.json)"
+  REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' config.json)"
+  INSTANCE="$(jq -r '.services[] | select(.name=="staging-cloudone") | .instance' config.json)"
+else
+  API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
+  REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
+  INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+fi
 
 mkdir -p overrides
 
@@ -254,6 +266,56 @@ function password_change() {
 }
 
 #######################################
+# Creates a Scanner in Container
+# Security using a locally installed
+# Smart Check
+# Globals:
+#   CLUSTER_NAME
+#   REGION
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function create_scanner() {
+  SCANNER_ID=$(
+    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
+    --header @overrides/cloudone-header.txt | \
+    jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
+  )
+  if [ "${SCANNER_ID}" != "" ] ; then
+    printf '%s\n' "Reusing scanner with id ${SCANNER_ID}"
+  fi
+  if [ -f "overrides/container-security-overrides-image-security-bind.yaml" ] ; then
+    printf '%s\n' "Reusing existing image security bind overrides"
+  else
+    printf '%s\n' "Create scanner object"
+    RESULT=$(
+      CLUSTER_NAME=${CLUSTER_NAME//-/_} \
+        envsubst <templates/container-security-scanner.json |
+          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
+          --header @overrides/cloudone-header.txt \
+          --data-binary "@-"
+    )
+    # bind smartcheck to container security
+    API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
+      REGION=${REGION} \
+      INSTANCE=${INSTANCE} \
+      envsubst <templates/container-security-overrides-image-security-bind.yaml >overrides/container-security-overrides-image-security-bind.yaml
+  fi
+
+  # create scanner
+  printf '%s\n' "(Re-)bind smartcheck to container security"
+  curl -s -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
+  helm upgrade \
+    smartcheck \
+    --reuse-values \
+    --values overrides/container-security-overrides-image-security-bind.yaml \
+    --namespace ${SC_NAMESPACE} \
+    master-sc.tar.gz >/dev/null
+}
+
+#######################################
 # Adds Playground registry to
 # Smart Check
 # Globals:
@@ -337,6 +399,7 @@ function main() {
     password_change
     create_ssl_certificate_linux
     upgrade_smartcheck
+    create_scanner
     add_registry
 
     # test if we're using a managed kubernetes cluster on GCP, Azure (or AWS)
@@ -360,6 +423,8 @@ function main() {
       password_change
       create_ssl_certificate_linux
       upgrade_smartcheck
+      create_scanner
+      add_registry
       printf '%s\n' "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
     else
       SERVICE_TYPE='ClusterIP'
@@ -373,6 +438,8 @@ function main() {
       password_change
       create_ssl_certificate_darwin
       upgrade_smartcheck
+      create_scanner
+      add_registry
       # echo "Registry login with: echo ${SC_REG_PASSWORD} | docker login ${SC_REG_HOSTNAME} --username ${SC_REG_USERNAME} --password-stdin" | tee -a services
       printf '%s\n' "Smart check UI on: https://${SC_HOST} w/ ${SC_USERNAME}/${SC_PASSWORD}" | tee -a services
     fi

@@ -250,56 +250,6 @@ function deploy_container_security() {
 }
 
 #######################################
-# Creates a Scanner in Container
-# Security using a locally installed
-# Smart Check
-# Globals:
-#   CLUSTER_NAME
-#   REGION
-# Arguments:
-#   None
-# Outputs:
-#   None
-#######################################
-function create_scanner() {
-  SCANNER_ID=$(
-    curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
-    --header @overrides/cloudone-header.txt | \
-    jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
-  )
-  if [ "${SCANNER_ID}" != "" ] ; then
-    printf '%s\n' "Reusing scanner with id ${SCANNER_ID}"
-  fi
-  if [ -f "overrides/container-security-overrides-image-security-bind.yaml" ] ; then
-    printf '%s\n' "Reusing existing image security bind overrides"
-  else
-    printf '%s\n' "Create scanner object"
-    RESULT=$(
-      CLUSTER_NAME=${CLUSTER_NAME//-/_} \
-        envsubst <templates/container-security-scanner.json |
-          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
-          --header @overrides/cloudone-header.txt \
-          --data-binary "@-"
-    )
-    # bind smartcheck to container security
-    API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
-      REGION=${REGION} \
-      INSTANCE=${INSTANCE} \
-      envsubst <templates/container-security-overrides-image-security-bind.yaml >overrides/container-security-overrides-image-security-bind.yaml
-  fi
-
-  # create scanner
-  printf '%s\n' "(Re-)bind smartcheck to container security"
-  curl -s -L https://github.com/deep-security/smartcheck-helm/archive/master.tar.gz -o master-sc.tar.gz
-  helm upgrade \
-    smartcheck \
-    --reuse-values \
-    --values overrides/container-security-overrides-image-security-bind.yaml \
-    --namespace ${SC_NAMESPACE} \
-    master-sc.tar.gz >/dev/null
-}
-
-#######################################
 # Main:
 # Implements the Container Security
 # deployment. Runtime Security is only
@@ -317,7 +267,6 @@ function main() {
   cluster_policy
   create_cluster_object
   deploy_container_security
-  kubectl -n ${SC_NAMESPACE} get service proxy && create_scanner || echo Smartcheck not found
 }
 
 function cleanup() {
