@@ -25,6 +25,7 @@ rapid-aks-down.sh
 # AWS
 rapid-eks-down.sh
 aws-iam-authenticator
+pipeline-aws-down.sh
 
 # Migrate
 migrate/migrated/*.yaml
@@ -45,3 +46,10 @@ test.sh
 master-cs.tar.gz
 *-scan.json
 *-sbom.json
+
+# Archive
+archive
+
+# Pipeline
+aws
+c1-app-sec-uploader

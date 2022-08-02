@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: ${IMAGE_NAME}
+  labels:
+    app: ${IMAGE_NAME}
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    name: ${IMAGE_NAME}
+    targetPort: 80
+  selector:
+    app: ${IMAGE_NAME}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ${IMAGE_NAME}
+  name: ${IMAGE_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${IMAGE_NAME}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: ${IMAGE_NAME}
+    spec:
+      containers:
+      - name: ${IMAGE_NAME}
+        image: CONTAINER_IMAGE
+        imagePullPolicy: Always
+        env:
+        - name: TREND_AP_KEY
+          value: ${TREND_AP_KEY}
+        - name: TREND_AP_SECRET
+          value: ${TREND_AP_SECRET}
+        ports:
+        - containerPort: 80

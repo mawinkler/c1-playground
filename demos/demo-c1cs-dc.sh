@@ -86,6 +86,8 @@ wait
 
 NO_WAIT=false
 pe "./scan-image.sh -s nginx:1.21.6"
+# wait
+# cat ./demos/logs/scan.json | jq .
 # /bin/bash -c "./scan-image.sh -s nginx:1.21.6"
 echo
 

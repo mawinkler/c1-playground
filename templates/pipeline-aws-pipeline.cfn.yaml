@@ -1,0 +1,384 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: pipeline for ${IMAGE_NAME}
+
+Parameters:
+
+  CodeCommitRepoName:
+    Type: String
+    Description: The project name, also the CodeCommit Repository name
+    Default: ${IMAGE_NAME}
+    MinLength: 1
+    MaxLength: 100
+
+  EcrRepoName:
+    Type: String
+    Description: The name of the ECR Repository
+    Default: ${IMAGE_NAME}
+    MinLength: 1
+    MaxLength: 100
+
+  SmartcheckHost:
+    Type: String
+    Description: Smartcheck host URL
+    Default: ${DSSC_HOST}
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a Smartcheck host URL
+
+  SmartcheckUser:
+    Type: String
+    Default: ${DSSC_USERNAME}
+    Description: The user for Smartcheck
+    MinLength: 1
+    MaxLength: 100
+
+  SmartcheckPwd:
+    Type: String
+    NoEcho: true
+    Description: The password for Smartcheck user
+    Default: ${DSSC_PASSWORD}
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a password for the Smartcheck user
+
+  PreregistryHost:
+    Type: String
+    Description: Smartcheck host URL
+    Default: ${DSSC_HOST}
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a Smartcheck host URL
+
+  PreregistryUser:
+    Type: String
+    Description: The user for Pre-Registry
+    Default: ${DSSC_REGUSER}
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a user for the Pre-Registry
+
+  PreregistryPwd:
+    Type: String
+    Description: The password for Pre-Registry user
+    Default: ${DSSC_REGPASSWORD}
+    MinLength: 1
+    MaxLength: 100
+    ConstraintDescription: You must enter a password for the Pre-Registry user
+
+  KubectlRoleName:
+    Type: String
+    Description: The Role for the deployments on EKS
+    Default: ${CODEBUILD_ROLE_NAME}
+    MinLength: 1
+    MaxLength: 500
+    ConstraintDescription: Do not change this
+
+  EksClusterName:
+    Type: String
+    Description: The name of the EKS cluster
+    Default: ${CLUSTER_NAME}
+    MinLength: 1
+    MaxLength: 50
+    ConstraintDescription: Do not change this
+
+  AppSecKey:
+    Type: String
+    Description: The registration key for Cloud One Application Security
+    Default: ${TREND_AP_KEY}
+    MinLength: 1
+    MaxLength: 50
+    ConstraintDescription: Do not change this
+
+  AppSecSecret:
+    Type: String
+    Description: The registration secret for Cloud One Application Security
+    Default: ${TREND_AP_SECRET}
+    MinLength: 1
+    MaxLength: 50
+    ConstraintDescription: Do not change this
+
+  DockerHubUsername:
+    Type: String
+    Description: The username for Docker Hub
+    Default: ${DOCKER_USERNAME}
+    MinLength: 1
+    MaxLength: 50
+    ConstraintDescription: Do not change this
+
+  DockerHubPassword:
+    Type: String
+    Description: The password for Docker Hub
+    Default: ${DOCKER_PASSWORD}
+    MinLength: 1
+    MaxLength: 50
+    ConstraintDescription: Do not change this
+
+  AwsAccountId:
+    Type: String
+    Description: The AWS Account ID
+    Default: ${AWS_ACCOUNT_ID}
+    MinLength: 1
+    MaxLength: 50
+    ConstraintDescription: Do not change this
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: AWS
+        Parameters:
+          - CodeCommitRepoName
+          - EcrRepoName
+      - Label:
+          default: DeepSecurity/Smartcheck
+        Parameters:
+          - SmartcheckHost
+          - SmartcheckUser
+          - SmartcheckPwd
+          - PreregistryHost
+          - PreregistryUser
+          - PreregistryPwd
+          - KubectlRoleName
+          - EksClusterName
+          - AppSecKey
+          - AppSecSecret
+    ParameterLabels:
+      CodeCommitRepoName:
+        default: CodeCommit Repositry Name (Project Name)
+      EcrRepoName:
+        default: ECR Repository Name
+      SmartcheckHost:
+        default: Smartcheck Host URL
+      SmartcheckUser:
+        default: Smartcheck User
+      SmartcheckPwd:
+        default: Smartcheck Password
+      PreregistryHost:
+        default: Pre-registry Host URL
+      PreregistryUser:
+        default: Pre-registry User
+      PreregistryPwd:
+        default: Pre-registry Password
+      KubectlRoleName:
+        default: Kubectl IAM role
+      EksClusterName:
+        default: EKS cluster name
+      AppSecKey:
+        default: Application Security Key
+      AppSecSecret:
+        default: Application Security Secret
+      DockerHubUsername:
+        default: Docker Hub Username
+      DockerHubPassword:
+        default: Docker Hub Password
+      AwsAccountId:
+        default: AWS Account ID
+
+Resources:
+  EcrDockerRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref EcrRepoName
+    DeletionPolicy: Retain
+
+  CodePipelineArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: codepipeline-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: !GetAtt CodeCommitRepo.Arn
+                Effect: Allow
+                Action:
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:UploadArchive
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:CancelUploadArchive
+              - Resource:
+                  - !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${BuildScanPushDeploy}
+                Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:StopBuild
+                  - codebuild:BatchGetProjects
+                  - codebuild:BatchGetBuilds
+                  - codebuild:ListBuildsForProject
+              - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactBucket}/*
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+    DependsOn: CodePipelineArtifactBucket
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: codebuild-access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
+                Effect: Allow
+                Action:
+                  - sts:AssumeRole
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - eks:Describe*
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+              - Resource: !Sub arn:aws:s3:::${CodePipelineArtifactBucket}/*
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+              - Resource: '*'
+                Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeDhcpOptions
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeVpcs
+                  - ec2:CreateNetworkInterfacePermission
+              - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${EcrDockerRepository}
+                Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:GetAuthorizationToken
+                  - ecr:DescribeRepositories
+                  - ecr:CreateRepository
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:PutImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+
+  CodeCommitRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: Code Repository for ${IMAGE_NAME}
+      RepositoryName: !Ref CodeCommitRepoName
+
+  BuildScanPushDeploy:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/docker:17.09.0
+        EnvironmentVariables:
+          - Name: PRE_SCAN_REPOSITORY
+            Value: !Ref PreregistryHost
+          - Name: PRE_SCAN_USER
+            Value: !Ref PreregistryUser
+          - Name: PRE_SCAN_PWD
+            Value: !Ref PreregistryPwd
+          - Name: SMARTCHECK_HOST
+            Value: !Ref SmartcheckHost
+          - Name: SMARTCHECK_USER
+            Value: !Ref SmartcheckUser
+          - Name: SMARTCHECK_PWD
+            Value: !Ref SmartcheckPwd
+          - Name: EKS_KUBECTL_ROLE_ARN
+            Value: !Sub arn:aws:iam::${AWS::AccountId}:role/${KubectlRoleName}
+          - Name: EKS_CLUSTER_NAME
+            Value: !Sub ${CLUSTER_NAME}
+          - Name: REPOSITORY_URI
+            Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS_REGION}.amazonaws.com/${EcrDockerRepository}
+          - Name: APPSEC_KEY
+            Value: !Ref AppSecKey
+          - Name: APPSEC_SECRET
+            Value: !Ref AppSecSecret
+          - Name: DOCKER_USERNAME
+            Value: !Ref DockerHubUsername
+          - Name: DOCKER_PASSWORD
+            Value: !Ref DockerHubPassword
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AwsAccountId
+
+      Name: BuildScanPushDeploy
+      Description: Build container image, push to registry and scan with Smartcheck
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref CodePipelineArtifactBucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: ${IMAGE_NAME}
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: CodeCommit
+              Configuration:
+                RepositoryName: !GetAtt CodeCommitRepo.Name
+                BranchName: main
+              OutputArtifacts:
+                - Name: ${IMAGE_NAME}
+              RunOrder: 1
+        - Name: BuildAndScan
+          Actions:
+            - Name: BuildAndScan
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref BuildScanPushDeploy
+              InputArtifacts:
+                - Name: ${IMAGE_NAME}
+              OutputArtifacts:
+                - Name: PreScanOutput
+              RunOrder: 1

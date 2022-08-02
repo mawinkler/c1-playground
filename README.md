@@ -5,11 +5,6 @@
     - [Supported Cluster Variants](#supported-cluster-variants)
     - [Suport Matrix](#suport-matrix)
   - [Prepare your Environment](#prepare-your-environment)
-    - [Ubuntu with built in Cluster](#ubuntu-with-built-in-cluster)
-    - [MacOS with built in Cluster](#macos-with-built-in-cluster)
-    - [Cloud9 with built in Cluster](#cloud9-with-built-in-cluster)
-    - [Ubuntu or MacOS with Managed Cluster](#ubuntu-or-macos-with-managed-cluster)
-    - [Cloud9 with AWS EKS Managed Cluster](#cloud9-with-aws-eks-managed-cluster)
   - [Get the Playground](#get-the-playground)
   - [Configure](#configure)
   - [Start](#start)
@@ -18,6 +13,7 @@
   - [Deployments](#deployments)
   - [Tear Down](#tear-down)
     - [Tear Down Ubuntu Local, MacOS Local or Cloud9 Local Clusters](#tear-down-ubuntu-local-macos-local-or-cloud9-local-clusters)
+    - [Tear Down Pipelines](#tear-down-pipelines)
     - [Tear Down GKE, EKS or AKS Clusters](#tear-down-gke-eks-or-aks-clusters)
   - [Add-Ons](#add-ons)
   - [Play with the Playground](#play-with-the-playground)
@@ -32,6 +28,11 @@
 Ultra fast and slim kubernetes playground.
 
 The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and most parts on MacOS as well.
+
+***Latest News***
+
+- The playground now supports CI/CD pipelining on AWS. Azure and GCP to come.
+  - Container image build, image scanning and deployment to EKS with Application Security integrated.
 
 ## Requirements and Support Matrix
 
@@ -78,6 +79,7 @@ Cilium | X | | X | X | X | X | X
 Kubescape | X | | X | X | X | X | X
 Harbor | X (2) | | | | | |
 Smarthome | X (2) | | | | | |
+Pipelines | | | | | X | |
 
 *Local* means, the cluster will run on the machine you're working on.
 
@@ -91,192 +93,13 @@ Smarthome | X (2) | | | | | |
 
 In the following chapters I'm describing on how to prepare for the Playground in various environments. Choose one and proceed afterwards with section [Get the Playground](#get-the-playground).
 
-### Ubuntu with built in Cluster
+If you plan to use the built in cluster of the Playground, please follow
 
-Follow this chapter if...
+- [Getting Started with built in cluster](docs/getting-started-kind.md)
 
-- you're using the Playground on a Ubuntu machine and
-- are going to use the built in cluster.
+To prepare for the use with a managed cluster, please follow
 
-> The cluster will get it's own docker network which is configured as follows:
->
-> Config | Value
-> ------ | -----
-> Name | kind
-> Driver | Bridge
-> Subnet | 172.250.0.0/16
-> IP-Range | 172.250.255.0/24
-> Gateway | 172.250.255.254
->
-> The `up.sh` script will create the cluster and deploy a load balancer amongst other cluster components later on. It will get a range of ip addresses assigned to distribute them to service clients. The defined range is `172.250.255.1-172.250.255.250`.  
-> If the registry is deployed it will get an IP assigned by the load blancer. To allow access to the registry from your host, please configure your docker daemon to accept insecure registries and specified ip addresses.  
-> To do this, create or modify `/etc/docker/daemon.json` to include a small subset of probable ips for the registry.
->
-> ```sh
-> sudo vi /etc/docker/daemon.json
-> ```
->
-> ```json
-> {
->   "insecure-registries": [
->     "172.250.255.1",
->     "172.250.255.2",
->     "172.250.255.3",
->     "172.250.255.4",
->     "172.250.255.5",
->     "172.250.255.1:5000",
->     "172.250.255.2:5000",
->     "172.250.255.3:5000",
->     "172.250.255.4:5000",
->     "172.250.255.5:5000"
->   ]
-> }
-> ```
->
-> Finally restart the docker daemon.
->
-> ```sh
-> sudo systemctl restart docker
-> ```
->
-> Since the network configuration is fixed, you don't need to do the configuration from above the next time you deploy a local cluster using the playground.
-
-### MacOS with built in Cluster
-
-Follow this chapter if...
-
-- you're using the Playground on a MacOS environment with
-- Docker Desktop for Mac and
-- are going to use the built in cluster
-
-> Go to the `Preferences` of Docker for Mac, then `Resources` and `Advanced`. Ensure to have at least 4 CPUs and 12+ GB of Memory assigned to Docker. (This is not required when using the public clouds.)
-> 
-> Due to the fact, that there is no `docker0` bridge on MacOS, we need to use ingresses to enable access to services running on our cluster. To make this work, you need to modify your local `hosts`-file.
->
-> ```sh
-> sudo vi /etc/hosts
-> ```
->
-> Change the line for `127.0.0.1` from
->
-> ```txt
-> 127.0.0.1 localhost
-> ```
->
-> to
->
-> ```txt
-> 127.0.0.1 localhost playground-registry smartcheck grafana prometheus
-> ```
-
-### Cloud9 with built in Cluster
-
-Follow this chapter if...
-
-- you're using the Playground on a AWS Cloud9 environment and
-- are going to use the built in cluster
-
-> Follow the steps below to create a Cloud9 suitable for the Playground.
->
-> - Point your browser to AWS
-> - Choose your default AWS region in the top right
-> - Go to the Cloud9 service
-> - Select `[Create Cloud9 environment]`
-> - Name it as you like
-> - Choose `[t3.xlarge]` for instance type and
-> - `Ubuntu 18.04 LTS` as the platform
-> - For the rest take all default values and click `[Create environment]`
->
-> Install the latest version of the AWS CLI v2
->
-> ```sh
-> curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
->   -o "/tmp/awscliv2.zip"
-> unzip /tmp/awscliv2.zip -d /tmp
-> sudo /tmp/aws/install
-> ```
-
-### Ubuntu or MacOS with Managed Cluster
-
-Follow this chapter if...
-
-- you're using the Playground on a Ubuntu machine and
-- are going to use either EKS, AKS or GKE
-
-> The only preparation needed is to have an authenticated CLI for the chosen cloud provider.
-
-### Cloud9 with AWS EKS Managed Cluster
-
-Follow this chapter if...
-
-- you're using the Playground on a AWS Cloud9 environment and
-- are going to use EKS as the cluster
-
-> Follow the steps below to create a Cloud9 suitable for the Playground with EKS
->
-> - Point your browser to AWS
-> - Choose your default AWS region in the top right
-> - Go to the Cloud9 service
-> - Select `[Create Cloud9 environment]`
-> - Name it as you like
-> - Choose `[t3.medium]` for instance type and
-> - `Ubuntu 18.04 LTS` as the platform
-> - For the rest take all default values and click `[Create environment]`
->
-> Install the version 2.6.1 of the AWS CLI v2
->
-> ```sh
-> #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
-> #  -o "/tmp/awscliv2.zip"
-> curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.6.1.zip" \
->   -o "awscliv2.zip"
-> unzip /tmp/awscliv2.zip -d /tmp
-> sudo /tmp/aws/install
-> ```
->
-> Update IAM Settings for the Workspace
->
-> - Click the gear icon (in top right corner), or click to open a new tab and choose `[Open Preferences]`
-> - Select AWS SETTINGS
-> - Turn off `[AWS managed temporary credentials]`
-> - Close the Preferences tab
->
-> To create an IAM role which we want to attach to our Cloud9 instance, we need temporarily ***administrative privileges*** in our current shell. To get these, we need to configure our `aws` cli with our AWS credentials and the current region. Directly after assigning the created role to the instance, we're removing the credentials from the environment, of course.
->
-> ```sh
-> aws configure
-> ```
->
-> In this example I'm using `eu-central-1`. Change it to your current AWS region.
->
-> ```sh
-> AWS Access Key ID [None]: <KEY>
-> AWS Secret Access Key [None]: <SECRET>
-> Default region name [None]: eu-central-1
-> Default output format [None]: json
-> ```
->
-> Now, run the following script, which creates and assigns the required instance role to your Cloud9 instance.
->
-> ```sh
-> REPO=https://raw.githubusercontent.com/mawinkler/c1-playground/master
-> sudo apt install -y jq && \
->   curl -L ${REPO}/tools/cloud9-instance-role.sh | bash
-> ```
->
-> Use the GetCallerIdentity CLI command to validate that the Cloud9 IDE is using the correct IAM role.
->
-> ```sh
-> aws sts get-caller-identity --query Arn | \
->   grep ekscluster-admin -q && \
->   echo "IAM role valid" || echo "IAM role NOT valid"
-> ```
->
-> Finally, resize the virtual disk of your Cloud9 by running
->
-> ```sh
-> curl -L ${REPO}/tools/cloud9-resize.sh | bash
-> ```
+- [Getting Started with managed clusters](docs/getting-started-managed.md)
 
 ## Get the Playground
 
@@ -292,28 +115,17 @@ In all of these possible environments you're going to run a script called `tools
 - `brew` (MacOS only),
 - `docker` or `Docker for Mac`.
 - `kubectl`,
+- `eksctl`,
 - `kustomize`,
 - `helm`,
 - `kind`,
+- `kubebox`,
+- `stern`,
 - `krew`,
-- `stern` and
-- `kubebox`
+- `syft`,
+- `grype`
 
 installed.
-
-> ***Note:*** as of 05/05/2022 there is a bug in combination of ths aws-cli and `kubectl` in version 1.24.0. The reason is that Kubernetes deprecated `client.authentication.k8s.io/v1alpha1` from the `exec` plugin in [PR108616](https://github.com/kubernetes/kubernetes/pull/108616). For this reason, the `kubectl` version is currently fixed to 1.23.6-00 in the `tools.sh`-script.  
->
-> If you accidentally installed `kubectl` version 1.24.0, simply downgrade it by running  
-> `sudo apt-get install -y --allow-downgrades kubectl=1.23.6-00`.
-
-> ***Note:*** as of 05/06/2022 there is a bug in the `eksctl` version 0.96.0. If you accidentally installed a newer `eksctl` version as 0.95.0 you need to downgrade eksctl to 0.95.0. Execute:
->
-> ```sh
-> curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.95.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
-> sudo mv /tmp/eksctl /usr/local/bin
-> ```
->
-> Then, recreate the eks cluster with `rapid-eks-down.sh` followed by `clusters/rapid-eks.sh`
 
 Run it with
 
@@ -321,35 +133,11 @@ Run it with
 ./tools.sh
 ```
 
+The script will attempt to upgrade already installed tools to the latest available version.
+
 ## Configure
 
-Now, you create your personal configuration file. Do this by making a copy of the supplied sample.
-
-```sh
-cp config.json.sample config.json
-```
-
-Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you intent to run multiple clusters (e.g. a local and a GKE), adapt the `cluster_name` and the `policy_name`.
-
-```json
-{
-    "cluster_name": "playground",
-    "services": [
-...
-        {
-            "name": "container_security",
-            "policy_name": "relaxed_playground",
-            "namespace": "trendmicro-system"
-        },
-...
-        {
-            "name": "cloudone",
-            "region": "YOUR CLOUD ONE REGION HERE",
-            "api_key": "YOUR CLOUD ONE API KEY HERE"
-        }
-    ]
-}
-```
+Please follow the documentation [here](docs/getting-started-configuration.md).
 
 ## Start
 
@@ -401,7 +189,12 @@ The playground provides a couple of scripts which deploy preconfigured versions 
 - Starboard (`./deploy-starboard.sh`)
 - Falco Runtime Security (`./deploy-falco.sh`)
 - Open Policy Agent (`./deploy-opa.sh`)
-- Gatekeeper (`./deploy-gatekeeper`)
+- Gatekeeper (`./deploy-gatekeeper.sh`)
+- Harbor (`./deploy-harbor.sh`)
+
+In addition to the above the playground now supports AWS CodePipelines. The pipeline builds a container image based on a sample repo, scans it with Smart Check and deploys it with integrated Cloud One Application Security to the EKS cluster.
+
+The pipeline requires an EKS with a deployed Smart Check. If everything has been set up, running the script `./deploy-pipeline-aws.sh` should do the trick :-). When you're done with the pipeline run the generated script `./pipeline-aws-down.sh` to tear it down.
 
 ## Tear Down
 
@@ -409,6 +202,21 @@ The playground provides a couple of scripts which deploy preconfigured versions 
 
 ```sh
 ./down.sh
+```
+
+### Tear Down Pipelines
+
+Run one of the following scripts to quickly tear down a pipeline in the clouds. These scripts are created automatically by the pipeline scripts.
+
+```sh
+# GCP
+# ./pipeline-gcp-down.sh
+
+# AWS
+./pipeline-aws-down.sh
+
+# Azure
+# ./pipeline-azure-down.sh
 ```
 
 ### Tear Down GKE, EKS or AKS Clusters
@@ -450,6 +258,8 @@ If you wanna play within the playground and you're running it either on Linux or
 If you're running the playground on MacOS, follow the lab guide [Play with the Playground (on MacOS)](docs/play-on-macos.md).
 
 Both guides are basically identical, but since access to some services is different on Linux and MacOS there are two guides available.
+
+If you want to play with pipelines, the Playground now supports CodePipeline on AWS. Follow this [quick documentation](docs/pipelining-on-aws.md) to test it out.
 
 Lastly, there is a [guide](docs/play-with-falco.md) to experiment with the runtime rules built into the playground to play with Falco. The rule set of the playground is located [here](falco/playground_rules.yaml).
 

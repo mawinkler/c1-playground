@@ -37,7 +37,6 @@ if [ "${OS}" == 'Darwin' ]; then
   else
     printf "${YELLOW}%s${RESET}\n" "Brew already installed, updating packages"
     brew update
-    brew upgrade
   fi
 fi
 
@@ -56,26 +55,18 @@ if ! command -v docker &>/dev/null; then
     brew cask install docker
   fi
 else
-    printf "${YELLOW}%s${RESET}\n" "Docker already installed"
+  printf "${YELLOW}%s${RESET}\n" "Docker already installed, ensuring latest version"
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Upgrading docker on linux"
+    sudo apt upgrade -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Upgrading docker on darwin"
+    brew cask upgrade docker
+  fi
 fi
 
 # kubectl
-# AMAZON LINUX
-# cat <<EOF > /etc/yum.repos.d/kubernetes.repo
-# [kubernetes]
-# name=Kubernetes
-# baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
-# enabled=1
-# gpgcheck=1
-# repo_gpgcheck=1
-# gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-# EOF
-# yum install -y kubectl
-# OR
-# curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/kubectl
-# chmod +x ./kubectl
-# mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
-# echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
 printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for kubectl"
 if ! command -v kubectl &>/dev/null; then
   if [ "${OS}" == 'Linux' ]; then
@@ -83,15 +74,20 @@ if ! command -v kubectl &>/dev/null; then
     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
       echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list && \
       sudo apt-get update && \
-      # TODO: Check whats changed in versions after 1.23.6
-      sudo apt-get install -y kubectl=1.14.1-00
+      sudo apt-get install -y kubectl
   fi
   if [ "${OS}" == 'Darwin' ]; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing kubectl on darwin"
     brew install kubernetes-cli
   fi
 else
-  printf "${YELLOW}%s${RESET}\n" "Kubectl already installed"
+  printf "${YELLOW}%s${RESET}\n" "Kubectl already installed, ensuring latest version"
+  if [ "${OS}" == 'Linux' ]; then
+    sudo apt-get upgrade -y kubectl
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    brew upgrade kubernetes-cli
+  fi
 fi
 
 # eksctl
@@ -99,9 +95,7 @@ printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for eksctl"
 if ! command -v eksctl &>/dev/null; then
   if [ "${OS}" == 'Linux' ]; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing eksctl on linux"
-    # TODO: Check whats changed in versions after 0.95.0
-    #curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-    curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.100.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
     sudo mv /tmp/eksctl /usr/local/bin
   fi
   if [ "${OS}" == 'Darwin' ]; then
@@ -110,7 +104,16 @@ if ! command -v eksctl &>/dev/null; then
     brew install weaveworks/tap/eksctl
   fi
 else
-  printf "${YELLOW}%s${RESET}\n" "Eksctl already installed"
+  printf "${YELLOW}%s${RESET}\n" "Eksctl already installed, ensuring latest version"
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing eksctl on linux"
+    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+    sudo mv /tmp/eksctl /usr/local/bin
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Installing eksctl on darwin"
+    brew upgrade weaveworks/tap/eksctl
+  fi
 fi
 
 # kustomize
@@ -126,7 +129,16 @@ if ! command -v kustomize &>/dev/null; then
     brew install kustomize
   fi
 else
-  printf "${YELLOW}%s${RESET}\n" "Kustomize already installed"
+  printf "${YELLOW}%s${RESET}\n" "Kustomize already installed, ensuring latest version"
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Upgrading kustomize on linux"
+    curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && \
+      sudo mv ./kustomize /usr/local/bin
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Upgrading kustomize on darwin"
+    brew upgrade kustomize
+  fi
 fi
 
 # helm
@@ -137,13 +149,25 @@ if ! command -v helm &>/dev/null; then
     curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && \
       chmod 700 get_helm.sh && \
       ./get_helm.sh
+      rm -f ./get_helm.sh
   fi
   if [ "${OS}" == 'Darwin' ]; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing helm on darwin"
     brew install helm
   fi
 else
-  printf "${YELLOW}%s${RESET}\n" "Helm already installed"
+  printf "${YELLOW}%s${RESET}\n" "Helm already installed, ensuring latest version"
+  if [ "${OS}" == 'Linux' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Upgrading helm on linux"
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && \
+      chmod 700 get_helm.sh && \
+      ./get_helm.sh
+      rm -f ./get_helm.sh
+  fi
+  if [ "${OS}" == 'Darwin' ]; then
+    printf "${RED}${BOLD}%s${RESET}\n" "Upgrading helm on darwin"
+    brew upgrade helm
+  fi
 fi
 
 # kind

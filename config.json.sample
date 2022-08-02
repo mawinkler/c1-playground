@@ -93,6 +93,16 @@
             "proxy_listen_port": "8085"
         },
         {
+            "name": "pipeline",
+            "github_username": "mawinkler",
+            "github_email": "winkler.info@icloud.com",
+            "github_project": "c1-app-sec-uploader",
+            "docker_username": "YOUR USERNAME HERE",
+            "docker_password": "YOUR PASSWORD HERE",
+            "appsec_key": "YOUR KEY HERE",
+            "appsec_secret": "YOUR SECRET HERE"
+        },
+        {
             "name": "cloudone",
             "region": "trend-us-1",
             "instance": "cloudone",
