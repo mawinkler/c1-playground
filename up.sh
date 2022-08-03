@@ -174,13 +174,18 @@ function deploy_cadvisor() {
 #   None
 #######################################
 function deploy_calico() {
-  kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
-  # By default, Calico pods fail if the Kernel's Reverse Path Filtering (RPF) check
-  # is not enforced. This is a security measure to prevent endpoints from spoofing
-  # their IP address.
-  # The RPF check is not enforced in Kind nodes. Thus, we need to disable the
-  # Calico check by setting an environment variable in the calico-node DaemonSet
-  kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+  # with kind 0.11.1
+  # kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+  # # By default, Calico pods fail if the Kernel's Reverse Path Filtering (RPF) check
+  # # is not enforced. This is a security measure to prevent endpoints from spoofing
+  # # their IP address.
+  # # The RPF check is not enforced in Kind nodes. Thus, we need to disable the
+  # # Calico check by setting an environment variable in the calico-node DaemonSet
+  # kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+
+  # with kind 0.14.0
+  kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
+  kubectl create -f https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml
 }
 
 #######################################

@@ -18,17 +18,12 @@ set -e
 . ./playground-helpers.sh
 
 # Future use
-STAGING=false
-if [ "${STAGING}" = true ]; then
-  API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="staging-cloudone") | .instance' config.json)"
-else
-  API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
+REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
+INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+if [ ${INSTANCE} = null ]; then
+  INSTANCE=cloudone
 fi
-# /
 
 GITHUB_USERNAME="$(jq -r '.services[] | select(.name=="pipeline") | .github_username' config.json)"
 GITHUB_EMAIL="$(jq -r '.services[] | select(.name=="pipeline") | .github_email' config.json)"

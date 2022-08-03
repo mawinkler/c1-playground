@@ -30,6 +30,9 @@ fi
 
 mkdir -p overrides
 
+# Create API header
+API_KEY=${API_KEY} envsubst <templates/cloudone-header.txt >overrides/cloudone-header.txt
+
 #######################################
 # Creates Kubernetes namespace
 # Globals:

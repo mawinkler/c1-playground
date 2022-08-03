@@ -20,6 +20,9 @@ else
   API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
   REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
   INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+  if [ ${INSTANCE} = null ]; then
+    INSTANCE=cloudone
+  fi
 fi
 
 mkdir -p overrides
