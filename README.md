@@ -79,7 +79,7 @@ Cilium | X | | X | X | X | X | X
 Kubescape | X | | X | X | X | X | X
 Harbor | X (2) | | | | | |
 Smarthome | X (2) | | | | | |
-Pipelines | | | | | X | |
+Pipelines | | | | | X | X |
 
 *Local* means, the cluster will run on the machine you're working on.
 
@@ -259,7 +259,7 @@ If you're running the playground on MacOS, follow the lab guide [Play with the P
 
 Both guides are basically identical, but since access to some services is different on Linux and MacOS there are two guides available.
 
-If you want to play with pipelines, the Playground now supports CodePipeline on AWS. Follow this [quick documentation](docs/pipelining-on-aws.md) to test it out.
+If you want to play with pipelines, the Playground now supports CodePipeline on AWS and Azure. Follow this [quick documentation (AWS)](docs/pipelining-on-aws.md) or that [quick documentation (Azure)](docs/pipelining-on-azure.md) to test it out.
 
 Lastly, there is a [guide](docs/play-with-falco.md) to experiment with the runtime rules built into the playground to play with Falco. The rule set of the playground is located [here](falco/playground_rules.yaml).
 

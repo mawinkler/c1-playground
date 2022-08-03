@@ -100,7 +100,9 @@
             "docker_username": "YOUR USERNAME HERE",
             "docker_password": "YOUR PASSWORD HERE",
             "appsec_key": "YOUR KEY HERE",
-            "appsec_secret": "YOUR SECRET HERE"
+            "appsec_secret": "YOUR SECRET HERE",
+            "azure_devops_organization": "https://dev.azure.com/YOUR-ORGANIZATION",
+            "azure_devops_pat": "AZURE PIPELINE ONLY"
         },
         {
             "name": "cloudone",
