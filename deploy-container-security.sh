@@ -5,24 +5,16 @@ set -e
 # Source helpers
 . ./playground-helpers.sh
 
-STAGING=false
-
 # Get config
 CLUSTER_NAME="$(jq -r '.cluster_name' config.json)"
 CS_POLICY_NAME="$(jq -r '.services[] | select(.name=="container_security") | .policy_name' config.json)"
 CS_NAMESPACE="$(jq -r '.services[] | select(.name=="container_security") | .namespace' config.json)"
 SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' config.json)"
-if [ "${STAGING}" = true ]; then
-  API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="staging-cloudone") | .instance' config.json)"
-else
-  API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
-  if [ ${INSTANCE} = null ]; then
-    INSTANCE=cloudone
-  fi
+API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
+REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
+INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+if [ ${INSTANCE} = null ]; then
+  INSTANCE=cloudone
 fi
 
 mkdir -p overrides
@@ -59,9 +51,11 @@ function create_namespace() {
 function whitelist_namsspaces() {
   # whitelist some namespace for container security
   kubectl label namespace kube-system --overwrite ignoreAdmissionControl=true
-  kubectl label namespace local-path-storage --overwrite ignoreAdmissionControl=true
-  kubectl label namespace ingress-nginx --overwrite ignoreAdmissionControl=true
   kubectl label namespace ${CS_NAMESPACE} --overwrite ignoreAdmissionControl=true
+  if is_linux ; then
+    kubectl label namespace local-path-storage --overwrite ignoreAdmissionControl=true
+    kubectl label namespace ingress-nginx --overwrite ignoreAdmissionControl=true
+  fi
 }
 
 #######################################
@@ -224,7 +218,8 @@ function deploy_container_security() {
   fi
 
   printf '%s\n' "(Re-)deploy container security"
-  curl -s -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
+  # curl -s -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
+  curl -s -L https://github.com/RongYangAriel/cloudone-container-security-helm/archive/refs/tags/2.2.14.tar.gz  -o master-cs.tar.gz
   helm upgrade \
     container-security \
     --values overrides/container-security-overrides.yaml \

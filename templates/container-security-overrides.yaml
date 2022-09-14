@@ -46,3 +46,19 @@ scout:
   excludeSameNamespace: true
   # auditlog:
   #   enabled: true
+
+images:
+  defaults:
+    registry: docker.io
+    pullPolicy: Always
+    project: trendmicrocloudone
+  jobManager:
+    repository: job-manager
+    tag: latest
+    digest:
+  admissionController:
+    repository: admission-controller
+    tag: aws_reinforce
+    digest:
+jobManager:
+  scanJobImage: "docker.io/trendmicrocloudone/job:latest"

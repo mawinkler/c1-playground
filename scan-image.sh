@@ -52,8 +52,8 @@ function pullpush_registry {
   echo ${REG_PASSWORD} | docker login ${REGISTRY} --username ${REG_USERNAME} --password-stdin > /dev/null 2>&1
   docker pull ${TARGET_IMAGE}
   # Tag and push, but strip hash
-  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
-  docker push ${REGISTRY}/${TARGET_IMAGE%@*}
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}huhu
+  docker push ${REGISTRY}/${TARGET_IMAGE%@*}huhu
 }
 
 function scan_registry {

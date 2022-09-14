@@ -107,12 +107,6 @@
             "region": "trend-us-1",
             "instance": "cloudone",
             "api_key": "YOUR KEY HERE"
-        },
-        {
-            "name": "staging-cloudone",
-            "region": "us-1",
-            "instance": "staging-cloudone",
-            "api_key": "YOUR KEY HERE"
         }
     ]
 }
