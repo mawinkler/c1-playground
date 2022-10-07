@@ -13,8 +13,13 @@ cloudOne:
     enabled: true
     syncPeriod: 600s
     enableNetworkPolicyCreation: true
+  jobManager:
+    enabled: true
   runtimeSecurity:
     enabled: ${DEPLOY_RT}
+  vulnerabilityScanning:
+    enabled: true
+    cacheExpiryTime: 24h
   auditlog:
     enabled: true
   exclusion:
@@ -46,19 +51,3 @@ scout:
   excludeSameNamespace: true
   # auditlog:
   #   enabled: true
-
-images:
-  defaults:
-    registry: docker.io
-    pullPolicy: Always
-    project: trendmicrocloudone
-  jobManager:
-    repository: job-manager
-    tag: latest
-    digest:
-  admissionController:
-    repository: admission-controller
-    tag: aws_reinforce
-    digest:
-jobManager:
-  scanJobImage: "docker.io/trendmicrocloudone/job:latest"

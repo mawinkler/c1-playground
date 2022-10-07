@@ -1,0 +1,10 @@
+{
+  "total": {
+    "critical": 5,
+    "high": 26,
+    "medium": 31,
+    "low": 10,
+    "negligible": 2,
+    "unknown": 12
+  }
+}

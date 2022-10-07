@@ -9,6 +9,8 @@ log/*
 
 # Config
 config.json
+config.json-prod
+config.json-dev
 services
 
 # Cloud One

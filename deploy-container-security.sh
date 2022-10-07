@@ -159,8 +159,6 @@ function cluster_rulesets() {
 # Outputs:
 #   API_KEY_ADMISSION_CONTROLLER
 #   CS_CLUSTERID
-#   AP_KEY
-#   AP_SECRET
 #######################################
 function create_cluster_object() {
   CLUSTER_ID=$(
@@ -177,7 +175,6 @@ function create_cluster_object() {
     RESULT=$(
       CLUSTER_NAME=${CLUSTER_NAME//-/_} \
         CS_POLICYID=${CS_POLICYID} \
-        DEPLOY_RT=${DEPLOY_RT} \
         envsubst <templates/container-security-cluster-object.json |
           curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
           --header @overrides/cloudone-header.txt \
@@ -185,8 +182,6 @@ function create_cluster_object() {
     )
     API_KEY_ADMISSION_CONTROLLER=$(echo ${RESULT} | jq -r ".apiKey")
     CS_CLUSTERID=$(echo ${RESULT} | jq -r ".id")
-    AP_KEY=$(echo ${RESULT} | jq -r ".runtimeKey")
-    AP_SECRET=$(echo ${RESULT} | jq -r ".runtimeSecret")
   fi
 }
 
@@ -218,8 +213,7 @@ function deploy_container_security() {
   fi
 
   printf '%s\n' "(Re-)deploy container security"
-  # curl -s -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
-  curl -s -L https://github.com/RongYangAriel/cloudone-container-security-helm/archive/refs/tags/2.2.14.tar.gz  -o master-cs.tar.gz
+  curl -s -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o master-cs.tar.gz
   helm upgrade \
     container-security \
     --values overrides/container-security-overrides.yaml \
