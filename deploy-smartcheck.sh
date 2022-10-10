@@ -18,14 +18,11 @@ SC_REG_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_usern
 SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' config.json)"
 SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' config.json)"
 SC_TEMPPW='justatemppw'
-if [ "${STAGING}" = true ]; then
-  API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="staging-cloudone") | .instance' config.json)"
-else
-  API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' config.json)"
+REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' config.json)"
+INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' config.json)"
+if [ ${INSTANCE} = null ]; then
+  INSTANCE=cloudone
 fi
 
 mkdir -p overrides
