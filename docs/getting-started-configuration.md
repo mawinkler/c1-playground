@@ -71,7 +71,7 @@ The deployment script of Container Security supports the use of the staging envi
     "services": [
 ...
         {
-            "name": "staging-cloudone",
+            "name": "cloudone",
             "region": "us-1",
             "instance": "staging-cloudone",
             "api_key": "YOUR KEY HERE"

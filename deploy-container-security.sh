@@ -52,7 +52,7 @@ function whitelist_namsspaces() {
   # whitelist some namespace for container security
   kubectl label namespace kube-system --overwrite ignoreAdmissionControl=true
   kubectl label namespace ${CS_NAMESPACE} --overwrite ignoreAdmissionControl=true
-  if is_linux ; then
+  if ! is_gke && ! is_aks && ! is_eks ; then
     kubectl label namespace local-path-storage --overwrite ignoreAdmissionControl=true
     kubectl label namespace ingress-nginx --overwrite ignoreAdmissionControl=true
   fi
