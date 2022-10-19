@@ -54,7 +54,7 @@ KEY_ALIAS_NAME=${KEY_ALIAS_NAME}
 
 EXISTING_NAMESPACES=\$(kubectl get ns -o json | jq -r '.items[].metadata.name' | tr '\n' '|')
 
-for NAMESPACE in \$(cat config.json | jq -r '.services[].namespace'); do
+for NAMESPACE in \$(cat config.json | jq -r '.services[].namespace' | sort | uniq); do
   if [ "\$NAMESPACE" != "null" ] && [[ ! "\$NAMESPACE" =~ "kube-system"|"kube-public"|"kube-node-lease"|"default" ]]; then
     if [[ \$EXISTING_NAMESPACES == *"\$NAMESPACE"* ]]; then
       kubectl delete namespace \${NAMESPACE}
