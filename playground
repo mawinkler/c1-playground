@@ -133,8 +133,6 @@ function menu_main() {
                 if [ ! -d "/etc/docker" ]; then
                     result="Please run Deploy/Update Tools."
                     display_result
-                elif [ ! -f "/etc/docker/daemon.json" ]; then
-                    sudo touch /etc/docker/daemon.json
                 else
                     sudo ${EDITOR} /etc/docker/daemon.json
                 fi
