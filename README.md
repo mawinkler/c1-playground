@@ -31,6 +31,9 @@ The playground runs on local or Cloud9 based Ubuntu servers, GKE, AKS, EKS and m
 
 ***Latest News***
 
+- The Playground got a menu :-).  
+  Run it via `./playground`.
+  ![alt text](images/playground-menu.png "menu")
 - The playground now supports CI/CD pipelining on AWS. Azure and GCP to come.
   - Container image build, image scanning and deployment to EKS with Application Security integrated.
 
