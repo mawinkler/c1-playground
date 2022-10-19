@@ -74,7 +74,8 @@ function menu_main() {
                 3 "Tear Down Cluster" \
                 4 "Current Deployments" \
                 5 "Display Disk Space" \
-                6 "Edit Configuration" )
+                6 "Edit Configuration" \
+                7 "Edit daemon.json" )
             TITLE="Main Menu"
             check_k8s
             BACKTITLE="Playground: ${CLUSTER}"
@@ -82,7 +83,7 @@ function menu_main() {
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Exit" \
                     --separate-widget "Widget" \
-                    --menu "Please select" ${HEIGHT} ${WIDTH} 7 "${items[@]}" \
+                    --menu "Please select" ${HEIGHT} ${WIDTH} 8 "${items[@]}" \
                     2>&1 1>&3)
         exit_status=$?
         case $exit_status in
@@ -127,6 +128,16 @@ function menu_main() {
                 ;;
             6)
                 ${EDITOR} config.json
+                ;;
+            7)
+                if [ ! -d "/etc/docker" ]; then
+                    result="Please run Deploy/Update Tools."
+                    display_result
+                elif [ ! -f "/etc/docker/daemon.json" ]; then
+                    sudo touch /etc/docker/daemon.json
+                else
+                    sudo ${EDITOR} /etc/docker/daemon.json
+                fi
                 ;;
             *) ;; # some action on other
         esac
