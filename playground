@@ -111,6 +111,7 @@ function menu_main() {
                 ;;
             3)
                 if [ -f ".teardown.sh" ]; then
+                    clear
                     ./.teardown.sh
                 fi
                 ;;
