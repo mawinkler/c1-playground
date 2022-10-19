@@ -167,23 +167,23 @@ function menu_create_cluster() {
         case $choice in
             1)
                 clear
-                ./up.sh
                 echo "./down.sh" > ./.teardown.sh && chmod +x .teardown.sh
+                ./up.sh
                 ;;
             2) 
                 clear
-                clusters/rapid-eks.sh
                 echo "./rapid-eks-down.sh" > ./.teardown.sh && chmod +x .teardown.sh
+                clusters/rapid-eks.sh
                 ;;
             3)
                 clear
-                clusters/rapid-aks.sh
                 echo "./rapid-aks-down.sh" > ./.teardown.sh && chmod +x .teardown.sh
+                clusters/rapid-aks.sh
                 ;;
             4)
                 clear
-                clusters/rapid-gke.sh
                 echo "./rapid-gke-down.sh" > ./.teardown.sh && chmod +x .teardown.sh
+                clusters/rapid-gke.sh
                 ;;
             *) 
                 ;;
