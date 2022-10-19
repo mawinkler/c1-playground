@@ -167,8 +167,13 @@ function menu_create_cluster() {
         case $choice in
             1)
                 clear
-                echo "./down.sh" > ./.teardown.sh && chmod +x .teardown.sh
-                ./up.sh
+                if [ $(jq -r '.[][]' /etc/docker/daemon.json | grep "172.250.255" | wc -l) -ne 10 ]; then
+                    result="Please adapt /etc/docker/daemon.json.\n\nSee README.md."
+                    display_result
+                else
+                    echo "./down.sh" > ./.teardown.sh && chmod +x .teardown.sh
+                    ./up.sh
+                fi
                 ;;
             2) 
                 clear
