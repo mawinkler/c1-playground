@@ -56,7 +56,7 @@ aws sts get-caller-identity --query Arn | \
   grep ekscluster-admin -q && \
   echo "IAM role valid" || echo "IAM role NOT valid"
 
-curl -L ${REPO}/tools/cloud9-resize.sh | bash
+curl -fsSL ${REPO}/tools/cloud9-resize.sh | bash
 
 NONINTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
 
