@@ -4,7 +4,7 @@ set -e
 
 if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) == "" ]]; then
   echo Ensure to turn of AWS managed temporary credentials
-  exit 0
+  # exit 0
 else
   echo Cloud9 owns instance role, continuing...
 fi
