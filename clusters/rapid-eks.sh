@@ -28,7 +28,7 @@ metadata:
 
 managedNodeGroups:
 - name: nodegroup
-  desiredCapacity: 3
+  desiredCapacity: 2
   iam:
     withAddonPolicies:
       albIngress: true
