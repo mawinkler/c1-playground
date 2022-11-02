@@ -3,6 +3,16 @@
 set -e
 
 FAIL=0
+
+# FIXME: How to do this nicely?
+AKI=${AWS_ACCESS_KEY_ID}
+SAK=${AWS_SECRET_ACCESS_KEY}
+DR=${AWS_DEFAULT_REGION}
+
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_DEFAULT_REGION
+
 if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
   echo Instance role set
 elif [ "$(aws sts get-caller-identity --query Arn 2> /dev/null)" == "" ]; then
@@ -11,6 +21,11 @@ else
   echo Turn off AWS managed temporary credentials
   FAIL=1
 fi
+
+AWS_ACCESS_KEY_ID=${AKI}
+AWS_SECRET_ACCESS_KEY=${SAK}
+AWS_DEFAULT_REGION=${DR}
+
 if [ -v $AWS_ACCESS_KEY_ID ]; then
   echo Please set AWS_ACCESS_KEY_ID with: 'export AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY>'
   FAIL=1
@@ -31,8 +46,8 @@ REPO=https://raw.githubusercontent.com/mawinkler/c1-playground/master
 
 sudo apt install -y jq apt-transport-https gnupg2 curl nginx apache2-utils pv
 
-curl -L ${REPO}/tools/aws2-install.sh | bash
-curl -L ${REPO}/tools/cloud9-instance-role.sh | bash
+curl -fsSL ${REPO}/tools/aws2-install.sh | bash
+curl -fsSL ${REPO}/tools/cloud9-instance-role.sh | bash
 
 unset AWS_ACCESS_KEY_ID
 unset AWS_SECRET_ACCESS_KEY
@@ -43,7 +58,6 @@ aws sts get-caller-identity --query Arn | \
 
 curl -L ${REPO}/tools/cloud9-resize.sh | bash
 
-#/bin/bash -c $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)
 NONINTERACTIVE=1 curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash
 
 echo '# Set PATH, MANPATH, etc., for Homebrew.' >> /home/ubuntu/.bash_profile
@@ -54,6 +68,13 @@ brew install kubernetes-cli
 brew install eksctl
 brew install kustomize
 brew install helm
+
+# FIXME: version fix kind to 0.14.0
 brew install kind
 brew install stern
 brew install krew
+
+# FIXME: missing syft, grype, kubebox
+
+git clone https://github.com/mawinkler/c1-playground.git
+cd c1-playground
