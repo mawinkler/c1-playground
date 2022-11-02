@@ -2,24 +2,25 @@
 
 set -e
 
-if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) == "" ]]; then
-  echo Ensure to turn of AWS managed temporary credentials
-  # exit 0
-else
-  echo Cloud9 owns instance role, continuing...
-fi
-
 FAIL=0
+if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
+  echo Instance role set
+elif [ "$(aws sts get-caller-identity --query Arn 2> /dev/null)" == "" ]; then
+  echo AWS managed temporary credentials off 
+else
+  echo Turn off AWS managed temporary credentials
+  FAIL=1
+fi
 if [ -v $AWS_ACCESS_KEY_ID ]; then
   echo Please set AWS_ACCESS_KEY_ID with: 'export AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY>'
   FAIL=1
 fi
 if [ -v $AWS_SECRET_ACCESS_KEY ]; then
-  echo Please set AWS_ACCESS_KAWS_SECRET_ACCESS_KEYEY_ID with: 'export AWS_SECRET_ACCESS_KEY=<YOUR ACCESS KEY>'
+  echo Please set AWS_SECRET_ACCESS_KEY with: 'export AWS_SECRET_ACCESS_KEY=<YOUR ACCESS KEY>'
   FAIL=1
 fi
-if [ -v $AWS_ACCESS_KEY_ID ]; then
-  echo Please set AWS_ACCESS_KEY_ID with: 'export AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY>'
+if [ -v $AWS_DEFAULT_REGION ]; then
+  echo Please set AWS_DEFAULT_REGION with: 'export AWS_DEFAULT_REGION=<YOUR DESIRED REGION>'
   FAIL=1
 fi
 if [ "$FAIL" == "1" ]; then
