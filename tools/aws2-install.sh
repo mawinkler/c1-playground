@@ -11,4 +11,3 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv
 unzip /tmp/awscliv2.zip -d /tmp
 sudo /tmp/aws/install --update
 rm -Rf /tmp/aws /tmp/awscliv2.zip
-aws --version
