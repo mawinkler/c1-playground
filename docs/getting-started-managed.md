@@ -41,9 +41,11 @@ Follow this chapter if...
 >
 > ```sh
 > curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.6.1.zip" \
->   -o "awscliv2.zip"
+>   -o "/tmp/awscliv2.zip"
 > unzip /tmp/awscliv2.zip -d /tmp
 > sudo /tmp/aws/install
+> rm -Rf /tmp/aws /tmp/awscliv2.zip
+> aws --version
 > ```
 >
 > Update IAM Settings for the Workspace

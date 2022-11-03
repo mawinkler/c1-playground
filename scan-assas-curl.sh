@@ -1,0 +1,139 @@
+#/bin/bash
+# ##############################################################################
+# Pulls an image, initiates a scan with Smart Check and creates a PDF report
+# ##############################################################################
+
+# access to regular expressions
+shopt -s extglob
+
+# source helpers
+. ./playground-helpers.sh
+
+# NAMESPACE="syft" envsubst <templates/namespace.yaml | kubectl apply -f - -o yaml > /dev/null
+API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' config.json)"
+REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' config.json)"
+
+# ##############################################################
+# Scan Image
+# ##############################################################
+function scan_image {
+
+    SCAN_REQUEST=$(curl --silent --location --request POST 'https://artifactscan.'${REGION}'.staging-cloudone.trendmicro.com/api/scans' \
+        --header 'Api-Version: v1' \
+        --header 'Content-Type: application/json' \
+        --header 'Accept: application/json' \
+        --header 'Authorization: ApiKey '${API_KEY} \
+        --data-raw '{
+        "name": "'${TARGET_IMAGE//+([\/:])/-}'",
+        "type": "sbom"
+        }')
+
+    SCAN_ID=$(jq -r '.id' <<< ${SCAN_REQUEST})
+    UPLOAD=$(jq -r '.upload' <<< ${SCAN_REQUEST})
+
+    syft ${REGISTRY}/${TARGET_IMAGE} -o json > ${TARGET_IMAGE//+([\/:])/-}-sbom.json
+
+    printf '%s\n' "Uploading SBOM" 
+    curl --silent -X PUT -d @./${TARGET_IMAGE//+([\/:])/-}-sbom.json ${UPLOAD}
+
+    printf '%s\n' "Waiting for scan result" 
+    for i in {1..60} ; do
+        sleep 2
+        SCAN_RESULT=$(
+          curl --silent --location --request GET 'https://artifactscan.'${REGION}'.staging-cloudone.trendmicro.com/api/scans/'${SCAN_ID} \
+            --header 'Api-Version: v1' \
+            --header 'Accept: application/json' \
+            --header 'Authorization: ApiKey '${API_KEY})
+
+        SCAN_STATUS=$(jq -r '.status' <<< ${SCAN_RESULT})
+
+        if [ ${SCAN_STATUS} = "completed" ] ; then
+            break
+        fi
+        printf '%s' "."
+    done
+
+    printf '\n%s\n' "Writing scan result" 
+    jq . <<< ${SCAN_RESULT} > ${TARGET_IMAGE//+([\/:])/-}-scan.json
+
+    printf '%s %s %s\n' "Image contains" $(jq '.report.vulnerabilities | length' <<< ${SCAN_RESULT}) "vulnerabilities"
+}
+
+# ##############################################################
+# Local Kind Cluster
+# ##############################################################
+function pullpush_registry {
+
+  REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' config.json)"
+  REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' config.json)"
+
+  get_registry
+
+  printf '%s\n' "Cluster registry is on ${REGISTRY}"
+
+  echo ${REG_PASSWORD} | docker login ${REGISTRY} --username ${REG_USERNAME} --password-stdin > /dev/null 2>&1
+  docker pull ${TARGET_IMAGE}
+  # Tag and push, but strip hash
+  docker tag ${TARGET_IMAGE} ${REGISTRY}/${TARGET_IMAGE%@*}
+  docker push ${REGISTRY}/${TARGET_IMAGE%@*}
+}
+
+function scan_registry {
+
+  printf '%s\n' "Create Registry Pull Auth"
+  PULL_AUTH='{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}'
+  IMAGE_NAME="${REGISTRY}/${TARGET_IMAGE%@*}"
+
+  # Scan
+  scan_image
+}
+
+get_registry
+
+TARGET_IMAGE=${TARGET_IMAGE:-richxsl/rhel7:latest}
+SYNC=true
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+    -as|--async)
+      SYNC=false
+      shift # past argument
+      ;;
+    -so|--source-only)
+      return
+      ;;
+    *)    # should be the image name and tag
+      TARGET_IMAGE=${1}
+      shift # past argument
+      ;;
+  esac
+done
+
+echo "Scanning Image ${TARGET_IMAGE}"
+
+# if is_gke ; then
+#   printf '%s\n' "Running on GKE"
+#   pullpush_gcp
+#   scan_gcp
+# elif is_aks ; then
+#   printf '%s\n' "Running on AKS"
+#   pullpush_aks
+#   scan_aks
+# elif is_eks ; then
+#   printf '%s\n' "Running on EKS"
+#   pullpush_eks
+#   scan_eks
+# else
+  printf '%s\n' "Running on local Playground"
+  pullpush_registry
+  scan_registry
+# fi
+
+
+# create secret
+# CONFIG_JSON=$(echo '{"auths":{"'${REGISTRY}'":{"username":"'${REG_USERNAME}'","password":"'${REG_PASSWORD}'"}}}' | base64 --wrap=0)
+# CONFIG_JSON=${CONFIG_JSON} envsubst <templates/syft-secret.yaml | kubectl apply -f - -o yaml
+
+# SCAN_IMAGE="nginx:latest" envsubst <templates/syft-pod.yaml | kubectl apply -f - -o yaml
