@@ -60,3 +60,9 @@ c1-app-sec-uploader
 bin/.teardown.sh
 site
 docs-20221124
+
+# Terraform
+.terraform
+.terraform*
+terraform.*
+frankfurt-region-key-pair*
