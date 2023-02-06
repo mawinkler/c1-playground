@@ -64,7 +64,7 @@ function menu_main() {
     while true
     do
         if [ "${PGPATH}" == "" ]; then
-            items=( 0 "Bootstrap" )
+            items=( "Tools" "Bootstrap" )
         else
             items=( "Tools" "Update Tools" \
                     "CLIs" "Install/Update CLI..." \
