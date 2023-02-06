@@ -262,6 +262,7 @@ function ensure_docker() {
 
       # Allow insecure registries
       # FIXME: check if already configured. If not merge not replace
+      sudo mkdir -p /etc/docker
       sudo touch /etc/docker/daemon.json && \
         sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.backup && \
         echo '{"insecure-registries": ["172.250.255.1","172.250.255.2","172.250.255.3","172.250.255.4","172.250.255.5","172.250.255.1:5000","172.250.255.2:5000","172.250.255.3:5000","172.250.255.4:5000","172.250.255.5:5000"]}' > /tmp/daemon.json && \
@@ -275,6 +276,7 @@ function ensure_docker() {
 
       # Allow insecure registries
       # FIXME: check if already configured. If not merge not replace
+      sudo mkdir -p /etc/docker
       sudo touch /etc/docker/daemon.json && \
         sudo cp /etc/docker/daemon.json /etc/docker/daemon.json.backup && \
         echo '{"insecure-registries": ["172.250.255.1","172.250.255.2","172.250.255.3","172.250.255.4","172.250.255.5","172.250.255.1:5000","172.250.255.2:5000","172.250.255.3:5000","172.250.255.4:5000","172.250.255.5:5000"]}' > /tmp/daemon.json && \
