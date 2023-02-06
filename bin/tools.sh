@@ -42,6 +42,11 @@ function ensure_essentials() {
   fi
 }
 
+function ensure_terraform() {
+
+  sudo apt-get update && sudo apt-get install -y terraform
+}
+
 function ensure_docker() {
   # docker
   printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for docker"
@@ -244,7 +249,7 @@ function ensure_krew() {
         KREW="krew-${OS}_${ARCH}" &&
         curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
         tar zxvf "${KREW}.tar.gz" &&
-        ./"${KREW}" install krew
+        ./$KREW install krew
       rm -f "${KREW}.tar.gz" ./krew-*
       if [[ ":$PATH:" == *":$HOME/.krew/bin:"* ]]; then
         echo '~/.krew/bin already in $PATH'
