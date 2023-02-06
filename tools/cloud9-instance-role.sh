@@ -11,8 +11,8 @@ AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document |
 test -n "$AWS_REGION" && echo AWS_REGION is "$AWS_REGION" || echo AWS_REGION is not set
 
 # Let’s save these into bash_profile
-echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a ~/.bash_profile
-echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
+echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ~/.bash_profile
+echo "export AWS_REGION=${AWS_REGION}" >> ~/.bash_profile
 aws configure set default.region ${AWS_REGION}
 
 # Next, we define some names:
@@ -42,10 +42,20 @@ aws iam add-role-to-instance-profile --role-name ${ROLE_NAME} --instance-profile
 # Which the following commands, we grant our Cloud9 instance the priviliges to manage an EKS cluster.
 # Query the instance ID of our Cloud9 environment
 INSTANCE_ID=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.instanceId')
+
 # Attach the IAM role to an existing EC2 instance
 echo Waiting 10 seconds
 sleep 10
-aws ec2 associate-iam-instance-profile --instance-id ${INSTANCE_ID} --iam-instance-profile Name=${INSTANCE_PROFILE_NAME}
+
+ASSOCIATION_ID=$(aws ec2 describe-iam-instance-profile-associations | \
+  jq -r --arg iid "$INSTANCE_ID" '.IamInstanceProfileAssociations[] | select(.InstanceId | contains($iid)) | .AssociationId' )
+if [ "$ASSOCIATION_ID" != "" ]; then
+  echo Replacing current accsociation
+  aws ec2 replace-iam-instance-profile-association --association-id ${ASSOCIATION_ID} --iam-instance-profile Name=${INSTANCE_PROFILE_NAME}
+else
+  echo Assigning association
+  aws ec2 associate-iam-instance-profile --instance-id ${INSTANCE_ID} --iam-instance-profile Name=${INSTANCE_PROFILE_NAME}
+fi
 
 # To ensure temporary credentials aren’t already in place we will also remove any existing credentials file:
 rm -vf ${HOME}/.aws/credentials

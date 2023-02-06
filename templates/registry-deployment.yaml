@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: ${SERVICE_NAME}
-        image: registry:2.6.2
+        image: registry:2
         ports:
         - containerPort: ${SERVICE_PORT}
         volumeMounts:

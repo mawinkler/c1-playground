@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./deploy-registry.sh test
+  . $PGPATH/bin/deploy-registry.sh test
 }
 
 @test "delete registry | expect service gone" {

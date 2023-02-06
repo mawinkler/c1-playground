@@ -101,11 +101,6 @@ RUN \
 #     chmod +x stern && \
 #     mv stern /usr/local/bin/stern && \
 #     \
-#     # Kubebox
-#     curl -Lo kubebox https://github.com/astefanutti/kubebox/releases/download/v0.9.0/kubebox-linux && \
-#     chmod +x kubebox && \
-#     mv kubebox /usr/local/bin/kubebox && \
-#     \
 #     # Cleanup
 #     rm -rf /var/lib/apt/list/*
 

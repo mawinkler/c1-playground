@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./deploy-registry.sh test
+  . $PGPATH/bin/deploy-registry.sh test
 }
 
 @test "deploy registry | expect service available" {

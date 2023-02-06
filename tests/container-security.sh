@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./deploy-container-security.sh test
+  . $PGPATH/bin/deploy-container-security.sh test
 }
 
 @test "deploy container-security | expect service(s) available" {

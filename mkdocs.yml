@@ -1,0 +1,74 @@
+site_name: Playground Simplicity
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Built-in Cluster: getting-started/kind-simplicity.md
+    - Managed Clusters: getting-started/managed-simplicity.md
+    - Configuration: getting-started/configuration-simplicity.md
+  - Clusters: clusters.md
+  - Deployments: deployments.md
+  - Add-On Documentation:
+    - Cilium: add-ons/cilium.md
+    - Container Security: add-ons/container-security.md
+    - Falco: add-ons/falco.md
+    - Gatekeeper: add-ons/gatekeeper.md
+    - Harbor: add-ons/harbor.md
+    - Istio: add-ons/istio.md
+    - Krew: add-ons/krew.md
+    - Kubescape: add-ons/kubescape.md
+    - Open Policy Agent: add-ons/opa.md
+    - Prometheus & Grafana: add-ons/prometheus-grafana.md
+    - Registry: add-ons/registry.md
+    - Starboard: add-ons/starboard.md
+    - Jenkins: add-ons/jenkins.md
+    - GitLab: add-ons/gitlab.md
+  - Play with the Playground:
+    - On Linux: play/on-linux.md
+    - With Falco: play/with-falco.md
+    - Demo Scripts: play/scripts.md
+  - Experimenting:
+    - Pipelining on AWS: experimenting/pipelining-on-aws.md
+    - Deploy from private registries: experimenting/deploy-from-private-registry.md
+    - Migrate to a Private Registry: experimenting/migrate.md
+theme:
+  features:
+  #   - navigation.tabs
+    - content.tabs.link
+  # favicon: images/kubecon_logo.jpeg
+  palette:
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  name: material
+#   # logo: 'images/kubecon_logo.jpeg'
+extra_css:
+    - css/extra.css
+# extra:
+#   social:
+#     - icon: fontawesome/brands/twitter
+#       link: https://twitter.com/cloudnativeca
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - footnotes
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences 
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      # slugify: !!python/object/apply:pymdownx.slugs.slugify
+      #   kwds:
+      #     case: lower
+      alternate_style: true 
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true

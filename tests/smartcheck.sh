@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./deploy-smartcheck.sh test
+  . $PGPATH/bin/deploy-smartcheck.sh test
 }
 
 @test "deploy smartcheck | expect service(s) available" {

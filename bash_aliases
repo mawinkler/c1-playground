@@ -14,6 +14,10 @@ alias keti='kubectl exec -it'$@
 alias kshell='kubectl run -it --image=ubuntu kshell --restart=Never --labels=kshell=true --rm -- /bin/bash'$@
 alias kgimg='kubectl get pods -o jsonpath="{..image}" | tr -s "[[:space:]]" "\n" | sort -u'
 
+# json<>yaml
+alias jy='yq e -P <'$@
+alias yj='yq -o=json '$@
+
 # aliases
 alias k='kubectl'
 alias ksys='kubectl --namespace=kube-system'

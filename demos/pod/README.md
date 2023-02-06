@@ -1,6 +1,6 @@
 # Usage
 
-> Note: Docker hub credentials are required
+> ***Note:*** Docker hub credentials are required
 
 Adapt the DOCKER_USERNAME in the script `publish.sh` if needed. Then run
 

@@ -1,0 +1,4 @@
+FROM docker:dind
+
+COPY ${REGISTRY}.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates

@@ -1,0 +1,146 @@
+# Default configuration for Playground Simplicity
+#
+# You need to adapt the values marked with CHANGEME to your own needs.
+# If you change any value which has no documentation you do this at your risk.
+
+## CHANGEME: Name of your cluster
+##
+## Name must be alphanumeric, can contain "." and "_" but no spaces
+cluster_name: playground
+
+## Service definitions
+services:
+
+  - name: cloudone
+    instance: cloudone
+
+    ## CHANGEME: The Cloud One Region to use
+    ##
+    ## Examples: trend-us-1, us-1, de-1, ...
+    region: trend-us-1
+
+    ## CHANGEME: The Cloud One API Key
+    ##
+    ## Default value: (none)
+    api_key:
+
+  - name: container_security
+    namespace: trendmicro-system
+
+    ## CHANGEME: The Container Security Policy Name
+    ##
+    ## Name must be alphanumeric, can contain "." and "_" but no spaces
+    policy_name: relaxed_playground
+
+  - name: smartcheck
+    namespace: trendmicro-smartcheck
+    username: admin
+    password: trendmicro
+    hostname: smartcheck
+    reg_username: admin
+    reg_password: trendmicro
+    reg_hostname: smartcheck-registry
+    proxy_service_name: proxy
+    proxy_service_port: "443"
+    proxy_listen_port: "8443"
+
+  - name: playground-registry
+    namespace: registry
+    size: 10Gi
+    port: "5000"
+    username: admin
+    password: trendmicro
+    hostname: playground-registry
+
+  - name: grafana
+    namespace: prometheus
+    username: admin
+    password: trendmicro
+    hostname: grafana
+    proxy_service_name: prometheus-grafana
+    proxy_service_port: "80"
+    proxy_listen_port: "8080"
+
+  - name: prometheus
+    namespace: prometheus
+    username: admin
+    password: trendmicro
+    hostname: prometheus
+    proxy_service_name: prometheus-kube-prometheus-prometheus
+    proxy_service_port: "9090"
+    proxy_listen_port: "8081"
+
+  - name: falco
+    namespace: falco
+    hostname: falco
+    proxy_service_name: falco-falcosidekick-ui
+    proxy_service_port: "2802"
+    proxy_listen_port: "8082"
+
+  - name: trivy
+    namespace: trivy
+
+  - name: starboard
+    namespace: starboard
+
+  - name: opa
+    namespace: opa
+
+  - name: kube-system
+    namespace: kube-system
+
+  - name: gatekeeper
+    namespace: gatekeeper-system
+
+  - name: cadvisor
+    namespace: cadvisor
+
+  - name: harbor
+    namespace: harbor
+    common_name: 172.250.255.5
+    admin_password: trendmicro
+    reg_username: admin
+    reg_password: trendmicro
+    reg_htpasswd: admin:$2y$10$lA2oNWrQ0WEvIzRs/1FxiOIzmW0GA1s8wjXHYa7C.Dsw0/8z47u8u
+    proxy_service_name: harbor
+    proxy_service_port: "443"
+    proxy_listen_port: "8085"
+
+  - name: pipeline
+    ## Pipeline support is in beta stage and for AWS only.
+    ## If you want to play with it you need to adapt at least the marked values to your needs.
+
+    ## GitHub User Account to pull from
+    ##
+    ## Default: mawinkler
+    github_username: mawinkler
+
+    ## GitHub User e-Mail account to use
+    ##
+    ## Default: winkler.info@icloud.com
+    github_email: winkler.info@icloud.com
+
+    ## GitHub Repo to pull
+    ##
+    ## Default: c1-app-sec-uploader
+    github_project: c1-app-sec-uploader
+
+    ## CHANGEME: Docker Username
+    ##
+    ## Default: null
+    docker_username:
+
+    ## CHANGEME: Docker Password
+    ##
+    ## Default: null
+    docker_password:
+
+    ## CHANGEME: Application Security Group Key
+    ##
+    ## Default: null
+    appsec_key:
+
+    ## CHANGEME: Application Security Group Secret
+    ##
+    ## Default: null
+    appsec_secret:

@@ -31,7 +31,7 @@
 #   Block - attempts to execute in/attach to a container
 #   Log - attempts to establish port-forward on a container
 
-. ./demos/third_party/demo-magic/demo-magic.sh
+. $PGPATH/demos/third_party/demo-magic/demo-magic.sh
 
 # demo-magic
 TYPE_SPEED=50
@@ -39,7 +39,7 @@ PROMPT_TIMEOUT=3
 DEMO_PROMPT="${GREEN}➜ ${CYAN}\W "
 
 # Source helpers
-. ./playground-helpers.sh
+. $PGPATH/bin/playground-helpers.sh
 
 # get registry parameters
 get_registry_credentials
@@ -72,7 +72,7 @@ p "${GREEN}# Let me check his mail again..."
 wait
 
 p "mail"
-cat ./demos/logs/mail.txt
+cat $PGPATH/demos/logs/mail.txt
 wait
 wait
 wait
@@ -85,10 +85,10 @@ p "${GREEN}# As being told, I should not use latest so I go for the version 1.21
 wait
 
 NO_WAIT=false
-pe "./scan-image.sh -s nginx:1.21.6"
+pe "$PGPATH/scan-image.sh -s nginx:1.21.6"
 # wait
-# cat ./demos/logs/scan.json | jq .
-# /bin/bash -c "./scan-image.sh -s nginx:1.21.6"
+# cat $PGPATH/demos/logs/scan.json | jq .
+# /bin/bash -c "$PGPATH/scan-image.sh -s nginx:1.21.6"
 echo
 
 NO_WAIT=true

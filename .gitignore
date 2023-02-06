@@ -9,25 +9,27 @@ log/*
 
 # Config
 config.json
+config.yaml
 config.json-prod
 config.json-dev
 services
+env.sh
 
 # Cloud One
 cloud-one/api_key
 cloud-one/c1_url
 
 # GCP
-rapid-gke-down.sh
+bin/rapid-gke-down.sh
 service-gcrsvc_keyfile.json
 
 # Azure
-rapid-aks-down.sh
+bin/rapid-aks-down.sh
 
 # AWS
-rapid-eks-down.sh
+bin/rapid-eks-down.sh
 aws-iam-authenticator
-pipeline-aws-down.sh
+bin/pipeline-aws-down.sh
 
 # Migrate
 migrate/migrated/*.yaml
@@ -55,4 +57,6 @@ archive
 # Pipeline
 aws
 c1-app-sec-uploader
-.teardown.sh
+bin/.teardown.sh
+site
+docs-20221124

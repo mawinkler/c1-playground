@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /root
-. ./demo/demo-magic.sh
+. $PGPATH/demo/demo-magic.sh
 
 # demo-magic
 TYPE_SPEED=50

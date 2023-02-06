@@ -28,6 +28,9 @@ service:
   ## httpPort is the port where the service will listen for HTTP requests.
   ## The service will automatically redirect all HTTP requests to HTTPS.
   httpPort: 80
+# nodeSelector:
+#   defaults:
+#     region: us
 networkPolicy:
   enabled: true
   additionalWebhookTargetPorts:

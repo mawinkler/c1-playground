@@ -26,16 +26,17 @@ cloudOne:
     ## List of namespaces for which Deploy and Continuous feature will not trigger events.
     namespaces:
     - kube-system
-    - calico-system
-    - tigera-operator
-    - smartcheck
-    - container-security
+    - trendmicro-smartcheck
+    - trendmicro-system
+    # - calico-system
+    # - tigera-operator
     # - kube-node-lease
     # - kube-public
-    - prometheus
-    - trivy
-    - falco
-    - starboard
+    # - prometheus
+    # - trivy
+    # - falco
+    # - starboard
+
 # proxy:
 #   httpProxy: 172.17.0.1:3128
 #   httpsProxy: 172.17.0.1:3128

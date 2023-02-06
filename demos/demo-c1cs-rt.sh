@@ -10,7 +10,7 @@
 # Error Ruleset
 #   Log - TM-00000010 - (T1543)Launch Package Management Process in Container
 
-. ./demos/third_party/demo-magic/demo-magic.sh
+. $PGPATH/demos/third_party/demo-magic/demo-magic.sh
 
 # demo-magic
 TYPE_SPEED=50
@@ -18,7 +18,7 @@ PROMPT_TIMEOUT=3
 DEMO_PROMPT="${GREEN}➜ ${CYAN}\W "
 
 # Source helpers
-. ./playground-helpers.sh
+. $PGPATH/playground-helpers.sh
 
 # get registry parameters
 get_registry_credentials

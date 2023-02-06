@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./deploy-falco.sh test
+  . $PGPATH/bin/deploy-falco.sh test
 }
 
 @test "delete falco deployment | expect deployment gone" {

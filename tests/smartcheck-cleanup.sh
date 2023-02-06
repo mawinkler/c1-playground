@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  . ./deploy-smartcheck.sh test
+  . $PGPATH/bin/deploy-smartcheck.sh test
 }
 
 @test "delete smartcheck deployment | expect deployment gone" {
