@@ -73,7 +73,7 @@
             "service_port": "8080",
             "agent_port": "50000",
             "volume_data": "jenkins-data",
-            "volume_docker_certs": "jenkins-docker-certs",
+            "volume_docker_certs": "jenkins-docker-certs"
         },
         {
             "name": "gitlab",
