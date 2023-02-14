@@ -66,3 +66,6 @@ docs-20221124
 .terraform*
 terraform.*
 frankfurt-region-key-pair*
+
+# Sentry
+sentry-reports*
