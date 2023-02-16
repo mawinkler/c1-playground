@@ -2,7 +2,7 @@ registry:
   ## Enable the built-in registry for pre-registry scanning.
   ##
   ## Default value: false
-  enabled: true
+  enabled: false
     ## Authentication for the built-in registry
   auth:
     ## User name for authentication to the registry

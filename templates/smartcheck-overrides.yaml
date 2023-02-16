@@ -72,3 +72,6 @@ malwareScan:
 #     tag: 1.2.76
 #     pullPolicy: Always
 #     imagePullSecret: regcred
+#   registry:
+#     repository: registry
+#     digest: sha256:eff8f510098b5b8ebc422dcf9ca051c35fcea62817df9bdc575af65cdbc96117
