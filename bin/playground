@@ -68,6 +68,7 @@ function menu_main() {
         else
             items=( "Tools" "Update Tools" \
                     "CLIs" "Install/Update CLI..." \
+                    "Authenticate" "Authenticate to CSP..." \
                     "Create" "Create a Cluster..." \
                     "Deploy" "Deploy Services..." \
                     "Delete" "(Danger Zone) Delete Services..." \
@@ -116,6 +117,9 @@ function menu_main() {
                 ;;
             "CLIs")
                 menu_cli
+                ;;
+            "Authenticate")
+                menu_authenticate
                 ;;
             "Create")
                 if [ -f $PGPATH/config.json ]; then
@@ -249,6 +253,58 @@ function menu_cli() {
                 ;;
             "GCP")
                 clear
+                ;;
+            *) 
+                ;;
+        esac
+    done
+}
+
+function menu_authenticate() {
+
+    # exec 3>&1
+    items=("AWS" "Authenticate to AWS" \
+           "Azure" "Authenticate to Azure" \
+           "GCP" "Authenticate to GCP")
+    TITLE="Authenticate to CSP"
+    check_k8s
+    BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                    --backtitle "${BACKTITLE}" \
+                    --cancel-label "Back" \
+                    --separate-widget "Widget" \
+                    --menu "Please select" ${HEIGHT} ${WIDTH} 4 "${items[@]}" \
+                    2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
+            "AWS")
+                clear
+                aws configure
+                sleep 3
+                ;;
+            "Azure")
+                clear
+                az login --scope https://management.core.windows.net//.default --use-device-code
+                sleep 3
+                ;;
+            "GCP")
+                clear
+                gcloud auth login --no-launch-browser
+                sleep 3
                 ;;
             *) 
                 ;;

@@ -39,11 +39,11 @@ playground
 
 from anywhere in your terminal.
 
-Now, choose the option `Install/Update CLI...` --> `AWS`.
+Now, choose the option `Install/Update CLI...` --> `AWS CLI`, `Azure CLI`, or `GCP CLI`.
 
-Finally, create your EKS cluster by choosing `Create Cluster...` --> `Elastic Kubernetes Cluster`.
+Next, you need to ensure that your CLI is authenticated. Do this via the option `Authenticate to CSP...` and follow the instructions.
 
-> ***Note:*** If you want to use AKS or GKE install the CLIs, authenticate to your cloud account on the terminal and choose the corresponding cluster type.
+Finally, create your cluster by choosing `Create Cluster...` --> `EKS`, `AKS`, or `GKE`.
 
 ## Cloud9
 
@@ -90,8 +90,10 @@ playground
 
 from anywhere in your terminal.
 
-Now, choose the option `Install/Update CLI...` --> `AWS`.
+Now, choose the option `Install/Update CLI...` --> `AWS CLI`, `Azure CLI`, or `GCP CLI`.
 
-Finally, create your EKS cluster by choosing `Create Cluster...` --> `Elastic Kubernetes Cluster`.
+If you're going to use EKS, you don't need to do anything additionally before creating the EKS cluster.
 
-> ***Note:*** If you want to use AKS or GKE install the CLIs, authenticate to your cloud account on the terminal and choose the corresponding cluster type.
+In the case of AKS or GKE, you need to authenticate to Azure or GCP first. To authenticate to your CSP choose the option `Authenticate to CSP...` and follow the instructions.
+
+Finally, create your cluster by choosing `Create Cluster...` --> `EKS`, `AKS`, or `GKE`.
