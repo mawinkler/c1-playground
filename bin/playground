@@ -71,6 +71,7 @@ function menu_main() {
                     "Authenticate" "Authenticate to CSP..." \
                     "Create" "Create a Cluster..." \
                     "Deploy" "Deploy Services..." \
+                    "Clusters" "Select Cluster Context..." \
                     "Delete" "(Danger Zone) Delete Services..." \
                     "Kill" "(Danger Zone) Tear Down Cluster" \
                     "Status" "Namespaces, LoadBalancers, Deployments & DaemonSets" \
@@ -133,6 +134,9 @@ function menu_main() {
                 ;;
             "Deploy")
                 menu_deploy
+                ;;
+            "Clusters")
+                menu_select_context
                 ;;
             "Delete")
                 menu_delete || true
@@ -375,6 +379,48 @@ function menu_create_cluster() {
     done
 }
 
+function menu_select_context() {
+
+    # exec 3>&1
+
+    items=($(kubectl config get-contexts -o name | \
+        awk -v current=$(kubectl config current-context) '
+            BEGIN{i=0}{
+                onoff="off"
+                if (current == $0) onoff="on"
+                printf("%s %s %s\n", $0, onoff, onoff)
+            }
+        '))
+
+    TITLE="Select a Context"
+    check_k8s
+    BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                    --backtitle "${BACKTITLE}" \
+                    --cancel-label "Back" \
+                    --separate-widget "Widget" \
+                    --radiolist "Please select" ${HEIGHT} ${WIDTH} 4 "${items[@]}" \
+                    2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        kubectl config use-context $choice
+        break
+    done
+}
+
 function menu_deploy() {
 
     # exec 3>&1
@@ -554,6 +600,7 @@ function menu_delete() {
         esac
     done
 }
+
 
 get_editor
 while true
