@@ -34,7 +34,7 @@ Example:
 
 ***Cloud9***
 
-See: [Access Smart Check (Cloud9)](./add-on-container-security.md#access-smart-check), but use the `proxy_listen_port`s configured in your config.json (default: 8082) and choose Source Anywhere. Don't forget to check your inbound rules to allow the port.
+See: [Access Smart Check (Cloud9)](./container-security.md#access-smart-check), but use the `proxy_listen_port`s configured in your config.json (default: 8082) and choose Source Anywhere. Don't forget to check your inbound rules to allow the port.
 
 Alternatively, you can get the configured port for the service with `cat services`.
 

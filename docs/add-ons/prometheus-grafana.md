@@ -7,7 +7,7 @@ By running `deploy-prometheus-grafana.sh` you'll get a fully functional and prec
 The following additional scrapers are configured:
 
 - [api-collector](https://github.com/mawinkler/api-collector)
-- [Falco](./add-on-falco.md)
+- [Falco](./falco.md)
 - smartcheck-metrics
 
 ## Access
@@ -26,7 +26,7 @@ Example:
 
 ***Cloud9***
 
-See: [Access Smart Check (Cloud9)](./add-on-container-security.md#access-smart-check), but use the `proxy_listen_port`s configured in your config.json (default: 8080 (grafana) and 8081 (prometheus)) and choose Source Anywhere. Don't forget to check your inbound rules to allow these ports.
+See: [Access Smart Check (Cloud9)](./container-security.md#access-smart-check), but use the `proxy_listen_port`s configured in your config.json (default: 8080 (grafana) and 8081 (prometheus)) and choose Source Anywhere. Don't forget to check your inbound rules to allow these ports.
 
 Alternatively, you can get the configured port for the service with `cat services`.
 
