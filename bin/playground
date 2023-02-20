@@ -454,6 +454,7 @@ function menu_select_context() {
             }
         '))
 
+    touch $PGPATH/services
     cp $PGPATH/services $PGPATH/services-$(kubectl config current-context)
 
     TITLE="Select a Context"

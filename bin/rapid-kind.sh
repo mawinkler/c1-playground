@@ -126,8 +126,6 @@ function create_load_balancer() {
     printf '%s' "."
   done
   printf '\n'
-  # printf '%s\n' "Waiting 5 more seconds for calico to be ready"
-  # sleep 5
 
   printf '%s' "Waiting for metallb to be ready"
   for i in {1..600} ; do
@@ -141,8 +139,10 @@ function create_load_balancer() {
     printf '%s' "."
   done    
   printf '\n'
+  printf '%s\n' "Load balancer address pool ${ADDRESS_POOL}"
   ADDRESS_POOL=${ADDRESS_POOL} \
     envsubst <$PGPATH/templates/kind-load-balancer-addresspool.yaml | kubectl apply -f - -o yaml
+  echo kind-load-balancer-addresspool.yaml
   envsubst <$PGPATH/templates/kind-load-balancer-l2adv.yaml | kubectl apply -f - -o yaml
 
   printf '%s\n' "Load balancer created 🍹"
