@@ -12,7 +12,7 @@ config.json
 config.yaml
 config.json-prod
 config.json-dev
-services
+services*
 env.sh
 
 # Cloud One

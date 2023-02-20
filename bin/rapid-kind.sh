@@ -126,12 +126,21 @@ function create_load_balancer() {
     printf '%s' "."
   done
   printf '\n'
-  printf '%s\n' "Waiting 5 more seconds for calico to be ready"
-  sleep 5
+  # printf '%s\n' "Waiting 5 more seconds for calico to be ready"
+  # sleep 5
 
-  ADDRESS_POOL=$(kubectl get nodes -o json | \
-    jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | \
-    sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|')
+  printf '%s' "Waiting for metallb to be ready"
+  for i in {1..600} ; do
+    sleep 2
+    ADDRESS_POOL=$(kubectl get nodes -o json | \
+      jq -r '.items[0].status.addresses[] | select(.type=="InternalIP") | .address' | \
+      sed -r 's|([0-9]*).([0-9]*).*|\1.\2.255.1-\1.\2.255.250|' 2> /dev/null)
+    if [ "${ADDRESS_POOL}" != "" ] ; then
+      break
+    fi
+    printf '%s' "."
+  done    
+  printf '\n'
   ADDRESS_POOL=${ADDRESS_POOL} \
     envsubst <$PGPATH/templates/kind-load-balancer-addresspool.yaml | kubectl apply -f - -o yaml
   envsubst <$PGPATH/templates/kind-load-balancer-l2adv.yaml | kubectl apply -f - -o yaml
