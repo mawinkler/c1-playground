@@ -39,7 +39,7 @@ function ensure_bashrc() {
     touch $HOME/.bashrc
   fi
 
-  if [[ ":$PATH:" == *"c1-playground"* ]]; then
+  if [[ ":$PATH:" == *"playground"* ]]; then
     echo 'c1-playground already in $PATH'
   else
     echo 'adding c1-playground to $PATH'
@@ -85,9 +85,10 @@ function ensure_bashrc() {
 function ensure_playground() {
   # # Getting Playground repo
   if [ ! -d "c1-playground" ]; then
-    git clone --branch simplicity https://github.com/mawinkler/c1-playground.git
+    git clone https://github.com/mawinkler/c1-playground.git
   else
-    cd c1-playground
+    # cd c1-playground
+    cd ${PGPATH}
     git pull
     cd ..
   fi
