@@ -310,7 +310,7 @@ function get_registry_credentials() {
 # Arguments:
 #   None
 # Outputs:
-#   CLUSTER
+#   Cluster context
 #######################################
 function check_k8s() {
     if $(kubectl config current-context &>/dev/null); then
@@ -318,6 +318,27 @@ function check_k8s() {
     else
         CLUSTER="No Cluster"
     fi
+}
+
+#######################################
+# Checks a returned JSON response if
+# there is a message indicating a
+# failure.
+# Globals:
+#   None
+# Arguments:
+#   $1 JSON
+# Outputs:
+#   0: if there is no message
+#   message: if existant
+#######################################
+function check_response() {
+  CHECK_ERR=$(jq -r '.message' <<< $1)
+  if [ "${CHECK_ERR}" == "null" ]; then
+    return
+  fi
+  echo ${CHECK_ERR}
+  false
 }
 
 #######################################
@@ -342,10 +363,9 @@ function check_cloudone() {
   
   API_KEY=${API_KEY} envsubst <$PGPATH/templates/cloudone-header.txt >$PGPATH/overrides/cloudone-header.txt
   
-  RESPONSE=$(curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
-      --header @$PGPATH/overrides/cloudone-header.txt | jq -r '.message')
-  
-  if [ "${RESPONSE}" == "null" ]; then
+  local clusters=$(curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
+      --header @$PGPATH/overrides/cloudone-header.txt)
+  if check_response "$clusters" ; then
     return
   fi
   false

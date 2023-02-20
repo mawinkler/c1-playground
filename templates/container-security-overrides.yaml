@@ -28,8 +28,13 @@ cloudOne:
     - kube-system
     - trendmicro-smartcheck
     - trendmicro-system
-    # - calico-system
-    # - tigera-operator
+    - calico-system
+    - calico-apiserver
+    - registry
+    - metallb-system
+    - tigera-operator
+    - local-path-storage
+    - ingress-nginx
     # - kube-node-lease
     # - kube-public
     # - prometheus

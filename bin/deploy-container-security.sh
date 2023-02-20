@@ -52,10 +52,6 @@ function whitelist_namsspaces() {
   # whitelist some namespace for container security
   kubectl label namespace kube-system --overwrite ignoreAdmissionControl=true
   kubectl label namespace ${CS_NAMESPACE} --overwrite ignoreAdmissionControl=true
-  if ! is_gke && ! is_aks && ! is_eks ; then
-    kubectl label namespace local-path-storage --overwrite ignoreAdmissionControl=true
-    kubectl label namespace ingress-nginx --overwrite ignoreAdmissionControl=true
-  fi
 }
 
 #######################################
@@ -73,11 +69,15 @@ function whitelist_namsspaces() {
 #######################################
 function cluster_policy() {
   # query cluster policy
-  CS_POLICYID=$(
+  local policies=$(
     curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/policies' \
-    --header @$PGPATH/overrides/cloudone-header.txt |
-      jq -r --arg CS_POLICY_NAME "${CS_POLICY_NAME}" '.policies[] | select(.name==$CS_POLICY_NAME) | .id'
+    --header @$PGPATH/overrides/cloudone-header.txt
   )
+  if ! check_response "$policies" ; then
+    exit -1
+  fi
+  CS_POLICYID=$(jq -r --arg CS_POLICY_NAME "${CS_POLICY_NAME}" '.policies[] | select(.name==$CS_POLICY_NAME) | .id' <<< $policies)
+
   # create policy if not exist
   if [ "${CS_POLICYID}" == "" ]; then
     get_registry
@@ -85,7 +85,7 @@ function cluster_policy() {
 
     cluster_rulesets
 
-    RESULT=$(
+    local result=$(
       CS_POLICY_NAME=${CS_POLICY_NAME} \
         REGISTRY=${REGISTRY} \
         RULESETS_JSON=${RULESETS_JSON} \
@@ -94,7 +94,7 @@ function cluster_policy() {
           --header @$PGPATH/overrides/cloudone-header.txt \
           --data-binary "@-"
     )
-    CS_POLICYID=$(echo ${RESULT} | jq -r ".id")
+    CS_POLICYID=$(jq -r ".id" <<< ${result})
     printf '%s\n' "Policy with id ${CS_POLICYID} created"
   else
     printf '%s\n' "Reusing cluster policy with id ${CS_POLICYID}"
@@ -120,21 +120,24 @@ function cluster_rulesets() {
   for ruleset in info notice warning critical error ; do
     # query cluster policy
     CS_RULESET_NAME=${CS_POLICY_NAME}_${ruleset}
-    CS_RULESETID=$(
+    local rulesets=$(
       curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/rulesets' \
-      --header @$PGPATH/overrides/cloudone-header.txt |
-        jq -r --arg CS_RULESET_NAME "${CS_RULESET_NAME}" '.rulesets[] | select(.name==$CS_RULESET_NAME) | .id'
+      --header @$PGPATH/overrides/cloudone-header.txt
     )
+    if ! check_response "$rulesets" ; then
+      exit -1
+    fi
+    CS_RULESETID=$(jq -r --arg CS_RULESET_NAME "${CS_RULESET_NAME}" '.rulesets[] | select(.name==$CS_RULESET_NAME) | .id' <<< $rulesets)
     # create policy if not exist
     if [ "${CS_RULESETID}" == "" ]; then
-      RESULT=$(
+      local result=$(
         CS_RULESET_NAME=${CS_RULESET_NAME} \
           envsubst <$PGPATH/templates/container-security-ruleset-${ruleset}.json | \
             curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/rulesets' \
             --header @$PGPATH/overrides/cloudone-header.txt \
             --data-binary "@-"
       )
-      CS_RULESETID=$(echo ${RESULT} | jq -r ".id")
+      CS_RULESETID=$(jq -r ".id" <<< $result)
       printf '%s\n' "Ruleset with id ${CS_RULESETID} created"
     else
       printf '%s\n' "Reusing ruleset with id ${CS_RULESETID}"
@@ -161,28 +164,17 @@ function cluster_rulesets() {
 #   CS_CLUSTERID
 #######################################
 function create_cluster_object() {
-  # CLUSTER_ID=$(
-  #   curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
-  #   --header @$PGPATH/overrides/cloudone-header.txt | \
-  #   jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.clusters[] | select(.name==$CLUSTER_NAME) | .id'
-  # )
-  # if [ "${CLUSTER_ID}" != "" ] && \
-  #    [ -f "$PGPATH/overrides/container-security-overrides.yaml" ] && \
-  #    [ -f "$PGPATH/overrides/container-security-overrides-image-security-bind.yaml" ]; then
-  #   printf '%s\n' "Reusing cluster object with id ${CLUSTER_ID}"
-  # else
-    printf '%s\n' "Create cluster object"
-    RESULT=$(
-      CLUSTER_NAME=${CLUSTER_NAME//-/_}_$(openssl rand -hex 4) \
-        CS_POLICYID=${CS_POLICYID} \
-        envsubst <$PGPATH/templates/container-security-cluster-object.json |
-          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
-          --header @$PGPATH/overrides/cloudone-header.txt \
-          --data-binary "@-"
-    )
-    API_KEY_ADMISSION_CONTROLLER=$(echo ${RESULT} | jq -r ".apiKey")
-    CS_CLUSTERID=$(echo ${RESULT} | jq -r ".id")
-  # fi
+  printf '%s\n' "Create cluster object"
+  local result=$(
+    CLUSTER_NAME=${CLUSTER_NAME//-/_}_$(openssl rand -hex 4) \
+      CS_POLICYID=${CS_POLICYID} \
+      envsubst <$PGPATH/templates/container-security-cluster-object.json |
+        curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/clusters' \
+        --header @$PGPATH/overrides/cloudone-header.txt \
+        --data-binary "@-"
+  )
+  API_KEY_ADMISSION_CONTROLLER=$(jq -r ".apiKey" <<< $result)
+  CS_CLUSTERID=$(jq -r ".id" <<< $result)
 }
 
 #######################################
@@ -199,18 +191,11 @@ function create_cluster_object() {
 #######################################
 function deploy_container_security() {
   ## deploy container security
-  # if [ -f "$PGPATH/overrides/container-security-overrides.yaml" ] ; then
-  #   printf '%s\n' "Reusing cluster existing cluster overrides"
-  # elif [ "${API_KEY_ADMISSION_CONTROLLER}" == "" ] ; then
-  #   printf '%s\n' "Missing container security api key"
-  #   exit 0
-  # else
-    API_KEY_ADMISSION_CONTROLLER=${API_KEY_ADMISSION_CONTROLLER} \
-      REGION=${REGION} \
-      INSTANCE=${INSTANCE} \
-      DEPLOY_RT=${DEPLOY_RT} \
-      envsubst <$PGPATH/templates/container-security-overrides.yaml >$PGPATH/overrides/container-security-overrides.yaml
-  # fi
+  API_KEY_ADMISSION_CONTROLLER=${API_KEY_ADMISSION_CONTROLLER} \
+    REGION=${REGION} \
+    INSTANCE=${INSTANCE} \
+    DEPLOY_RT=${DEPLOY_RT} \
+    envsubst <$PGPATH/templates/container-security-overrides.yaml >$PGPATH/overrides/container-security-overrides.yaml
 
   printf '%s\n' "(Re-)deploy container security"
   curl -s -L https://github.com/trendmicro/cloudone-container-security-helm/archive/master.tar.gz -o $PGPATH/master-cs.tar.gz
