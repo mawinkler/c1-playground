@@ -8,8 +8,10 @@ set -e
 # Get config
 CLUSTER_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
 PROMETHEUS_HOSTNAME="$(jq -r '.services[] | select(.name=="prometheus") | .hostname' $PGPATH/config.json)"
+PROMETHEUS_SERVICE_PORT="$(jq -r '.services[] | select(.name=="prometheus") | .proxy_service_port' $PGPATH/config.json)"
 PROMETHEUS_LISTEN_PORT="$(jq -r '.services[] | select(.name=="prometheus") | .proxy_listen_port' $PGPATH/config.json)"
 GRAFANA_HOSTNAME="$(jq -r '.services[] | select(.name=="grafana") | .hostname' $PGPATH/config.json)"
+GRAFANA_SERVICE_PORT="$(jq -r '.services[] | select(.name=="grafana") | .proxy_service_port' $PGPATH/config.json)"
 GRAFANA_LISTEN_PORT="$(jq -r '.services[] | select(.name=="grafana") | .proxy_listen_port' $PGPATH/config.json)"
 GRAFANA_PASSWORD="$(jq -r '.services[] | select(.name=="grafana") | .password' $PGPATH/config.json)"
 NAMESPACE="$(jq -r '.services[] | select(.name=="prometheus") | .namespace' $PGPATH/config.json)"
@@ -139,9 +141,35 @@ if is_linux; then
     done   
     printf '\n'
     
-    echo "Prometheus: http://${PROMETHEUS_HOSTNAME}:9090" | tee -a $PGPATH/services
+    echo "Prometheus: http://${PROMETHEUS_HOSTNAME}:${PROMETHEUS_SERVICE_PORT}" | tee -a $PGPATH/services
     echo | tee -a $PGPATH/services
-    echo "Grafana: http://${GRAFANA_HOSTNAME}" | tee -a $PGPATH/services
+    echo "Grafana: http://${GRAFANA_HOSTNAME}:${GRAFANA_SERVICE_PORT}" | tee -a $PGPATH/services
+    echo "  U/P: admin / ${GRAFANA_PASSWORD}" | tee -a $PGPATH/services
+    echo | tee -a $PGPATH/services
+  fi
+  if [[ $(kubectl config current-context) =~ gke_.*|aks-.* ]]; then
+    printf '%s' "Waiting for load balancers to be ready"
+    for i in {1..600} ; do
+      sleep 2
+      PROMETHEUS_HOSTNAME=$(kubectl get svc -n prometheus prometheus-kube-prometheus-prometheus -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+      if [ "${PROMETHEUS_HOSTNAME}" != "" ] ; then
+        break
+      fi
+      printf '%s' "."
+    done
+    for i in {1..600} ; do
+      sleep 2
+      GRAFANA_HOSTNAME=$(kubectl get svc -n prometheus prometheus-grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+      if [ "${GRAFANA_HOSTNAME}" != "" ] ; then
+        break
+      fi
+      printf '%s' "."
+    done   
+    printf '\n'
+    
+    echo "Prometheus: http://${PROMETHEUS_HOSTNAME}:${PROMETHEUS_SERVICE_PORT}" | tee -a $PGPATH/services
+    echo | tee -a $PGPATH/services
+    echo "Grafana: http://${GRAFANA_HOSTNAME}:${GRAFANA_SERVICE_PORT}" | tee -a $PGPATH/services
     echo "  U/P: admin / ${GRAFANA_PASSWORD}" | tee -a $PGPATH/services
     echo | tee -a $PGPATH/services
   fi
