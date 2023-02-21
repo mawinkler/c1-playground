@@ -119,6 +119,32 @@ if is_linux; then
     echo "  U/P: admin / ${GRAFANA_PASSWORD}" | tee -a $PGPATH/services
     echo | tee -a $PGPATH/services
   fi
+  if [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
+    printf '%s' "Waiting for load balancers to be ready"
+    for i in {1..600} ; do
+      sleep 2
+      PROMETHEUS_HOSTNAME=$(kubectl get svc -n prometheus prometheus-kube-prometheus-prometheus -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+      if [ "${PROMETHEUS_HOSTNAME}" != "" ] ; then
+        break
+      fi
+      printf '%s' "."
+    done
+    for i in {1..600} ; do
+      sleep 2
+      GRAFANA_HOSTNAME=$(kubectl get svc -n prometheus prometheus-grafana -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+      if [ "${GRAFANA_HOSTNAME}" != "" ] ; then
+        break
+      fi
+      printf '%s' "."
+    done   
+    printf '\n'
+    
+    echo "Prometheus: http://${PROMETHEUS_HOSTNAME}:9090" | tee -a $PGPATH/services
+    echo | tee -a $PGPATH/services
+    echo "Grafana: http://${GRAFANA_HOSTNAME}" | tee -a $PGPATH/services
+    echo "  U/P: admin / ${GRAFANA_PASSWORD}" | tee -a $PGPATH/services
+    echo | tee -a $PGPATH/services
+  fi
 fi
 if is_darwin; then
   SERVICE_TYPE='ClusterIP'
