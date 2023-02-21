@@ -2,7 +2,6 @@
 
 #######################################
 # Requirements:
-#   - ./tools.sh
 #   - If running on Cloud9:
 #     - tools/cloud9-resize.sh
 #     - tools/cloud9-instance-role.sh

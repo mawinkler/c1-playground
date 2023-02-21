@@ -7,8 +7,7 @@ Pipelining on AWS requires an EKS cluster, of course. So this pipeline does not 
 At a minimum, the following steps needs to be executed prior running the `deploy-pipeline-aws.sh`-script:
 
 ```sh
-# Playground tools
-./tools.sh
+# Playground needs to be bootstrapped
 
 # If running on Cloud9
 # Don't forget to turn off managed credentials in your Cloud9

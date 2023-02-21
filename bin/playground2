@@ -22,12 +22,9 @@ else
     sudo apt install -y dialog
 fi
 
-# Source helpers
-# $PGPATH/bin/playground-helpers.sh
-
 DIALOG_CANCEL=1
 DIALOG_ESC=255
-HEIGHT=18
+HEIGHT=12
 WIDTH=70
 
 # Define the dialog exit status codes
@@ -50,8 +47,6 @@ display_result() {
 
 #######################################
 # Main Menu
-# Globals:
-#   SC_NAMESPACE
 #######################################
 function menu_main() {
 
@@ -62,19 +57,10 @@ function menu_main() {
         if [ "${PGPATH}" == "" ]; then
             items=( "Tools" "Bootstrap" )
         else
-            items=( "Tools" "Update Tools" \
-                    "CLIs" "Install/Update CLI..." \
-                    "Authenticate" "Authenticate to CSP..." \
-                    "Create" "Create a Cluster..." \
-                    "Deploy" "Deploy Services..." \
-                    "Clusters" "Select Cluster Context..." \
-                    "Delete" "(Danger Zone) Delete Services..." \
-                    "Kill" "(Danger Zone) Tear Down Cluster..." \
-                    "Status" "Namespaces, LoadBalancers, Deployments & DaemonSets" \
-                    "Services" "Services, Addresses and Credentials" \
-                    "Disk Space" "Display Disk Space" \
-                    "Config" "Edit Configuration" \
-                    "Daemon" "Edit daemon.json" )
+            items=( "Tools" "Manage Tools and CSPs..." \
+                    "Clusters" "Manage Clusters..." \
+                    "Services" "Manage Services..." \
+                    "Config" "Manage Configuration..." )
         fi
             TITLE="Main Menu"
             check_k8s
@@ -103,12 +89,67 @@ function menu_main() {
         case $choice in
             "Tools")
                 clear
-                if [ -f $PGPATH/bin/bootstrap.sh ]; then
-                    .  $PGPATH/bin/bootstrap.sh
+                if [ -f "$PGPATH/.pghome" ]; then
+                    menu_tools
                 else
                     curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/bootstrap.sh -o /tmp/bootstrap.sh
                     . /tmp/bootstrap.sh ${CURRENT_PATH}
+                    result="Exit menu and logout from the shell.\n\nThen relogin or create a new shell before continuing."
+                    display_result "Important"
                 fi
+                ;;
+            "Clusters")
+                menu_clusters
+                ;;
+            "Services")
+                menu_services
+                ;;
+            "Config")
+                menu_config
+                ;;
+            *) ;; # some action on other
+        esac
+    done
+}
+
+#######################################
+# Tools Menu
+#######################################
+function menu_tools() {
+
+    # exec 3>&1
+
+    local items=( "Tools" "Update Tools & Playground" \
+            "CLIs" "Install/Update CLI..." \
+            "Authenticate" "Authenticate to CSP..." )
+    local TITLE="Tools Menu"
+    check_k8s
+    local BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                --backtitle "${BACKTITLE}" \
+                --cancel-label "Exit" \
+                --separate-widget "Widget" \
+                --menu "Please select" ${HEIGHT} ${WIDTH} 12 "${items[@]}" \
+                2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
+            "Tools")
+                clear
+                .  $PGPATH/bin/bootstrap.sh
                 result="Exit menu and logout from the shell.\n\nThen relogin or create a new shell before continuing."
                 display_result "Important"
                 ;;
@@ -118,6 +159,46 @@ function menu_main() {
             "Authenticate")
                 menu_authenticate
                 ;;
+            *) ;; # some action on other
+        esac
+    done
+}
+
+#######################################
+# Clusters Menu
+#######################################
+function menu_clusters() {
+
+    # exec 3>&1
+
+    local items=( "Create" "Create a Cluster..." \
+            "Clusters" "Select Cluster Context..." \
+            "Kill" "(Danger Zone) Tear Down Cluster..." )
+    local TITLE="Clusters Menu"
+    check_k8s
+    local BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                --backtitle "${BACKTITLE}" \
+                --cancel-label "Exit" \
+                --separate-widget "Widget" \
+                --menu "Please select" ${HEIGHT} ${WIDTH} 12 "${items[@]}" \
+                2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
             "Create")
                 if [ -f $PGPATH/config.json ]; then
                     menu_create_cluster
@@ -128,17 +209,58 @@ function menu_main() {
                     menu_create_cluster
                 fi
                 ;;
-            "Deploy")
-                menu_deploy
-                ;;
             "Clusters")
                 menu_select_context
                 ;;
-            "Delete")
-                menu_delete || true
-                ;;
             "Kill")
                 menu_teardown_cluster
+                ;;
+            *) ;; # some action on other
+        esac
+    done
+}
+
+#######################################
+# Services Menu
+#######################################
+function menu_services() {
+
+    # exec 3>&1
+
+    local items=( "Deploy" "Deploy Services..." \
+            "Delete" "(Danger Zone) Delete Services..." \
+            "Status" "Namespaces, LoadBalancers, Deployments & DaemonSets" \
+            "Services" "Services, Addresses and Credentials" )
+    local TITLE="Services Menu"
+    check_k8s
+    local BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                --backtitle "${BACKTITLE}" \
+                --cancel-label "Exit" \
+                --separate-widget "Widget" \
+                --menu "Please select" ${HEIGHT} ${WIDTH} 12 "${items[@]}" \
+                2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
+            "Deploy")
+                menu_deploy
+                ;;
+            "Delete")
+                menu_delete || true
                 ;;
             "Status")
                 if $(kubectl config current-context &>/dev/null); then
@@ -162,6 +284,46 @@ function menu_main() {
                     display_result "Addresses & Credentials"
                 fi
                 ;;
+            *) ;; # some action on other
+        esac
+    done
+}
+
+#######################################
+# Config Menu
+#######################################
+function menu_config() {
+
+    # exec 3>&1
+
+    local items=( "Disk Space" "Display Disk Space" \
+            "Config" "Edit Configuration" \
+            "Daemon" "Edit daemon.json" )
+    local TITLE="Config Menu"
+    check_k8s
+    local BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                --backtitle "${BACKTITLE}" \
+                --cancel-label "Exit" \
+                --separate-widget "Widget" \
+                --menu "Please select" ${HEIGHT} ${WIDTH} 12 "${items[@]}" \
+                2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
             "Disk Space")
                 result=$(df -h)
                 display_result "Disk Space"
@@ -189,12 +351,12 @@ function menu_main() {
 function menu_cli() {
 
     # exec 3>&1
-    items=("AWS" "AWS CLI" \
+    local items=("AWS" "AWS CLI" \
            "Azure" "Azure CLI" \
            "GCP" "GCP CLI")
-    TITLE="Install/Update CLI"
+    local TITLE="Install/Update CLI"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
@@ -263,12 +425,12 @@ function menu_cli() {
 function menu_authenticate() {
 
     # exec 3>&1
-    items=("AWS" "Authenticate to AWS" \
+    local items=("AWS" "Authenticate to AWS" \
            "Azure" "Authenticate to Azure" \
            "GCP" "Authenticate to GCP")
-    TITLE="Authenticate to CSP"
+    local TITLE="Authenticate to CSP"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
@@ -315,13 +477,13 @@ function menu_authenticate() {
 function menu_create_cluster() {
 
     # exec 3>&1
-    items=("Kind" "Local Cluster" \
+    local items=("Kind" "Local Cluster" \
            "EKS" "Elastic Kubernetes Cluster" \
            "AKS" "Azure Kubernetes Cluster" \
            "GKE" "Google Kubernetes Engine")
-    TITLE="Create a Cluster"
+    local TITLE="Create a Cluster"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
@@ -378,13 +540,13 @@ function menu_create_cluster() {
 function menu_teardown_cluster() {
 
     # exec 3>&1
-    items=("Kind" "Local Cluster" \
+    local items=("Kind" "Local Cluster" \
            "EKS" "Elastic Kubernetes Cluster" \
            "AKS" "Azure Kubernetes Cluster" \
            "GKE" "Google Kubernetes Engine")
-    TITLE="Teardown a Cluster"
+    local TITLE="Teardown a Cluster"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
@@ -441,7 +603,7 @@ function menu_select_context() {
 
     # exec 3>&1
 
-    items=($(kubectl config get-contexts -o name | \
+    local items=($(kubectl config get-contexts -o name | \
         awk -v current=$(kubectl config current-context) '
             {
                 onoff="off"
@@ -453,9 +615,9 @@ function menu_select_context() {
     touch $PGPATH/services
     cp $PGPATH/services $PGPATH/services-$(kubectl config current-context)
 
-    TITLE="Select a Context"
+    local TITLE="Select a Context"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
@@ -491,7 +653,7 @@ function menu_deploy() {
 
     # exec 3>&1
     
-    items=("C1CS" "Container Security" \
+    local items=("C1CS" "Container Security" \
            "C1SC" "Smart Check" \
            "Falco" "Falco Runtime Security" \
            "OPA" "Open Policy Agent" \
@@ -501,9 +663,9 @@ function menu_deploy() {
            "Harbor" "Harbor Registry" \
            "Jenkins" "Jenkins CI/CD" \
            "GitLab" "GitLab CI/CD")
-    TITLE="Deploy"
+    local TITLE="Deploy"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
@@ -586,7 +748,7 @@ function menu_delete() {
 
     # exec 3>&1
     
-    items=("C1CS" "Container Security" \
+    local items=("C1CS" "Container Security" \
            "C1SC" "Smart Check" \
            "Falco" "Falco Runtime Security" \
            "OPA" "Open Policy Agent" \
@@ -596,9 +758,9 @@ function menu_delete() {
            "Harbor" "Harbor Registry" \
            "Jenkins" "Jenkins CI/CD" \
            "GitLab" "GitLab CI/CD")
-    TITLE="(Danger Zone) Delete"
+    local TITLE="(Danger Zone) Delete"
     check_k8s
-    BACKTITLE="Playground: ${CLUSTER}"
+    local BACKTITLE="Playground: ${CLUSTER}"
     while choice=$(dialog --title "${TITLE}" \
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \

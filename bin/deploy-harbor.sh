@@ -146,11 +146,6 @@ function create_ingress() {
 function main() {
   echo "*** Harbor deployment currently in BETA ***"
 
-  if is_darwin ; then
-    echo "*** Harbor currently not supported on MacOS ***"
-    exit 0
-  fi
-
   create_namespace
   whitelist_namsspace
   create_ssl_certificate_linux
@@ -164,9 +159,6 @@ function main() {
       echo "  U/P: admin / ${ADMIN_PASSWORD}" | tee -a $PGPATH/services
       echo | tee -a $PGPATH/services
     fi
-  fi
-  if is_darwin ; then
-    create_ingress
   fi
 }
 

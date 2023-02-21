@@ -42,19 +42,6 @@ function whitelist_namsspace() {
   kubectl label namespace ${NAMESPACE} --overwrite ignoreAdmissionControl=true
 }
 
-###
-# Falco on Darwin
-# 1. Install the driver on the host machine
-# Clone the Falco project and checkout the tag corresponding to the same Falco version used within the helm chart (0.29.1 in my case), then:
-
-# git checkout 0.29.1
-# mkdir build
-# cd build
-# brew install yaml-cpp grpc
-# export OPENSSL_ROOT_DIR=/usr/local/opt/openssl
-# cmake ..
-# sudo make install_driver
-###
 #######################################
 # Deploys Falco to Kubernetes
 # Globals:
@@ -150,11 +137,6 @@ function create_ingress() {
 # Deploys Falco
 #######################################
 function main() {
-  if is_darwin ; then
-    echo "*** Falco currently not supported on MacOS ***"
-    exit 0
-  fi
-
   create_namespace
   whitelist_namsspace
   deploy_falco
@@ -166,9 +148,6 @@ function main() {
       echo "Falco UI on: http://$(hostname -I | awk '{print $1}'):${LISTEN_PORT}/" | tee -a $PGPATH/services
       echo | tee -a $PGPATH/services
     fi
-  fi
-  if is_darwin ; then
-    create_ingress
   fi
 }
 
