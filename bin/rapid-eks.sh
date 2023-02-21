@@ -51,6 +51,9 @@ EOF
 
   #aws eks update-kubeconfig --region ${CLUSTER_NAME} --name ${AWS_REGION}
 
+  # Enable CloudWatch logging
+  eksctl utils update-cluster-logging --enable-types=all --region=${AWS_REGION} --cluster=${CLUSTER_NAME}
+
   echo "Creating rapid-eks-down.sh script"
   cat <<EOF >$PGPATH/bin/rapid-eks-down.sh
 set -e
