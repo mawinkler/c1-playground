@@ -494,6 +494,7 @@ if [ "${PACKAGE_MANAGER}" == "brew" ]; then
   ensure_formulae
 else
   ensure_kubectl
+  ensure_eksctl
   ensure_kustomize
   ensure_helm
   ensure_k9s
