@@ -177,3 +177,5 @@ get_initial_admin_password
 echo "Jenkins: http://$(hostname -I | awk '{print $1}'):${JENKINS_SERVICE_PORT}" | tee -a ${PGPATH}/services
 echo "  U/P: admin / ${ADMIN_PASSWORD}" | tee -a ${PGPATH}/services
 echo | tee -a ${PGPATH}/services
+
+printf '\n%s\n' "###TASK-COMPLETED###"

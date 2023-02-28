@@ -46,8 +46,10 @@ function main() {
 #!/bin/bash
 gcloud -q container clusters delete ${CLUSTER}
 gcloud -q projects delete ${PROJECT_ID}
-sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/log/* $PGPATH/services $PGPATH/opa
+sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/services $PGPATH/opa
 rm -f service-gcrsvc_keyfile.json
+
+printf '\n%s\n' "###TASK-COMPLETED###"
 EOF
   chmod +x $PGPATH/bin/rapid-gke-down.sh
   echo "Run rapid-gke-down.sh to tear down everything"
@@ -78,3 +80,5 @@ function test() {
 if [[ $# -eq 0 ]] ; then
   main
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"

@@ -10,3 +10,5 @@ kubectl delete -f $PGPATH/opa/admission-controller.yaml
 kubectl delete -f $PGPATH/opa/webhook-configuration.yaml
 
 kubectl delete namespace ${NAMESPACE}
+
+printf '\n%s\n' "###TASK-COMPLETED###"

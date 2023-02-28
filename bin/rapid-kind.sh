@@ -140,6 +140,7 @@ function create_load_balancer() {
   done    
   printf '\n'
   printf '%s\n' "Load balancer address pool ${ADDRESS_POOL}"
+  sleep 5
   ADDRESS_POOL=${ADDRESS_POOL} \
     envsubst <$PGPATH/templates/kind-load-balancer-addresspool.yaml | kubectl apply -f - -o yaml
   echo kind-load-balancer-addresspool.yaml
@@ -229,6 +230,7 @@ function main() {
     $PGPATH/bin/deploy-registry.sh
     printf '\n%s\n' "Cluster ready 🍾"
   fi
+  printf '\n%s\n' "###TASK-COMPLETED###"
 }
 
 function cleanup() {

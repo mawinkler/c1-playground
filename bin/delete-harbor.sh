@@ -9,3 +9,5 @@ NAMESPACE="$(jq -r '.services[] | select(.name=="harbor") | .namespace' $PGPATH/
 helm -n ${NAMESPACE} delete harbor
 
 kubectl delete namespace ${NAMESPACE}
+
+printf '\n%s\n' "###TASK-COMPLETED###"

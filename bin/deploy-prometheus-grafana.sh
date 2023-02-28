@@ -181,3 +181,5 @@ if is_darwin; then
   echo "Prometheus UI on: http://${PROMETHEUS_HOSTNAME}" | tee -a $PGPATH/services
   echo "Grafana UI on: http://${GRAFANA_HOSTNAME} w/ admin/${GRAFANA_PASSWORD}" | tee -a $PGPATH/services
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"

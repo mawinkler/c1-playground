@@ -9,3 +9,5 @@ NAMESPACE="$(jq -r '.services[] | select(.name=="prometheus") | .namespace' $PGP
 helm --namespace ${NAMESPACE} delete prometheus \
 
 kubectl delete namespace ${NAMESPACE}
+
+printf '\n%s\n' "###TASK-COMPLETED###"

@@ -92,3 +92,5 @@ create_namespace
 whitelist_namsspace
 # create_tls_secret
 deploy_gatekeeper
+
+printf '\n%s\n' "###TASK-COMPLETED###"

@@ -292,3 +292,5 @@ function test() {
 if [[ $# -eq 0 ]] ; then
   main
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"

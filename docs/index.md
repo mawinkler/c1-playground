@@ -54,7 +54,7 @@ Falco | X | X | X | X | X | X
 Gatekeeper | X |X | X | X | X | X
 Open Policy Agent | X | X | X | X | X | X
 Prometheus & Grafana | X | X | X | X | X | X
-Starboard | X | X | X | X | X | X
+Trivy | X | X | X | X | X | X
 Cilium | X | X | X | X | X
 Kubescape | X | X | X | X | X | X
 Harbor | X (2) | | | | | |
@@ -86,6 +86,49 @@ stern | Tail logs from multiple pods simultaneously<br>Example:<br>`stern -n tre
 syft | See [github.com/anchore/syft](https://github.com/anchore/syft)
 grype | See [github.com/anchore/grype](https://github.com/anchore/grype)
 k9s | See [k9scli.io](https://k9scli.io/)
+
+### Playgrounds Menu Structure
+
+The structure of the menu:
+
+
+```
+playground
+├── Manage Tools and CSPs...
+│   ├── Update Tools & Playground
+│   ├── Install/Update CLI...
+│   │   ├── AWS CLI
+│   │   ├── Azure CLI
+│   │   └── GCP CLI
+│   └── Authenticate to CSP...
+│       ├── Authenticate to AWS
+│       ├── Authenticate to Azure
+│       └── Authenticate to GCP
+├── Manage Clusters...
+│   ├── Create a Cluster...
+│   │   ├── Local Cluster
+│   │   ├── Elastic Kubernetes Cluster
+│   │   ├── Azure Kubernetes Cluster
+│   │   └── Google Kubernetes Engine
+│   ├── Select Cluster Context...
+│   │   └── (Select a Cluster Context)
+│   └── (Danger Zone) Tear Down Cluster...
+│       ├── Local Cluster
+│       ├── Elastic Kubernetes Cluster
+│       ├── Azure Kubernetes Cluster
+│       └── Google Kubernetes Engine
+├── Manage Services...
+│   ├── Deploy Services...
+│   │   └── (Services List)
+│   ├── (Danger Zone) Delete Services...
+│   │   └── (Services List)
+│   ├── Display Namespaces, LoadBalancers, Deployments & DaemonSets
+│   └── Display Services, Addresses and Credentials
+└── Manage Configuration...
+    ├── Display Disk Space
+    ├── Edit Configuration
+    └── Edit daemon.json
+```
 
 ## Good to Know
 

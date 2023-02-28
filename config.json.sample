@@ -88,11 +88,7 @@
         },
         {
             "name": "trivy",
-            "namespace": "trivy"
-        },
-        {
-            "name": "starboard",
-            "namespace": "starboard"
+            "namespace": "trivy-system"
         },
         {
             "name": "opa",

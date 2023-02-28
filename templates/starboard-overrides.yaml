@@ -1,8 +1,0 @@
-targetNamespaces: ""
-operator:
-  vulnerabilityScannerEnabled: false
-# trivy:
-#   imageRef: ${IMAGEREF}
-#   mode: ClientServer
-#   serverURL: http://trivy.trivy:4954
-#   ignoreUnfixed: false

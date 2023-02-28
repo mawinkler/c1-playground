@@ -76,7 +76,9 @@ eksctl delete cluster --name \${CLUSTER_NAME}
 # Delete Keys
 aws ec2 delete-key-pair --key-name \${KEY_NAME}
 aws kms delete-alias --alias-name \${KEY_ALIAS_NAME}
-sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/log/* $PGPATH/services $PGPATH/opa
+sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/services $PGPATH/opa
+
+printf '\n%s\n' "###TASK-COMPLETED###"
 EOF
   chmod +x $PGPATH/bin/rapid-eks-down.sh
   echo "Run rapid-eks-down.sh to tear down everything"
@@ -107,3 +109,5 @@ function test() {
 if [[ $# -eq 0 ]] ; then
   main
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"

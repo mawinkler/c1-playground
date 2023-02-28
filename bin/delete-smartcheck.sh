@@ -11,3 +11,5 @@ helm delete \
     --namespace ${SC_NAMESPACE}
 
 kubectl delete namespace ${SC_NAMESPACE}
+
+printf '\n%s\n' "###TASK-COMPLETED###"

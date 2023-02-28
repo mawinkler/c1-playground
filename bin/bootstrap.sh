@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -o errexit
+set -e
+#o errexit
 
 if [ -z "$1" ]; then
   CURRENT_PATH=$(pwd)
@@ -507,3 +508,5 @@ ensure_grype
 if [ "${PACKAGE_MANAGER}" != "brew" ]; then
   ensure_krew
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"

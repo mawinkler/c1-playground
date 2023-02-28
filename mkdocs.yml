@@ -19,7 +19,7 @@ nav:
     - Open Policy Agent: add-ons/opa.md
     - Prometheus & Grafana: add-ons/prometheus-grafana.md
     - Registry: add-ons/registry.md
-    - Starboard: add-ons/starboard.md
+    - Trivy: add-ons/trivy.md
     - Jenkins: add-ons/jenkins.md
     - GitLab: add-ons/gitlab.md
   - Play with the Playground:

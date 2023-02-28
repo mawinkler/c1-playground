@@ -245,3 +245,5 @@ echo "GitLab: http://$(hostname -I | awk '{print $1}'):${GITLAB_SERVICE_PORT}" |
 echo "  U/P: root / ${ADMIN_PASSWORD}" | tee -a ${PGPATH}/services
 echo "  Runner Registrytion Token: ${REGISTRATION_TOKEN}" | tee -a ${PGPATH}/services
 echo | tee -a ${PGPATH}/services
+
+printf '\n%s\n' "###TASK-COMPLETED###"

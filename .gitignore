@@ -62,7 +62,6 @@ site
 docs-20221124
 
 # Terraform
-.terraform
 .terraform*
 terraform.*
 frankfurt-region-key-pair*
@@ -73,3 +72,16 @@ response.json
 
 # Training
 training
+
+# Exploiting
+bin/deploy-attackers-victims.sh
+bin/playground2
+demos/demo-attack.sh
+demos/struts-exploit-headers.txt
+demos/dockerfiles/attacker-cve-2017-5638/Dockerfile
+demos/dockerfiles/attacker-cve-2017-5638/imagebuild.sh
+demos/dockerfiles/attacker-cve-2017-5638/app/exploit.py
+demos/dockerfiles/openssl3/Dockerfile
+demos/dockerfiles/openssl3/app/app.js
+templates/demo-java-goof.yaml
+templates/demo-openssl3.yaml

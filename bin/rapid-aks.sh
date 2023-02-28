@@ -23,7 +23,9 @@ function main() {
 #!/bin/bash
 export APP_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
 az group delete --name ${APP_NAME} -y
-sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/log/* $PGPATH/services $PGPATH/opa
+sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/services $PGPATH/opa
+
+printf '\n%s\n' "###TASK-COMPLETED###"
 EOF
   chmod +x $PGPATH/bin/rapid-aks-down.sh
   echo "Run rapid-aks-down.sh to tear down everything"
@@ -54,3 +56,5 @@ function test() {
 if [[ $# -eq 0 ]] ; then
   main
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"

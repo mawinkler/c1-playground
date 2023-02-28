@@ -14,3 +14,5 @@ docker stop ${JENKINS_CONTAINER_NAME}
 docker rm ${JENKINS_CONTAINER_NAME}
 docker volume rm ${JENKINS_VOLUME_DATA}
 docker volume rm ${JENKINS_VOLUME_DOCKER_CERTS}
+
+printf '\n%s\n' "###TASK-COMPLETED###"

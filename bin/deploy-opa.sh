@@ -95,3 +95,5 @@ create_namespace
 whitelist_namsspace
 create_tls_secret
 deploy_opa
+
+printf '\n%s\n' "###TASK-COMPLETED###"

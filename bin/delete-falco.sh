@@ -10,3 +10,5 @@ helm -n ${NAMESPACE} delete falco
 helm -n ${NAMESPACE} delete falco-exporter
 
 kubectl delete namespace ${NAMESPACE}
+
+printf '\n%s\n' "###TASK-COMPLETED###"
