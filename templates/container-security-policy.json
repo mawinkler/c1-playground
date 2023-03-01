@@ -60,7 +60,7 @@
                 }
             },
             {
-                "action": "block",
+                "action": "log",
                 "mitigation": "log",
                 "type": "containerSecurityContext",
                 "enabled": true,
@@ -144,7 +144,7 @@
                 }
             },
             {
-                "action": "block",
+                "action": "log",
                 "mitigation": "log",
                 "type": "unscannedImage",
                 "enabled": true
@@ -164,7 +164,7 @@
                 }
             },
             {
-                "action": "block",
+                "action": "log",
                 "mitigation": "log",
                 "type": "podexec",
                 "enabled": true,

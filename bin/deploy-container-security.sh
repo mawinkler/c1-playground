@@ -117,7 +117,7 @@ function cluster_policy() {
 function cluster_rulesets() {
   RULESETS_JSON='"runtime":{"default":{"rulesets":['
 
-  for ruleset in info notice warning critical error ; do
+  for ruleset in log terminate ; do
     # query cluster policy
     CS_RULESET_NAME=${CS_POLICY_NAME}_${ruleset}
     local rulesets=$(

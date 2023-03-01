@@ -3,12 +3,12 @@
     "labels": [],
     "rules": [
         {
-            "ruleID": "TM-00000006",
+            "ruleID": "TM-00000005",
             "enabled": true,
             "mitigation": "log"
         },
         {
-            "ruleID": "TM-00000007",
+            "ruleID": "TM-00000006",
             "enabled": true,
             "mitigation": "log"
         },
@@ -18,17 +18,17 @@
             "mitigation": "log"
         },
         {
+            "ruleID": "TM-00000010",
+            "enabled": true,
+            "mitigation": "log"
+        },
+        {
             "ruleID": "TM-00000012",
             "enabled": true,
             "mitigation": "log"
         },
         {
-            "ruleID": "TM-00000013",
-            "enabled": true,
-            "mitigation": "log"
-        },
-        {
-            "ruleID": "TM-00000014",
+            "ruleID": "TM-00000015",
             "enabled": true,
             "mitigation": "log"
         },
@@ -38,17 +38,7 @@
             "mitigation": "log"
         },
         {
-            "ruleID": "TM-00000019",
-            "enabled": true,
-            "mitigation": "log"
-        },
-        {
-            "ruleID": "TM-00000020",
-            "enabled": true,
-            "mitigation": "log"
-        },
-        {
-            "ruleID": "TM-00000024",
+            "ruleID": "TM-00000022",
             "enabled": true,
             "mitigation": "log"
         },
@@ -58,32 +48,17 @@
             "mitigation": "log"
         },
         {
-            "ruleID": "TM-00000028",
+            "ruleID": "TM-00000031",
             "enabled": true,
             "mitigation": "log"
         },
         {
-            "ruleID": "TM-00000029",
+            "ruleID": "TM-00000035",
             "enabled": true,
             "mitigation": "log"
         },
         {
-            "ruleID": "TM-00000034",
-            "enabled": true,
-            "mitigation": "log"
-        },
-        {
-            "ruleID": "TM-00000036",
-            "enabled": true,
-            "mitigation": "log"
-        },
-        {
-            "ruleID": "TM-00000037",
-            "enabled": true,
-            "mitigation": "log"
-        },
-        {
-            "ruleID": "TM-00000038",
+            "ruleID": "TM-00000041",
             "enabled": true,
             "mitigation": "log"
         },

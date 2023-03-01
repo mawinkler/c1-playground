@@ -583,7 +583,7 @@ function menu_teardown_cluster() {
                  "EKS" "Elastic Kubernetes Cluster" \
                  "AKS" "Azure Kubernetes Cluster" \
                  "GKE" "Google Kubernetes Engine" \
-                 "LOGS" "Clear Logs")
+                 "Logs" "Clear Logs")
     local TITLE="Teardown a Cluster"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -637,7 +637,7 @@ function menu_teardown_cluster() {
                     display_progress 25 rapid-gke-down
                 fi
                 ;;
-            "LOGS")
+            "Logs")
                 clear
                 sudo rm -Rf $PGPATH/log/*
                 ;;
