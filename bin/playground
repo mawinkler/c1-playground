@@ -53,15 +53,6 @@ display_progress() {
         if [ "$(tail -n 1 $PGPATH/log/last.log | grep -Ei '###TASK-COMPLETED###|error')" != "" ] ; then
             break
         fi
-        # if [ "$(tail -n 1 $PGPATH/log/last.log | grep '###TASK-COMPLETED###')" != "" ] ; then
-        #     break
-        # fi
-        # if [ "$(grep -i 'error' $PGPATH/log/last.log)" != "" ] ; then
-        #     # grep -i 'error' $PGPATH/log/last.log >> $PGPATH/log/last.err
-        #     # result="$(tail -n 10 $PGPATH/log/last.log)"
-        #     # display_result "Error occured"
-        #     break
-        # fi
         # expr $(cat $PGPATH/log/last.log | wc -l)  \* 100 \/ $1 || true
         let "percentage = $(cat $PGPATH/log/last.log | wc -l)  * 100 / $1" || true
         if [ $percentage -gt 100 ]; then
@@ -132,6 +123,7 @@ function menu_main() {
                 else
                     curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/bootstrap.sh -o /tmp/bootstrap.sh
                     . /tmp/bootstrap.sh ${CURRENT_PATH}
+                    read -p "Press any key to resume..."
                     result="Exit menu and logout from the shell.\n\nThen relogin or create a new shell before continuing."
                     display_result "Important"
                 fi
