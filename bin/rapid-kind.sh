@@ -108,10 +108,7 @@ function create_cluster_darwin() {
 function create_load_balancer() {
   printf '%s\n' "Create load balancer"
   # Link: https://metallb.universe.tf/installation/
-  kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
-  # kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/namespace.yaml -o yaml
-  # kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml -o yaml
-
+  kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.9/config/manifests/metallb-native.yaml
   kubectl create secret generic -n metallb-system memberlist \
     --from-literal=secretkey="$(openssl rand -base64 128)" -o yaml
 
@@ -140,10 +137,16 @@ function create_load_balancer() {
   done    
   printf '\n'
   printf '%s\n' "Load balancer address pool ${ADDRESS_POOL}"
-  sleep 5
   ADDRESS_POOL=${ADDRESS_POOL} \
-    envsubst <$PGPATH/templates/kind-load-balancer-addresspool.yaml | kubectl apply -f - -o yaml
-  echo kind-load-balancer-addresspool.yaml
+    envsubst <$PGPATH/templates/kind-load-balancer-addresspool.yaml > $PGPATH/overrides/kind-load-balancer-addresspool.yaml
+  for i in {1..60} ; do
+    if kubectl apply -f $PGPATH/overrides/kind-load-balancer-addresspool.yaml ; then
+      break
+    fi
+    printf '%s' "."
+    sleep 1
+  done
+  printf '\n'
   envsubst <$PGPATH/templates/kind-load-balancer-l2adv.yaml | kubectl apply -f - -o yaml
 
   printf '%s\n' "Load balancer created 🍹"
