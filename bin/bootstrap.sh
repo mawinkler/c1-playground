@@ -146,89 +146,95 @@ function query_aws_keys() {
 
 function ensure_ec2_instance_role() {
   # Are we bootstrapping an EC2 intance (e.g. Cloud9), we need an instance role
+
   if is_ec2 ; then
-    FAIL=1
-
-    # Are the keys set? If not query them
-    if [ -v $AWS_ACCESS_KEY_ID ] || [ -v $AWS_SECRET_ACCESS_KEY ] || [ -v $AWS_DEFAULT_REGION ]; then
-      query_aws_keys
-    fi
-
-    # FIXME: How to do this nicely?
-    AKI=${AWS_ACCESS_KEY_ID}
-    SAK=${AWS_SECRET_ACCESS_KEY}
-    DR=${AWS_DEFAULT_REGION}
-
-    unset AWS_ACCESS_KEY_ID
-    unset AWS_SECRET_ACCESS_KEY
-    unset AWS_DEFAULT_REGION
-
-    while [ $FAIL -eq 1 ]; do
-      # Checking credentials
-      if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
-        echo Instance role set
-        FAIL=0
-      elif [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "AWSCloud9SSMAccessRole" ]] || [ "$(aws sts get-caller-identity --query Arn 2> /dev/null)" == "" ]; then
-        echo AWS managed temporary credentials are turned off 
-        FAIL=0
-      else
-        echo Turn off AWS managed temporary credentials
-        dialog --msgbox "Turn off AWS managed temporary credentials." 8 40
+    # Checking instance role
+    if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
+      echo Instance role set
+    else
+      FAIL=1
+  
+      # Are the keys set? If not query them
+      if [ -v $AWS_ACCESS_KEY_ID ] || [ -v $AWS_SECRET_ACCESS_KEY ] || [ -v $AWS_DEFAULT_REGION ]; then
+        query_aws_keys
+      fi
+  
+      # FIXME: How to do this nicely?
+      AKI=${AWS_ACCESS_KEY_ID}
+      SAK=${AWS_SECRET_ACCESS_KEY}
+      DR=${AWS_DEFAULT_REGION}
+  
+      unset AWS_ACCESS_KEY_ID
+      unset AWS_SECRET_ACCESS_KEY
+      unset AWS_DEFAULT_REGION
+  
+      while [ $FAIL -eq 1 ]; do
+        # Checking credentials
+        if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
+          echo Instance role set
+          FAIL=0
+        elif [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "AWSCloud9SSMAccessRole" ]] || [ "$(aws sts get-caller-identity --query Arn 2> /dev/null)" == "" ]; then
+          echo AWS managed temporary credentials are turned off 
+          FAIL=0
+        else
+          echo Turn off AWS managed temporary credentials
+          dialog --msgbox "Turn off AWS managed temporary credentials." 8 40
+          FAIL=1
+        fi
+      done
+  
+      AWS_ACCESS_KEY_ID=${AKI}
+      AWS_SECRET_ACCESS_KEY=${SAK}
+      AWS_DEFAULT_REGION=${DR}
+  
+      if [ -v $AWS_ACCESS_KEY_ID ]; then
+        echo Set AWS_ACCESS_KEY_ID with: 'export AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY>'
         FAIL=1
       fi
-    done
-
-    AWS_ACCESS_KEY_ID=${AKI}
-    AWS_SECRET_ACCESS_KEY=${SAK}
-    AWS_DEFAULT_REGION=${DR}
-
-    if [ -v $AWS_ACCESS_KEY_ID ]; then
-      echo Set AWS_ACCESS_KEY_ID with: 'export AWS_ACCESS_KEY_ID=<YOUR ACCESS KEY>'
-      FAIL=1
-    fi
-    if [ -v $AWS_SECRET_ACCESS_KEY ]; then
-      echo Set AWS_SECRET_ACCESS_KEY with: 'export AWS_SECRET_ACCESS_KEY=<YOUR ACCESS KEY>'
-      FAIL=1
-    fi
-    if [ -v $AWS_DEFAULT_REGION ]; then
-      echo Set AWS_DEFAULT_REGION with: 'export AWS_DEFAULT_REGION=<YOUR DESIRED REGION>'
-      FAIL=1
-    fi
-    if [ "$FAIL" == "1" ]; then
-      exit 0
-    fi
-
-    # Create and assign instance role
-    if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
-      echo
-    else
-      AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-        AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
-        $PGPATH/tools/cloud9-instance-role.sh
-    fi
-
-    # Unset AWS credentials
-    unset AWS_ACCESS_KEY_ID
-    unset AWS_SECRET_ACCESS_KEY
-
-    for i in {1..60} ; do
-      sleep 2
-      if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
-        break
+      if [ -v $AWS_SECRET_ACCESS_KEY ]; then
+        echo Set AWS_SECRET_ACCESS_KEY with: 'export AWS_SECRET_ACCESS_KEY=<YOUR ACCESS KEY>'
+        FAIL=1
       fi
-      printf '%s' "."
-    done
-
-    if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
-      echo "IAM role valid"
-    else
-      echo "IAM role NOT valid"
-      exit 0
+      if [ -v $AWS_DEFAULT_REGION ]; then
+        echo Set AWS_DEFAULT_REGION with: 'export AWS_DEFAULT_REGION=<YOUR DESIRED REGION>'
+        FAIL=1
+      fi
+      if [ "$FAIL" == "1" ]; then
+        exit 0
+      fi
+  
+      # Create and assign instance role
+      if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
+        echo
+      else
+        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+          AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+          AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
+          $PGPATH/tools/cloud9-instance-role.sh
+      fi
+  
+      # Unset AWS credentials
+      unset AWS_ACCESS_KEY_ID
+      unset AWS_SECRET_ACCESS_KEY
+  
+      for i in {1..60} ; do
+        sleep 2
+        if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
+          break
+        fi
+        printf '%s' "."
+      done
+  
+      if [[ $(aws sts get-caller-identity --query Arn 2> /dev/null | grep assumed-role) =~ "ekscluster" ]]; then
+        echo "IAM role valid"
+      else
+        echo "IAM role NOT valid"
+        exit 0
+      fi
+  
+      # Resizing Cloud9 disk
+      curl -fsSL ${REPO}/tools/cloud9-resize.sh | bash
     fi
-
-    # Resizing Cloud9 disk
-    curl -fsSL ${REPO}/tools/cloud9-resize.sh | bash
   else
     echo Not running on Cloud9
   fi
