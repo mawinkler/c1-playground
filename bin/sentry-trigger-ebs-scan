@@ -23,7 +23,8 @@ printf '%s\n' "State machine is ${statemachinearn}"
 # Get attached volume ids
 volumes=$(aws ec2 describe-instances --instance-ids ${instanceid} | \
     jq -r '.Reservations[0].Instances[0].BlockDeviceMappings[].Ebs.VolumeId')
-printf '%s\n' "Instance volume(s)\n${volumes}"
+printf '%s\n' "Instance volume(s):"
+printf '%s\n' "${volumes}"
 
 # Create snapshots and trigger scan(s)
 for volumeid in ${volumes}; do

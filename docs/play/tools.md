@@ -10,6 +10,7 @@ Within the `tools` directory are some scripts for Sentry:
 
 1. `sentry-get-reports` - Downloads all Sentry reports generated within the last 24hs to your local directory
 2. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
+3. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
 
 ### Script `sentry-get-reports`
 
@@ -105,6 +106,8 @@ Example:
   INSTANCE=i-0076dab31026905f5 sentry-trigger-ebs-scan
 ```
 
+If you specify a `USERNAME` the snapshot(s) will be tagged accordingly. This should ease identifying your own snapshots if using a shared account. Default username is `cnctraining`.
+
 ```sh
 # Trigger scan of EC2 instance i-0076dab31026905f5 existing in the current region
 INSTANCE=i-0076dab31026905f5 sentry-trigger-ebs-scan
@@ -137,6 +140,43 @@ Snapshot snap-0f4cc9d1d8a094861 for volume vol-03b25f8105caf9f00 created
     "executionArn": "arn:aws:states:eu-central-1:634503960501:execution:ScannerStateMachine-pueSSKvfdN4K:Manual-EBS-resource-634503960501-635658bd-0deb-42a7-8594-1089d87bfc40",
     "startDate": "2023-03-02T14:36:00.763000+00:00"
 }
+```
+
+### Script `sentry-remove-snapshots`
+
+The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used to query the reports.
+
+Example calls:
+
+```sh
+# Help
+sentry-trigger-ebs-scan help
+```
+
+```sh
+Usage: [REGION=<aws-region>] [USERNAME=<username-tag>] sentry-remove-snapshots
+
+Example:
+  USERNAME=cnctraining sentry-remove-snapshots
+```
+
+Example result:
+
+```sh
+Using region eu-central-1 for user cnctraining
+Snapshot(s) to delete
+snap-0f4cc9d1d8a094861
+snap-00f0472b795c00644
+snap-025d77b5303a37b9d
+snap-0b357bbc2fef3edad
+snap-07ee34bf66221579d
+snap-0b4d1faead597e047
+Deleting snapshot snap-0f4cc9d1d8a094861
+Deleting snapshot snap-00f0472b795c00644
+Deleting snapshot snap-025d77b5303a37b9d
+Deleting snapshot snap-0b357bbc2fef3edad
+Deleting snapshot snap-07ee34bf66221579d
+Deleting snapshot snap-0b4d1faead597e047
 ```
 
 ### Repo C1 Sentry Reports to CloudWatch

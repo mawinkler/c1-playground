@@ -1,0 +1,28 @@
+#?/bin/bash
+
+if [ "$1" == "help" ]; then
+    printf '%s\n' "Usage: [REGION=<aws-region>] [USERNAME=<username-tag>] sentry-remove-snapshots"
+    printf '%s\n' ""
+    printf '%s\n' "Example:"
+    printf '%s\n' "  USERNAME=cnctraining sentry-remove-snapshots"
+    exit 0
+fi
+
+resourceregion=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
+username=${USERNAME:-cnctraining}
+printf '%s\n' "Using region ${resourceregion} for user ${username}"
+
+# Get snapshot ids
+tagpurpose="Name=tag:purpose,Values=training"
+snapshots=$(aws ec2 describe-snapshots --filters ${tagpurpose} --filters Name=tag:user,Values=${username} --region ${resourceregion} | \
+    jq -r '.Snapshots[].SnapshotId')
+printf '%s\n' "Snapshot(s) to delete:"
+printf '%s\n' "${snapshots}"
+
+# Create snapshots and trigger scan(s)
+for snapshotid in ${snapshots}; do
+    printf '%s\n' "Deleting snapshot ${snapshotid}"
+    aws ec2 delete-snapshot \
+        --snapshot-id ${snapshotid} \
+        --region ${resourceregion}
+done
