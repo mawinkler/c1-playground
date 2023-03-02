@@ -63,6 +63,9 @@ display_progress() {
         sleep 1
     done | dialog --gauge 'Task running...' 10 60 0
 
+    cp $PGPATH/log/last.log $PGPATH/log/$(date +'%d-%m-%YT%H-%M-%S-')$2.log
+    echo "$(date +'%d-%m-%Y %H:%M:%S') $2 $(cat $PGPATH/log/last.log | wc -l)" >> $PGPATH/log/length.log
+
     if [ "$(grep -i 'error' $PGPATH/log/last.log)" != "" ] ; then
         grep -i 'error' $PGPATH/log/last.log >> $PGPATH/log/last.err
         result="$(tail -n 10 $PGPATH/log/last.log)"
@@ -71,7 +74,6 @@ display_progress() {
         dialog --msgbox "Task successful" 5 20
     fi
 
-    echo "$(date +'%d-%m-%Y %H:%M:%S') $2 $(cat $PGPATH/log/last.log | wc -l)" >> $PGPATH/log/length.log
 }
 
 #######################################

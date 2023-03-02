@@ -1,0 +1,62 @@
+#?/bin/bash
+
+instanceid=${INSTANCE:-none}
+if [ "${instanceid}" == "none" ] || [ "$1" == "help" ]; then
+    printf '%s\n' "Please specify at least the ec2 instance to be scanned."
+    printf '%s\n' ""
+    printf '%s\n' "Usage: INSTANCE=<instance-id> [REGION=<aws-region>] [USERNAME=<username-tag>] sentry-trigger-ebs-scan"
+    printf '%s\n' ""
+    printf '%s\n' "Example:"
+    printf '%s\n' "  INSTANCE=i-0076dab31026905f5 sentry-trigger-ebs-scan"
+    exit 0
+fi
+
+resourceregion=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
+username=${USERNAME:-cnctraining}
+printf '%s\n' "Using region ${resourceregion} for user ${username}"
+
+description="Trend Micro Cloud Sentry Manual Scan"
+accountid=$(aws sts get-caller-identity | jq -r '.Account')
+statemachinearn=$(aws stepfunctions list-state-machines --region ${resourceregion} | jq -r '.stateMachines[] | select(.name | startswith("ScannerStateMachine-")) | .stateMachineArn')
+printf '%s\n' "State machine is ${statemachinearn}"
+
+# Get attached volume ids
+volumes=$(aws ec2 describe-instances --instance-ids ${instanceid} | \
+    jq -r '.Reservations[0].Instances[0].BlockDeviceMappings[].Ebs.VolumeId')
+printf '%s\n' "Instance volume(s)\n${volumes}"
+
+# Create snapshots and trigger scan(s)
+for volumeid in ${volumes}; do
+    snapshotid=$(aws ec2 create-snapshot --volume-id ${volumeid} --description "${description}" --region ${resourceregion} --tag-specifications "ResourceType=snapshot,Tags=[{Key=purpose,Value=training},{Key=user,Value=${username}}]" | \
+        jq -r '.SnapshotId')
+
+    if [ "${snapshotid}" == "" ] ; then
+        printf '%s\n' "No snapshot created"
+        exit 0
+    fi
+    printf '%s\n' "Snapshot ${snapshotid} for volume ${volumeid} created"
+
+    uuid=$(uuidgen)
+    inputjson='{
+        "ScanID": "'${accountid}'-'${uuid}'",
+        "ResourceType": "aws-ebs-volume",
+        "ResourceLocation": "'${snapshotid}'",
+        "ResourceRegion": "'${resourceregion}'",
+        "MetaData": {
+            "AWSAccountID": "'${accountid}'",
+            "SnapshotID": "'${snapshotid}'",
+            "VolumeID": "'${volumeid}'",
+            "AttachedInstances": [
+                {"InstanceID": "'${instanceid}'"}
+            ]
+        }
+    }'
+  
+    printf '%s\n' "$(jq -r . <<< ${inputjson})"
+
+    aws stepfunctions start-execution \
+        --name "Manual-EBS-resource-${accountid}-${uuid}" \
+        --state-machine-arn ${statemachinearn} \
+        --region ${resourceregion} \
+        --input "${inputjson}"
+done

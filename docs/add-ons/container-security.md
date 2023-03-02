@@ -47,34 +47,6 @@ You should now be able to connect to Smart Check on the public ip of your Cloud9
 
 </details>
 
-## Use Scan-Image and Scan-Namespace
-
-The two scripts `scan-image.sh` and `scan-namespace.sh` do what you would expect. Running
-
-```sh
-scan-image nginx:latest
-```
-
-starts an asynchronous scan of the latest version of nginx. The scan will run on Smart Check, but you are immedeately back in the shell. To access the scan results either use the UI or API of Smart Check.
-
-```json
-...
-{ critical: 6,
-  high: 39,
-  medium: 40,
-  low: 13,
-  negligible: 2,
-  unknown: 3 }
-```
-
-The script
-
-```sh
-scan-namespace.sh
-```
-
-scans all used images within the current namespace. Eventually do a `kubectl config set-context --current --namespace <NAMESPACE>` beforehand to select the namespace to be scanned.
-
 ## Using a Proxy with Kind and Container Security
 
 ### Overrides

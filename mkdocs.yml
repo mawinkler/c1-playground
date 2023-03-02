@@ -23,6 +23,7 @@ nav:
     - Jenkins: add-ons/jenkins.md
     - GitLab: add-ons/gitlab.md
   - Play with the Playground:
+    - Tools and Scripts: play/tools.md
     - With Falco: play/with-falco.md
     - Demo Scripts: play/scripts.md
   - Experimenting:
