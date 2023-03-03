@@ -15,7 +15,7 @@ function main() {
   aws kms create-alias --alias-name ${KEY_ALIAS_NAME} --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
   export MASTER_ARN=$(aws kms describe-key --key-id ${KEY_ALIAS_NAME} --query KeyMetadata.Arn --output text)
   echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bashrc
-  export CLUSTER_NAME=$(jq -r '.cluster_name' $PGPATH/config.json)-$(openssl rand -hex 4)
+  export CLUSTER_NAME=$(yq '.cluster_name' $PGPATH/config.yaml)-$(openssl rand -hex 4)
 
   cat << EOF | eksctl create cluster -f -
 ---
@@ -65,7 +65,7 @@ KEY_ALIAS_NAME=${KEY_ALIAS_NAME}
 
 EXISTING_NAMESPACES=\$(kubectl get ns -o json | jq -r '.items[].metadata.name' | tr '\n' '|')
 
-for NAMESPACE in \$(cat $PGPATH/config.json | jq -r '.services[].namespace' | sort | uniq); do
+for NAMESPACE in \$(yq '.services[].namespace' $PGPATH/config.yaml | sort | uniq); do
   if [ "\$NAMESPACE" != "null" ] && [[ ! "\$NAMESPACE" =~ "kube-system"|"kube-public"|"kube-node-lease"|"default" ]]; then
     if [[ \$EXISTING_NAMESPACES == *"\$NAMESPACE"* ]]; then
       kubectl delete namespace \${NAMESPACE}

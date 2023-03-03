@@ -30,7 +30,7 @@ If working on a Cloud9 environment you need to adapt the security group of the c
 
 2. In the IDE for the environment, on the menu bar, choose your user icon, and then choose Manage EC2 Instance
 3. Select the security group associated to the instance and select Edit inbound rules.
-4. Add an inbound rule for the GitLab port (`80`) configured in you config.json and choose Source Anywhere (or your personal IP address of course)
+4. Add an inbound rule for the GitLab port (`80`) configured in you config.yaml and choose Source Anywhere (or your personal IP address of course)
 5. Depending on the currently configured Network ACL you might need to add a rule to allow ingoing traffic on the same port. To do this go to the VPC within the Cloud9 instance is running and proceed to the associated Main network ACL.
 6. Ensure that an inbound rule is set which allows traffic on the port from above. If not, click on `Edit inbound rules` and add a rule with a low Rule number, Custom TCP, Port range 80 (or your configured port), Source 0.0.0.0/0 (or your IP address) and Allow.
 

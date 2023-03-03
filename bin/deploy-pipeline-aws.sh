@@ -17,24 +17,24 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Future use
-API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.json)"
-REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.json)"
-INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.json)"
+API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
+REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"
+INSTANCE="$(yq '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.yaml)"
 if [ ${INSTANCE} = null ]; then
   INSTANCE=cloudone
 fi
 
-GITHUB_USERNAME="$(jq -r '.services[] | select(.name=="pipeline") | .github_username' $PGPATH/config.json)"
-GITHUB_EMAIL="$(jq -r '.services[] | select(.name=="pipeline") | .github_email' $PGPATH/config.json)"
-APP_NAME="$(jq -r '.services[] | select(.name=="pipeline") | .github_project' $PGPATH/config.json)"
-TREND_AP_KEY="$(jq -r '.services[] | select(.name=="pipeline") | .appsec_key' $PGPATH/config.json)"
-TREND_AP_SECRET="$(jq -r '.services[] | select(.name=="pipeline") | .appsec_secret' $PGPATH/config.json)"
-DOCKER_USERNAME="$(jq -r '.services[] | select(.name=="pipeline") | .docker_username' $PGPATH/config.json)"
-DOCKER_PASSWORD="$(jq -r '.services[] | select(.name=="pipeline") | .docker_password' $PGPATH/config.json)"
-DSSC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.json)"
-DSSC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.json)"
-DSSC_REGUSER="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_username' $PGPATH/config.json)"
-DSSC_REGPASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' $PGPATH/config.json)"
+GITHUB_USERNAME="$(yq '.services[] | select(.name=="pipeline") | .github_username' $PGPATH/config.yaml)"
+GITHUB_EMAIL="$(yq '.services[] | select(.name=="pipeline") | .github_email' $PGPATH/config.yaml)"
+APP_NAME="$(yq '.services[] | select(.name=="pipeline") | .github_project' $PGPATH/config.yaml)"
+TREND_AP_KEY="$(yq '.services[] | select(.name=="pipeline") | .appsec_key' $PGPATH/config.yaml)"
+TREND_AP_SECRET="$(yq '.services[] | select(.name=="pipeline") | .appsec_secret' $PGPATH/config.yaml)"
+DOCKER_USERNAME="$(yq '.services[] | select(.name=="pipeline") | .docker_username' $PGPATH/config.yaml)"
+DOCKER_PASSWORD="$(yq '.services[] | select(.name=="pipeline") | .docker_password' $PGPATH/config.yaml)"
+DSSC_USERNAME="$(yq '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.yaml)"
+DSSC_PASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.yaml)"
+DSSC_REGUSER="$(yq '.services[] | select(.name=="smartcheck") | .reg_username' $PGPATH/config.yaml)"
+DSSC_REGPASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .reg_password' $PGPATH/config.yaml)"
 
 mkdir -p $PGPATH/overrides
 

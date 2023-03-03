@@ -4,10 +4,10 @@ set -o errexit
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-JENKINS_DIND_CONTAINER_NAME="$(jq -r '.services[] | select(.name=="jenkins") | .dind_name' $PGPATH/config.json)"
-JENKINS_CONTAINER_NAME="$(jq -r '.services[] | select(.name=="jenkins") | .container_name' $PGPATH/config.json)"
-JENKINS_VOLUME_DATA="$(jq -r '.services[] | select(.name=="jenkins") | .volume_data' $PGPATH/config.json)"
-JENKINS_VOLUME_DOCKER_CERTS="$(jq -r '.services[] | select(.name=="jenkins") | .volume_docker_certs' $PGPATH/config.json)"
+JENKINS_DIND_CONTAINER_NAME="$(yq '.services[] | select(.name=="jenkins") | .dind_name' $PGPATH/config.yaml)"
+JENKINS_CONTAINER_NAME="$(yq '.services[] | select(.name=="jenkins") | .container_name' $PGPATH/config.yaml)"
+JENKINS_VOLUME_DATA="$(yq '.services[] | select(.name=="jenkins") | .volume_data' $PGPATH/config.yaml)"
+JENKINS_VOLUME_DOCKER_CERTS="$(yq '.services[] | select(.name=="jenkins") | .volume_docker_certs' $PGPATH/config.yaml)"
 
 docker stop ${JENKINS_DIND_CONTAINER_NAME}
 docker stop ${JENKINS_CONTAINER_NAME}

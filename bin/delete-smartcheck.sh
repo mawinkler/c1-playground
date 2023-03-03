@@ -4,7 +4,7 @@ set -o errexit
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.json)"
+SC_NAMESPACE="$(yq '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.yaml)"
 
 helm delete \
     smartcheck \

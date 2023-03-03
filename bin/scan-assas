@@ -10,8 +10,8 @@ shopt -s extglob
 .  $PGPATH/bin/playground-helpers.sh
 
 # NAMESPACE="syft" envsubst <$PGPATH/templates/namespace.yaml | kubectl apply -f - -o yaml > /dev/null
-API_KEY="$(jq -r '.services[] | select(.name=="staging-cloudone") | .api_key' $PGPATH/config.json)"
-REGION="$(jq -r '.services[] | select(.name=="staging-cloudone") | .region' $PGPATH/config.json)"
+API_KEY="$(yq '.services[] | select(.name=="staging-cloudone") | .api_key' $PGPATH/config.yaml)"
+REGION="$(yq '.services[] | select(.name=="staging-cloudone") | .region' $PGPATH/config.yaml)"
 
 # ##############################################################
 # Scan Image
@@ -64,8 +64,8 @@ function scan_image {
 # ##############################################################
 function pullpush_registry {
 
-  REG_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' $PGPATH/config.json)"
-  REG_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' $PGPATH/config.json)"
+  REG_USERNAME="$(yq '.services[] | select(.name=="playground-registry") | .username' $PGPATH/config.yaml)"
+  REG_PASSWORD="$(yq '.services[] | select(.name=="playground-registry") | .password' $PGPATH/config.yaml)"
 
   get_registry
 

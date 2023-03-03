@@ -4,7 +4,7 @@ set -o errexit
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-CS_NAMESPACE="$(jq -r '.services[] | select(.name=="container_security") | .namespace' $PGPATH/config.json)"
+CS_NAMESPACE="$(yq '.services[] | select(.name=="container_security") | .namespace' $PGPATH/config.yaml)"
 
 helm delete \
     container-security \

@@ -9,9 +9,8 @@ log/*
 
 # Config
 config.json
+config.json.old
 config.yaml
-config.json-prod
-config.json-dev
 services*
 env.sh
 

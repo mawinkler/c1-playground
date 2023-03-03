@@ -20,7 +20,6 @@ spec:
     - container-security
     - trivy
     - opa
-    - cadvisor
   parameters:
     labels:
       - "zone"

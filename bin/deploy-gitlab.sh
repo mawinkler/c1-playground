@@ -6,19 +6,19 @@
 .  ${PGPATH}/bin/playground-helpers.sh
 
 # Get config
-GITLAB_HOSTNAME="$(jq -r '.services[] | select(.name=="gitlab") | .hostname' ${PGPATH}/config.json)"
+GITLAB_HOSTNAME="$(yq '.services[] | select(.name=="gitlab") | .hostname' ${PGPATH}/config.yaml)"
 
-GITLAB_HOME_GITLAB="$(jq -r '.services[] | select(.name=="gitlab") | .home_gitlab' ${PGPATH}/config.json)"
-GITLAB_HOME_GITLAB_RUNNER="$(jq -r '.services[] | select(.name=="gitlab") | .home_gitlab_runner' ${PGPATH}/config.json)"
-GITLAB_CONTAINER_NAME="$(jq -r '.services[] | select(.name=="gitlab") | .container_name' ${PGPATH}/config.json)"
-GITLAB_RUNNER_CONTAINER_NAME="$(jq -r '.services[] | select(.name=="gitlab") | .container_runner_name' ${PGPATH}/config.json)"
-GITLAB_HTTP_PORT="$(jq -r '.services[] | select(.name=="gitlab") | .gitlab_http_port' ${PGPATH}/config.json)"
-GITLAB_HTTPS_PORT="$(jq -r '.services[] | select(.name=="gitlab") | .gitlab_https_port' ${PGPATH}/config.json)"
-GITLAB_SSH_PORT="$(jq -r '.services[] | select(.name=="gitlab") | .gitlab_ssh_port' ${PGPATH}/config.json)"
-GITLAB_SERVICE_PORT="$(jq -r '.services[] | select(.name=="gitlab") | .service_port' ${PGPATH}/config.json)"
+GITLAB_HOME_GITLAB="$(yq '.services[] | select(.name=="gitlab") | .home_gitlab' ${PGPATH}/config.yaml)"
+GITLAB_HOME_GITLAB_RUNNER="$(yq '.services[] | select(.name=="gitlab") | .home_gitlab_runner' ${PGPATH}/config.yaml)"
+GITLAB_CONTAINER_NAME="$(yq '.services[] | select(.name=="gitlab") | .container_name' ${PGPATH}/config.yaml)"
+GITLAB_RUNNER_CONTAINER_NAME="$(yq '.services[] | select(.name=="gitlab") | .container_runner_name' ${PGPATH}/config.yaml)"
+GITLAB_HTTP_PORT="$(yq '.services[] | select(.name=="gitlab") | .gitlab_http_port' ${PGPATH}/config.yaml)"
+GITLAB_HTTPS_PORT="$(yq '.services[] | select(.name=="gitlab") | .gitlab_https_port' ${PGPATH}/config.yaml)"
+GITLAB_SSH_PORT="$(yq '.services[] | select(.name=="gitlab") | .gitlab_ssh_port' ${PGPATH}/config.yaml)"
+GITLAB_SERVICE_PORT="$(yq '.services[] | select(.name=="gitlab") | .service_port' ${PGPATH}/config.yaml)"
 
 REGISTRY_HOST=$(hostname -I | awk '{print $1}')
-REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .proxy_listen_port' ${PGPATH}/config.json)"
+REGISTRY_PORT="$(yq '.services[] | select(.name=="playground-registry") | .proxy_listen_port' ${PGPATH}/config.yaml)"
 EXTERNAL_IP=$(hostname -I | awk '{print $1}')
 
 #######################################

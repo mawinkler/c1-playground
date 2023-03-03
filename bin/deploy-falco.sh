@@ -6,10 +6,10 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-NAMESPACE="$(jq -r '.services[] | select(.name=="falco") | .namespace' $PGPATH/config.json)"
-HOSTNAME="$(jq -r '.services[] | select(.name=="falco") | .hostname' $PGPATH/config.json)"
-SERVICE_NAME="$(jq -r '.services[] | select(.name=="falco") | .proxy_service_name' $PGPATH/config.json)"
-LISTEN_PORT="$(jq -r '.services[] | select(.name=="falco") | .proxy_listen_port' $PGPATH/config.json)"
+NAMESPACE="$(yq '.services[] | select(.name=="falco") | .namespace' $PGPATH/config.yaml)"
+HOSTNAME="$(yq '.services[] | select(.name=="falco") | .hostname' $PGPATH/config.yaml)"
+SERVICE_NAME="$(yq '.services[] | select(.name=="falco") | .proxy_service_name' $PGPATH/config.yaml)"
+LISTEN_PORT="$(yq '.services[] | select(.name=="falco") | .proxy_listen_port' $PGPATH/config.yaml)"
 
 #######################################
 # Creates Kubernetes namespace

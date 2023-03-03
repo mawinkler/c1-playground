@@ -4,7 +4,7 @@
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-NAMESPACE_TRIVY="$(jq -r '.services[] | select(.name=="trivy") | .namespace' $PGPATH/config.json)"
+NAMESPACE_TRIVY="$(yq '.services[] | select(.name=="trivy") | .namespace' $PGPATH/config.yaml)"
 
 helm --namespace ${NAMESPACE_TRIVY} delete trivy-operator
 

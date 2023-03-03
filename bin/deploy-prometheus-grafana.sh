@@ -6,16 +6,16 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-CLUSTER_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
-PROMETHEUS_HOSTNAME="$(jq -r '.services[] | select(.name=="prometheus") | .hostname' $PGPATH/config.json)"
-PROMETHEUS_SERVICE_PORT="$(jq -r '.services[] | select(.name=="prometheus") | .proxy_service_port' $PGPATH/config.json)"
-PROMETHEUS_LISTEN_PORT="$(jq -r '.services[] | select(.name=="prometheus") | .proxy_listen_port' $PGPATH/config.json)"
-GRAFANA_HOSTNAME="$(jq -r '.services[] | select(.name=="grafana") | .hostname' $PGPATH/config.json)"
-GRAFANA_SERVICE_PORT="$(jq -r '.services[] | select(.name=="grafana") | .proxy_service_port' $PGPATH/config.json)"
-GRAFANA_LISTEN_PORT="$(jq -r '.services[] | select(.name=="grafana") | .proxy_listen_port' $PGPATH/config.json)"
-GRAFANA_PASSWORD="$(jq -r '.services[] | select(.name=="grafana") | .password' $PGPATH/config.json)"
-NAMESPACE="$(jq -r '.services[] | select(.name=="prometheus") | .namespace' $PGPATH/config.json)"
-HOMEASSISTANT_API_KEY="$(jq -r '.services[] | select(.name=="hass") | .api_key' $PGPATH/config.json)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+PROMETHEUS_HOSTNAME="$(yq '.services[] | select(.name=="prometheus") | .hostname' $PGPATH/config.yaml)"
+PROMETHEUS_SERVICE_PORT="$(yq '.services[] | select(.name=="prometheus") | .proxy_service_port' $PGPATH/config.yaml)"
+PROMETHEUS_LISTEN_PORT="$(yq '.services[] | select(.name=="prometheus") | .proxy_listen_port' $PGPATH/config.yaml)"
+GRAFANA_HOSTNAME="$(yq '.services[] | select(.name=="grafana") | .hostname' $PGPATH/config.yaml)"
+GRAFANA_SERVICE_PORT="$(yq '.services[] | select(.name=="grafana") | .proxy_service_port' $PGPATH/config.yaml)"
+GRAFANA_LISTEN_PORT="$(yq '.services[] | select(.name=="grafana") | .proxy_listen_port' $PGPATH/config.yaml)"
+GRAFANA_PASSWORD="$(yq '.services[] | select(.name=="grafana") | .password' $PGPATH/config.yaml)"
+NAMESPACE="$(yq '.services[] | select(.name=="prometheus") | .namespace' $PGPATH/config.yaml)"
+HOMEASSISTANT_API_KEY="$(yq '.services[] | select(.name=="hass") | .api_key' $PGPATH/config.yaml)"
 
 #######################################
 # Creates Kubernetes namespace

@@ -7,10 +7,10 @@ set -e
 
 # Get config
 SERVICE=$1
-SERVICE_NAME="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .proxy_service_name' $PGPATH/config.json)"
-SERVICE_NAMESPACE="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .namespace' $PGPATH/config.json)"
-SERVICE_PORT="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .proxy_service_port' $PGPATH/config.json)"
-LISTEN_PORT="$(jq -r --arg SVC $SERVICE '.services[] | select(.name==$SVC) | .proxy_listen_port' $PGPATH/config.json)"
+SERVICE_NAME="$(yq '.services[] | select(.name==env(SERVICE)) | .proxy_service_name' $PGPATH/config.yaml)"
+SERVICE_NAMESPACE="$(yq '.services[] | select(.name==env(SERVICE)) | .namespace' $PGPATH/config.yaml)"
+SERVICE_PORT="$(yq '.services[] | select(.name==env(SERVICE)) | .proxy_service_port' $PGPATH/config.yaml)"
+LISTEN_PORT="$(yq '.services[] | select(.name==env(SERVICE)) | .proxy_listen_port' $PGPATH/config.yaml)"
 
 #######################################
 # Creates the proxy configuration

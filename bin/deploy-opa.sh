@@ -6,7 +6,7 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-NAMESPACE="$(jq -r '.services[] | select(.name=="opa") | .namespace' $PGPATH/config.json)"
+NAMESPACE="$(yq '.services[] | select(.name=="opa") | .namespace' $PGPATH/config.yaml)"
 
 mkdir -p $PGPATH/opa
 

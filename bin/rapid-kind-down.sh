@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o errexit
 
-CLUSTER_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
 
 echo Deleting Cluster ${CLUSTER_NAME}
 kind delete clusters ${CLUSTER_NAME}

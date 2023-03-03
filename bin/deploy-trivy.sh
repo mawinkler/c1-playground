@@ -2,8 +2,8 @@
 
 set -e
 
-CLUSTER_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
-NAMESPACE_TRIVY="$(jq -r '.services[] | select(.name=="trivy") | .namespace' $PGPATH/config.json)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+NAMESPACE_TRIVY="$(yq '.services[] | select(.name=="trivy") | .namespace' $PGPATH/config.yaml)"
 
 #######################################
 # Creates Kubernetes namespace

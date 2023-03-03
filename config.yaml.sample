@@ -1,41 +1,65 @@
-# Default configuration for Playground Simplicity
-#
-# You need to adapt the values marked with CHANGEME to your own needs.
-# If you change any value which has no documentation you do this at your risk.
+# Default values for Playground.
+# This is a YAML-formatted file.
 
-## CHANGEME: Name of your cluster
+## Kubernetes cluster name
 ##
-## Name must be alphanumeric, can contain "." and "_" but no spaces
+## Default value: playground
 cluster_name: playground
 
-## Service definitions
+## Editor for Playground. Defaults to autodetection of nano over vim and vi
+##
+## Default value: ''
+editor: ''
+
 services:
-
   - name: cloudone
-    instance: cloudone
-
-    ## CHANGEME: The Cloud One Region to use
-    ##
-    ## Examples: trend-us-1, us-1, de-1, ...
+    ## Cloud One region to work with
+    ## 
+    ## Default value: trend-us-1
     region: trend-us-1
 
-    ## CHANGEME: The Cloud One API Key
+    ## Cloud One instance to use
     ##
-    ## Default value: (none)
-    api_key:
+    ## Allowed values: cloudone, staging-cloudone, dev-cloudone
+    ## 
+    ## Default value: cloudone
+    instance: cloudone
+
+    ## Cloud One API Key with Full Access
+    ## 
+    ## REQUIRED if you want to play with Cloud One
+    ##
+    ## Default value: ''
+    api_key: ''
 
   - name: container_security
-    namespace: trendmicro-system
-
-    ## CHANGEME: The Container Security Policy Name
-    ##
-    ## Name must be alphanumeric, can contain "." and "_" but no spaces
+    ## The name of the created or reused policy
+    ## 
+    ## Default value: relaxed_playground
     policy_name: relaxed_playground
 
+    ## Target namespace for Smart Check
+    ## 
+    ## Default value: trendmicro-system
+    namespace: trendmicro-system
+
   - name: smartcheck
+    ## Target namespace for Smart Check
+    ## 
+    ## Default value: trendmicro-smartcheck
     namespace: trendmicro-smartcheck
+
+    ## Smart Check username to set
+    ## 
+    ## Default value: admin
     username: admin
+
+    ## Smart Check password to set
+    ## 
+    ## Default value: trendmicro
     password: trendmicro
+
+    ## Other settings typically not required to be changed
     hostname: smartcheck
     reg_username: admin
     reg_password: trendmicro
@@ -45,102 +69,177 @@ services:
     proxy_listen_port: "8443"
 
   - name: playground-registry
+    ## Target namespace for registry
+    ## 
+    ## Default value: registry
     namespace: registry
+
+    ## Storage size reserved for the registry
+    ## 
+    ## Default value: 10Gi
     size: 10Gi
+
     port: "5000"
+    ## Registry username to set
+    ## 
+    ## Default value: admin
     username: admin
+
+    ## Registry username to set
+    ## 
+    ## Default value: trendmicro
     password: trendmicro
-    hostname: playground-registry
+
+    ## Other settings typically not required to be changed
+    hostname: playground.localdomain
+    proxy_service_name: playground-registry
+    proxy_service_port: "5000"
+    proxy_listen_port: "5000"
 
   - name: grafana
+    ## Target namespace for Grafana
+    ## 
+    ## Default value: prometheus
     namespace: prometheus
+
+    ## Username to set
+    ## 
+    ## Default value: admin
     username: admin
+
+    ## Password to set
+    ## 
+    ## Default value: trendmicro
     password: trendmicro
+
+    ## Other settings typically not required to be changed
     hostname: grafana
     proxy_service_name: prometheus-grafana
     proxy_service_port: "80"
     proxy_listen_port: "8080"
 
   - name: prometheus
+    ## Target namespace for Prometheus
+    ## 
+    ## Default value: prometheus
     namespace: prometheus
+
+    ## Username to set
+    ## 
+    ## Default value: admin
     username: admin
+
+    ## Password to set
+    ## 
+    ## Default value: trendmicro
     password: trendmicro
+
+    ## Other settings typically not required to be changed
     hostname: prometheus
     proxy_service_name: prometheus-kube-prometheus-prometheus
     proxy_service_port: "9090"
     proxy_listen_port: "8081"
 
   - name: falco
+    ## Target namespace for Falco
+    ## 
+    ## Default value: falco
     namespace: falco
+
+    ## Other settings typically not required to be changed
     hostname: falco
     proxy_service_name: falco-falcosidekick-ui
     proxy_service_port: "2802"
     proxy_listen_port: "8082"
 
-  - name: trivy
-    namespace: trivy
+  - name: jenkins
+    ## Settings typically not required to be changed
+    container_name: jenkins-blueocean
+    dind_name: jenkins-docker
+    dind_port: "2376"
+    service_port: "8087"
+    agent_port: "50000"
+    volume_data: jenkins-data
+    volume_docker_certs: jenkins-docker-certs
 
-  - name: starboard
-    namespace: starboard
+  - name: gitlab
+    ## Settings typically not required to be changed
+    home_gitlab: /srv/gitlab
+    home_gitlab_runner: /srv/gitlab-runner
+    container_name: gitlab-ce
+    container_runner_name: gitlab-runner
+    gitlab_http_port: "80"
+    gitlab_https_port: "443"
+    gitlab_ssh_port: "8090"
+    service_port: "8088"
+
+  - name: trivy
+    ## Target namespace for Trivy
+    ## 
+    ## Default value: trivy-system
+    namespace: trivy-system
 
   - name: opa
+    ## Target namespace for Open Policy Agent
+    ## 
+    ## Default value: opa
     namespace: opa
 
-  - name: kube-system
-    namespace: kube-system
-
   - name: gatekeeper
+    ## Target namespace for Gatekeeper
+    ## 
+    ## Default value: gatekeeper-system
     namespace: gatekeeper-system
 
-  - name: cadvisor
-    namespace: cadvisor
-
   - name: harbor
+    ## Target namespace for Harbor
+    ## 
+    ## Default value: harbor
     namespace: harbor
+
+    ## Common name for Harbor to use in certificate generation
+    ## 
+    ## Default value: 172.250.255.5
     common_name: 172.250.255.5
+
+    ## Harbor admin password to set
+    ## 
+    ## Default value: trendmicro
     admin_password: trendmicro
+
+    ## Registry username to set
+    ## 
+    ## Default value: admin
     reg_username: admin
+
+    ## Registry password to set
+    ## 
+    ## Default value: trendmicro
     reg_password: trendmicro
+
+    ## Registry password to set in htpasswd format. If you change
+    ## reg_password to a different value you need to regenerate
+    ## the htpasswd.
+    ## 
+    ## Default value: admin:$2y$10$lA2oNWrQ0WEvIzRs/1FxiOIzmW0GA1s8wjXHYa7C.Dsw0/8z47u8u
     reg_htpasswd: admin:$2y$10$lA2oNWrQ0WEvIzRs/1FxiOIzmW0GA1s8wjXHYa7C.Dsw0/8z47u8u
+
+    ## Other settings typically not required to be changed
     proxy_service_name: harbor
     proxy_service_port: "443"
     proxy_listen_port: "8085"
 
   - name: pipeline
-    ## Pipeline support is in beta stage and for AWS only.
-    ## If you want to play with it you need to adapt at least the marked values to your needs.
-
-    ## GitHub User Account to pull from
-    ##
-    ## Default: mawinkler
     github_username: mawinkler
-
-    ## GitHub User e-Mail account to use
-    ##
-    ## Default: winkler.info@icloud.com
     github_email: winkler.info@icloud.com
-
-    ## GitHub Repo to pull
-    ##
-    ## Default: c1-app-sec-uploader
     github_project: c1-app-sec-uploader
+    docker_username: YOUR USERNAME HERE
+    docker_password: YOUR PASSWORD HERE
+    appsec_key: YOUR KEY HERE
+    appsec_secret: YOUR SECRET HERE
 
-    ## CHANGEME: Docker Username
-    ##
-    ## Default: null
-    docker_username:
-
-    ## CHANGEME: Docker Password
-    ##
-    ## Default: null
-    docker_password:
-
-    ## CHANGEME: Application Security Group Key
-    ##
-    ## Default: null
-    appsec_key:
-
-    ## CHANGEME: Application Security Group Secret
-    ##
-    ## Default: null
-    appsec_secret:
+  - name: kube-system
+    ## Target namespace for kube-system components
+    ## 
+    ## Default value: kube-system
+    namespace: kube-system

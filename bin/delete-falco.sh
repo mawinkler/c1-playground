@@ -4,7 +4,7 @@ set -o errexit
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-NAMESPACE="$(jq -r '.services[] | select(.name=="falco") | .namespace' $PGPATH/config.json)"
+NAMESPACE="$(yq '.services[] | select(.name=="falco") | .namespace' $PGPATH/config.yaml)"
 
 helm -n ${NAMESPACE} delete falco
 helm -n ${NAMESPACE} delete falco-exporter

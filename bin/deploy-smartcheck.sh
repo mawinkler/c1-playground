@@ -8,19 +8,19 @@ set -e
 STAGING=false
 
 # Get config
-CLUSTER_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
-SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.json)"
-SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.json)"
-SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.json)"
-SC_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' $PGPATH/config.json)"
-SC_LISTEN_PORT="$(jq -r '.services[] | select(.name=="smartcheck") | .proxy_listen_port' $PGPATH/config.json)"
-SC_REG_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_username' $PGPATH/config.json)"
-SC_REG_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_password' $PGPATH/config.json)"
-SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' $PGPATH/config.json)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+SC_NAMESPACE="$(yq '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.yaml)"
+SC_USERNAME="$(yq '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.yaml)"
+SC_PASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.yaml)"
+SC_HOSTNAME="$(yq '.services[] | select(.name=="smartcheck") | .hostname' $PGPATH/config.yaml)"
+SC_LISTEN_PORT="$(yq '.services[] | select(.name=="smartcheck") | .proxy_listen_port' $PGPATH/config.yaml)"
+SC_REG_USERNAME="$(yq '.services[] | select(.name=="smartcheck") | .reg_username' $PGPATH/config.yaml)"
+SC_REG_PASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .reg_password' $PGPATH/config.yaml)"
+SC_REG_HOSTNAME="$(yq '.services[] | select(.name=="smartcheck") | .reg_hostname' $PGPATH/config.yaml)"
 SC_TEMPPW='justatemppw'
-API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.json)"
-REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.json)"
-INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.json)"
+API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
+REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"
+INSTANCE="$(yq '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.yaml)"
 if [ ${INSTANCE} = null ]; then
   INSTANCE=cloudone
 fi
@@ -278,31 +278,19 @@ function password_change() {
 #   None
 #######################################
 function create_scanner() {
-  # SCANNER_ID=$(
-  #   curl --silent --location --request GET 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
-  #   --header @$PGPATH/overrides/cloudone-header.txt | \
-  #   jq -r --arg CLUSTER_NAME ${CLUSTER_NAME//-/_} '.scanners[] | select(.name==$CLUSTER_NAME) | .id'
-  # )
-  # if [ "${SCANNER_ID}" != "" ] ; then
-  #   printf '%s\n' "Reusing scanner with id ${SCANNER_ID}"
-  # fi
-  # if [ -f "$PGPATH/overrides/container-security-overrides-image-security-bind.yaml" ] ; then
-  #   printf '%s\n' "Reusing existing image security bind overrides"
-  # else
-    printf '%s\n' "Create scanner object"
-    RESULT=$(
-      CLUSTER_NAME=${CLUSTER_NAME//-/_}_$(openssl rand -hex 4) \
-        envsubst <$PGPATH/templates/container-security-scanner.json |
-          curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
-          --header @$PGPATH/overrides/cloudone-header.txt \
-          --data-binary "@-"
-    )
-    # bind smartcheck to container security
-    API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
-      REGION=${REGION} \
-      INSTANCE=${INSTANCE} \
-      envsubst <$PGPATH/templates/container-security-overrides-image-security-bind.yaml >$PGPATH/overrides/container-security-overrides-image-security-bind.yaml
-  # fi
+  printf '%s\n' "Create scanner object"
+  RESULT=$(
+    CLUSTER_NAME=${CLUSTER_NAME//-/_}_$(openssl rand -hex 4) \
+      envsubst <$PGPATH/templates/container-security-scanner.json |
+        curl --silent --location --request POST 'https://container.'${REGION}'.'${INSTANCE}'.trendmicro.com/api/scanners' \
+        --header @$PGPATH/overrides/cloudone-header.txt \
+        --data-binary "@-"
+  )
+  # bind smartcheck to container security
+  API_KEY_SCANNER=$(echo ${RESULT} | jq -r ".apiKey") \
+    REGION=${REGION} \
+    INSTANCE=${INSTANCE} \
+    envsubst <$PGPATH/templates/container-security-overrides-image-security-bind.yaml >$PGPATH/overrides/container-security-overrides-image-security-bind.yaml
 
   # create scanner
   printf '%s\n' "(Re-)bind smartcheck to container security"

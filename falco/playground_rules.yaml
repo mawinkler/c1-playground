@@ -505,4 +505,3 @@
     - opa
     - kube-system
     - gatekeeper-system
-    - cadvisor

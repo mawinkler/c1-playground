@@ -143,10 +143,10 @@ function is_darwin() {
 #   SC_NAMESPACE
 #######################################
 function setup_smartcheck() {
-  SC_USERNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.json)"
-  SC_PASSWORD="$(jq -r '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.json)"
-  SC_PORT="$(jq -r '.services[] | select(.name=="smartcheck") | .proxy_service_port' $PGPATH/config.json)"
-  SC_NAMESPACE="$(jq -r '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.json)"
+  SC_USERNAME="$(yq '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.yaml)"
+  SC_PASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.yaml)"
+  SC_PORT="$(yq '.services[] | select(.name=="smartcheck") | .proxy_service_port' $PGPATH/config.yaml)"
+  SC_NAMESPACE="$(yq '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.yaml)"
 }
 
 #######################################
@@ -180,7 +180,7 @@ function get_smartcheck() {
                     -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     fi
     if is_darwin ; then
-      SC_HOST="$(jq -r '.services[] | select(.name=="smartcheck") | .hostname' $PGPATH/config.json)"
+      SC_HOST="$(yq '.services[] | select(.name=="smartcheck") | .hostname' $PGPATH/config.yaml)"
     fi
   fi
 }
@@ -207,7 +207,7 @@ function get_registry() {
     REGISTRY=${GCP_HOSTNAME}/${GCP_PROJECTID}
   # aks
   elif is_aks ; then
-    PLAYGROUND_NAME="$(jq -r '.cluster_name' $PGPATH/config.json)"
+    PLAYGROUND_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
     if [[ $(az group list | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME} '.[] | select(.name==$PLAYGROUND_NAME) | .name') == "" ]]; then
       printf '%s\n' "creating resource group ${PLAYGROUND_NAME}"
       az group create --name ${PLAYGROUND_NAME} --location westeurope
@@ -231,17 +231,17 @@ function get_registry() {
     printf '%s\n' "Using container registry ${REGISTRY}"
   # local
   else
-    REG_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' $PGPATH/config.json)"
-    REG_NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' $PGPATH/config.json)"
+    REG_NAME="$(yq '.services[] | select(.name=="playground-registry") | .name' $PGPATH/config.yaml)"
+    REG_NAMESPACE="$(yq '.services[] | select(.name=="playground-registry") | .namespace' $PGPATH/config.yaml)"
     if is_linux ; then
       REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
                     -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-      REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' $PGPATH/config.json)"
+      REG_PORT="$(yq '.services[] | select(.name=="playground-registry") | .port' $PGPATH/config.yaml)"
     fi
     if is_darwin ; then
       REG_HOST=$(kubectl --namespace ${REG_NAMESPACE} get svc ${REG_NAME} \
                       -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-      REG_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' $PGPATH/config.json)"
+      REG_PORT="$(yq '.services[] | select(.name=="playground-registry") | .port' $PGPATH/config.yaml)"
     fi
     REGISTRY="${REG_HOST}:${REG_PORT}"
   fi
@@ -297,8 +297,8 @@ function get_registry_credentials() {
     REGISTRY_PASSWORD=$(aws ecr get-login-password --region ${AWS_REGION})
   # local
   else
-    REGISTRY_USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' $PGPATH/config.json)"
-    REGISTRY_PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' $PGPATH/config.json)"
+    REGISTRY_USERNAME="$(yq '.services[] | select(.name=="playground-registry") | .username' $PGPATH/config.yaml)"
+    REGISTRY_PASSWORD="$(yq '.services[] | select(.name=="playground-registry") | .password' $PGPATH/config.yaml)"
   fi
 }
 
@@ -352,9 +352,9 @@ function check_response() {
 #   CLUSTER
 #######################################
 function check_cloudone() {
-  API_KEY="$(jq -r '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.json)"
-  REGION="$(jq -r '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.json)"
-  INSTANCE="$(jq -r '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.json)"
+  API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
+  REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"
+  INSTANCE="$(yq '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.yaml)"
   if [ ${INSTANCE} = null ]; then
     INSTANCE=cloudone
   fi
@@ -381,6 +381,10 @@ function check_cloudone() {
 #   EDITOR
 #######################################
 function get_editor() {
+  if [ -f $PGPATH/config.yaml ]; then
+    EDITOR="$(yq '.editor' $PGPATH/config.yaml)"
+  fi
+  if [ "${EDITOR}" == "" ] || [ "${EDITOR}" == "null" ]; then
     if command -v nano &>/dev/null; then
         EDITOR=nano
     elif command -v vim &>/dev/null; then
@@ -390,5 +394,6 @@ function get_editor() {
     else
         echo No editor found. Aborting.
     fi
-    echo Editor: ${EDITOR}
+  fi
+  echo Editor: ${EDITOR}
 }

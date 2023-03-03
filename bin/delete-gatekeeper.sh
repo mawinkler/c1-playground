@@ -4,7 +4,7 @@ set -o errexit
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-NAMESPACE="$(jq -r '.services[] | select(.name=="gatekeeper") | .namespace' $PGPATH/config.json)"
+NAMESPACE="$(yq '.services[] | select(.name=="gatekeeper") | .namespace' $PGPATH/config.yaml)"
 
 helm --namespace ${NAMESPACE} delete gatekeeper
 

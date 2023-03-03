@@ -6,16 +6,15 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-NAMESPACE="$(jq -r '.services[] | select(.name=="harbor") | .namespace' $PGPATH/config.json)"
-COMMON_NAME="$(jq -r '.services[] | select(.name=="harbor") | .common_name' $PGPATH/config.json)"
-SERVICE_NAME="$(jq -r '.services[] | select(.name=="harbor") | .proxy_service_name' $PGPATH/config.json)"
-LISTEN_PORT="$(jq -r '.services[] | select(.name=="harbor") | .proxy_service_port' $PGPATH/config.json)"
-PROXY_LISTEN_PORT="$(jq -r '.services[] | select(.name=="harbor") | .proxy_listen_port' $PGPATH/config.json)"
-ADMIN_PASSWORD="$(jq -r '.services[] | select(.name=="harbor") | .admin_password' $PGPATH/config.json)"
-REG_USERNAME="$(jq -r '.services[] | select(.name=="harbor") | .reg_username' $PGPATH/config.json)"
-REG_PASSWORD="$(jq -r '.services[] | select(.name=="harbor") | .reg_password' $PGPATH/config.json)"
-REG_HTPASSWD="$(jq -r '.services[] | select(.name=="harbor") | .reg_htpasswd' $PGPATH/config.json)"
-# SC_REG_HOSTNAME="$(jq -r '.services[] | select(.name=="smartcheck") | .reg_hostname' $PGPATH/config.json)"
+NAMESPACE="$(yq '.services[] | select(.name=="harbor") | .namespace' $PGPATH/config.yaml)"
+COMMON_NAME="$(yq '.services[] | select(.name=="harbor") | .common_name' $PGPATH/config.yaml)"
+SERVICE_NAME="$(yq '.services[] | select(.name=="harbor") | .proxy_service_name' $PGPATH/config.yaml)"
+LISTEN_PORT="$(yq '.services[] | select(.name=="harbor") | .proxy_service_port' $PGPATH/config.yaml)"
+PROXY_LISTEN_PORT="$(yq '.services[] | select(.name=="harbor") | .proxy_listen_port' $PGPATH/config.yaml)"
+ADMIN_PASSWORD="$(yq '.services[] | select(.name=="harbor") | .admin_password' $PGPATH/config.yaml)"
+REG_USERNAME="$(yq '.services[] | select(.name=="harbor") | .reg_username' $PGPATH/config.yaml)"
+REG_PASSWORD="$(yq '.services[] | select(.name=="harbor") | .reg_password' $PGPATH/config.yaml)"
+REG_HTPASSWD="$(yq '.services[] | select(.name=="harbor") | .reg_htpasswd' $PGPATH/config.yaml)"
 
 SERVICE_TYPE=loadBalancer
 HARBOR_URL=https://${COMMON_NAME}

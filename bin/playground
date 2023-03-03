@@ -233,13 +233,22 @@ function menu_clusters() {
         esac
         case $choice in
             "Create")
-                if [ -f $PGPATH/config.json ]; then
+                if [ -f $PGPATH/config.json ] && [ ! -f $PGPATH/config.yaml ]; then
+                    # Convert old config.json to yaml
+                    yq e -P < $PGPATH/config.json > $PGPATH/config.yaml
+                    echo "Migrated config.json to yaml"
+                    mv $PGPATH/config.json $PGPATH/config.json.old
+                    echo "Renamed config.json to config.json.old"
+                    sleep 5
+                fi
+
+                if [ -f $PGPATH/config.yaml ]; then
                     menu_create_cluster
                 else
-                    cp $PGPATH/config.json.sample $PGPATH/config.json
+                    # Create new config.yaml based on sample
+                    cp $PGPATH/config.yaml.sample $PGPATH/config.yaml
                     result="Adapt configuration before continuing."
                     display_result "Important"
-                    menu_create_cluster
                 fi
                 ;;
             "Clusters")
@@ -362,10 +371,18 @@ function menu_config() {
                 display_result "Disk Space"
                 ;;
             "Config")
-                if [ ! -f $PGPATH/config.json ]; then
-                    cp $PGPATH/config.json.sample $PGPATH/config.json
+                if [ -f $PGPATH/config.json ] && [ ! -f $PGPATH/config.yaml ]; then
+                    # Convert old config.json to yaml
+                    yq e -P < $PGPATH/config.json > $PGPATH/config.yaml
+                    echo "Migrated config.json to yaml"
+                    mv $PGPATH/config.json $PGPATH/config.json.old
+                    echo "Renamed config.json to config.json.old"
                 fi
-                ${EDITOR} $PGPATH/config.json
+                if [ ! -f $PGPATH/config.yaml ]; then
+                    cp $PGPATH/config.yaml.sample $PGPATH/config.yaml
+                fi
+                get_editor
+                ${EDITOR} $PGPATH/config.yaml
                 ;;
             "Daemon")
                 if [ ! -d "/etc/docker" ]; then
@@ -425,6 +442,7 @@ function menu_cli() {
 
                 # brew install awscli
                 # brew install eksctl
+                break
                 ;;
             "Azure")
                 clear
@@ -445,9 +463,11 @@ function menu_cli() {
                 sudo chmod 755 /usr/local/bin/azcopy
 
                 # brew install azure-cli
+                break
                 ;;
             "GCP")
                 clear
+                break
                 ;;
             *) 
                 ;;
@@ -490,16 +510,19 @@ function menu_authenticate() {
                 clear
                 aws configure
                 sleep 3
+                break
                 ;;
             "Azure")
                 clear
                 az login --scope https://management.core.windows.net//.default --use-device-code
                 sleep 3
+                break
                 ;;
             "GCP")
                 clear
                 gcloud auth login --no-launch-browser
                 sleep 3
+                break
                 ;;
             *) 
                 ;;
@@ -548,21 +571,25 @@ function menu_create_cluster() {
                     $PGPATH/bin/rapid-kind.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 1322 rapid-kind
                 fi
+                break
                 ;;
             "EKS") 
                 clear
                 $PGPATH/bin/rapid-eks.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 111 rapid-eks
+                break
                 ;;
             "AKS")
                 clear
                 $PGPATH/bin/rapid-aks.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 25 rapid-aks
+                break
                 ;;
             "GKE")
                 clear
                 $PGPATH/bin/rapid-gke.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 25 rapid-gke
+                break
                 ;;
             *) 
                 ;;
@@ -609,6 +636,7 @@ function menu_teardown_cluster() {
                     $PGPATH/bin/rapid-kind-down.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 2 rapid-kind-down
                 fi
+                break
                 ;;
             "EKS") 
                 if [ -f "$PGPATH/bin/rapid-eks-down.sh" ]; then
@@ -616,6 +644,7 @@ function menu_teardown_cluster() {
                     $PGPATH/bin/rapid-eks-down.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 25 rapid-eks-down
                 fi
+                break
                 ;;
             "AKS")
                 if [ -f "$PGPATH/bin/rapid-aks-down.sh" ]; then
@@ -623,6 +652,7 @@ function menu_teardown_cluster() {
                     $PGPATH/bin/rapid-aks-down.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 25 rapid-aks-down
                 fi
+                break
                 ;;
             "GKE")
                 if [ -f "$PGPATH/bin/rapid-gke-down.sh" ]; then
@@ -630,10 +660,12 @@ function menu_teardown_cluster() {
                     $PGPATH/bin/rapid-gke-down.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 25 rapid-gke-down
                 fi
+                break
                 ;;
             "Logs")
                 clear
                 sudo rm -Rf $PGPATH/log/*
+                break
                 ;;
             *) 
                 ;;
@@ -739,8 +771,9 @@ function menu_deploy() {
                     result="Verify your Cloud One Configuration.\n\nCheck Cloud One Region and API KEY."
                     display_result "Important"
                 fi
+                break
                 ;;
-            "C1SC") 
+            "C1SC")
                 if check_cloudone; then
                     clear
                     $PGPATH/bin/deploy-smartcheck.sh > $PGPATH/log/last.log 2>&1 &
@@ -749,46 +782,55 @@ function menu_deploy() {
                     result="Verify your Cloud One Configuration.\n\nCheck Cloud One Region and API KEY."
                     display_result "Important"
                 fi
+                break
                 ;;
             "Falco")
                 clear
                 $PGPATH/bin/deploy-falco.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 46 deploy-falco
+                break
                 ;;
             "Gatekeeper")
                 clear
                 $PGPATH/bin/deploy-gatekeeper.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 15 deploy-gatekeeper
+                break
                 ;;
             "OPA")
                 clear
                 $PGPATH/bin/deploy-opa.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 30 deploy-opa
+                break
                 ;;
             "Prometheus")
                 clear
                 $PGPATH/bin/deploy-prometheus-grafana.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 38 deploy-prometheus-grafana
+                break
                 ;;
             "Trivy")
                 clear
                 $PGPATH/bin/deploy-trivy.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 25 deploy-trivy
+                break
                 ;;
             "Harbor")
                 clear
                 $PGPATH/bin/deploy-harbor.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 54 deploy-harbor
+                break
                 ;;
             "Jenkins")
                 clear
                 $PGPATH/bin/deploy-jenkins.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 224 deploy-jenkins
+                break
                 ;;
             "GitLab")
                 clear
                 $PGPATH/bin/deploy-gitlab.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 342 deploy-gitlab
+                break
                 ;;
             *) 
                 ;;
@@ -839,51 +881,61 @@ function menu_delete() {
                 clear
                 $PGPATH/bin/delete-container-security.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 4 delete-container-security
+                break
                 ;;
             "C1SC") 
                 clear
                 $PGPATH/bin/delete-smartcheck.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 4 delete-smartcheck
+                break
                 ;;
             "Falco")
                 clear
                 $PGPATH/bin/delete-falco.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 5 delete-falco
+                break
                 ;;
             "Gatekeeper")
                 clear
                 $PGPATH/bin/delete-gatekeeper.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 5 delete-gatekeeper
+                break
                 ;;
             "OPA")
                 clear
                 $PGPATH/bin/delete-opa.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 10 delete-opa
+                break
                 ;;
             "Prometheus")
                 clear
                 $PGPATH/bin/delete-prometheus-grafana.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 4 delete-prometheus-grafana
+                break
                 ;;
             "Trivy")
                 clear
                 $PGPATH/bin/delete-trivy.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 4 delete-trivy
+                break
                 ;;
             "Harbor")
                 clear
                 $PGPATH/bin/delete-harbor.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 9 delete-harbor
+                break
                 ;;
             "Jenkins")
                 clear
                 $PGPATH/bin/delete-jenkins.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 7 delete-jenkins
+                break
                 ;;
             "GitLab")
                 clear
                 $PGPATH/bin/delete-gitlab.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 6 delete-gitlab
+                break
                 ;;
             *) 
                 ;;
@@ -891,8 +943,6 @@ function menu_delete() {
     done
 }
 
-
-get_editor
 while true
 do
     menu_main

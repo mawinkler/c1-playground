@@ -6,18 +6,18 @@ set -e
 .  ${PGPATH}/bin/playground-helpers.sh
 
 # Get config
-JENKINS_HOSTNAME="$(jq -r '.services[] | select(.name=="jenkins") | .hostname' ${PGPATH}/config.json)"
+JENKINS_HOSTNAME="$(yq '.services[] | select(.name=="jenkins") | .hostname' ${PGPATH}/config.yaml)"
 
-JENKINS_DIND_CONTAINER_NAME="$(jq -r '.services[] | select(.name=="jenkins") | .dind_name' ${PGPATH}/config.json)"
-JENKINS_CONTAINER_NAME="$(jq -r '.services[] | select(.name=="jenkins") | .container_name' ${PGPATH}/config.json)"
-JENKINS_DIND_PORT="$(jq -r '.services[] | select(.name=="jenkins") | .dind_port' ${PGPATH}/config.json)"
-JENKINS_AGENT_PORT="$(jq -r '.services[] | select(.name=="jenkins") | .agent_port' ${PGPATH}/config.json)"
-JENKINS_SERVICE_PORT="$(jq -r '.services[] | select(.name=="jenkins") | .service_port' ${PGPATH}/config.json)"
-JENKINS_VOLUME_DATA="$(jq -r '.services[] | select(.name=="jenkins") | .volume_data' ${PGPATH}/config.json)"
-JENKINS_VOLUME_DOCKER_CERTS="$(jq -r '.services[] | select(.name=="jenkins") | .volume_docker_certs' ${PGPATH}/config.json)"
+JENKINS_DIND_CONTAINER_NAME="$(yq '.services[] | select(.name=="jenkins") | .dind_name' ${PGPATH}/config.yaml)"
+JENKINS_CONTAINER_NAME="$(yq '.services[] | select(.name=="jenkins") | .container_name' ${PGPATH}/config.yaml)"
+JENKINS_DIND_PORT="$(yq '.services[] | select(.name=="jenkins") | .dind_port' ${PGPATH}/config.yaml)"
+JENKINS_AGENT_PORT="$(yq '.services[] | select(.name=="jenkins") | .agent_port' ${PGPATH}/config.yaml)"
+JENKINS_SERVICE_PORT="$(yq '.services[] | select(.name=="jenkins") | .service_port' ${PGPATH}/config.yaml)"
+JENKINS_VOLUME_DATA="$(yq '.services[] | select(.name=="jenkins") | .volume_data' ${PGPATH}/config.yaml)"
+JENKINS_VOLUME_DOCKER_CERTS="$(yq '.services[] | select(.name=="jenkins") | .volume_docker_certs' ${PGPATH}/config.yaml)"
 
 REGISTRY_HOST=$(hostname -I | awk '{print $1}')
-REGISTRY_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .proxy_listen_port' ${PGPATH}/config.json)"
+REGISTRY_PORT="$(yq '.services[] | select(.name=="playground-registry") | .proxy_listen_port' ${PGPATH}/config.yaml)"
 
 #######################################
 # Creates the Jenkins Docker Network

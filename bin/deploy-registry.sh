@@ -6,14 +6,14 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-NAMESPACE="$(jq -r '.services[] | select(.name=="playground-registry") | .namespace' $PGPATH/config.json)"
-HOSTNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .hostname' $PGPATH/config.json)"
-SERVICE_NAME="$(jq -r '.services[] | select(.name=="playground-registry") | .name' $PGPATH/config.json)"
-SERVICE_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .port' $PGPATH/config.json)"
-STORAGE_SIZE="$(jq -r '.services[] | select(.name=="playground-registry") | .size' $PGPATH/config.json)"
-LISTEN_PORT="$(jq -r '.services[] | select(.name=="playground-registry") | .proxy_listen_port' $PGPATH/config.json)"
-USERNAME="$(jq -r '.services[] | select(.name=="playground-registry") | .username' $PGPATH/config.json)"
-PASSWORD="$(jq -r '.services[] | select(.name=="playground-registry") | .password' $PGPATH/config.json)"
+NAMESPACE="$(yq '.services[] | select(.name=="playground-registry") | .namespace' $PGPATH/config.yaml)"
+HOSTNAME="$(yq '.services[] | select(.name=="playground-registry") | .hostname' $PGPATH/config.yaml)"
+SERVICE_NAME="$(yq '.services[] | select(.name=="playground-registry") | .name' $PGPATH/config.yaml)"
+SERVICE_PORT="$(yq '.services[] | select(.name=="playground-registry") | .port' $PGPATH/config.yaml)"
+STORAGE_SIZE="$(yq '.services[] | select(.name=="playground-registry") | .size' $PGPATH/config.yaml)"
+LISTEN_PORT="$(yq '.services[] | select(.name=="playground-registry") | .proxy_listen_port' $PGPATH/config.yaml)"
+USERNAME="$(yq '.services[] | select(.name=="playground-registry") | .username' $PGPATH/config.yaml)"
+PASSWORD="$(yq '.services[] | select(.name=="playground-registry") | .password' $PGPATH/config.yaml)"
 
 #######################################
 # Creates Kubernetes namespace
