@@ -10,7 +10,9 @@ Within the `tools` directory are some scripts for Sentry:
 
 1. `sentry-get-reports` - Downloads all Sentry reports generated within the last 24hs to your local directory
 2. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
-3. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
+3. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
+4. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
+5. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
 
 ### Script `sentry-get-reports`
 
@@ -88,7 +90,7 @@ sentry-reports-2023-02-13_15-42-54
 
 ### Script `sentry-trigger-ebs-scan`
 
-The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used to query the reports.
+The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used.
 
 Example calls:
 
@@ -142,6 +144,56 @@ Snapshot snap-0f4cc9d1d8a094861 for volume vol-03b25f8105caf9f00 created
 }
 ```
 
+### Script `sentry-trigger-ecr-scan`
+
+The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used.
+
+Example calls:
+
+```sh
+# Help
+sentry-trigger-ecr-scan help
+```
+
+```sh
+Please specify at least the ecr repository to be scanned.
+
+Usage: REPO=<repo-name> [TAG=<image-tag] [REGION=<aws-region>] sentry-trigger-ecr-scan
+
+Example:
+  REPO=mawinkler/evil TAG=latest sentry-trigger-ecr-scan
+```
+
+```sh
+# Trigger scan of ECR repo mawinkler/evil with tag 0.1 existing in the current region
+REPO=mawinkler/evil TAG=0.1 sentry-trigger-ecr-scan
+```
+
+### Script `sentry-trigger-lambda-scan`
+
+The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used.
+
+Example calls:
+
+```sh
+# Help
+sentry-trigger-lambda-scan help
+```
+
+```sh
+Please specify at least the lambda to be scanned.
+
+Usage: LAMBDA=<lambda-name> [REGION=<aws-region>] sentry-trigger-lambda-scan
+
+Example:
+  LAMBDA=cloud-sentry-EbsResourceConsumer sentry-trigger-lambda-scan
+```
+
+```sh
+# Trigger scan of ECR repo mawinkler/evil with tag 0.1 existing in the current region
+LAMBDA=cloud-sentry-EbsResourceConsumer sentry-trigger-lambda-scan
+```
+
 ### Script `sentry-remove-snapshots`
 
 The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used to query the reports.
@@ -150,7 +202,7 @@ Example calls:
 
 ```sh
 # Help
-sentry-trigger-ebs-scan help
+sentry-remove-snapshots help
 ```
 
 ```sh

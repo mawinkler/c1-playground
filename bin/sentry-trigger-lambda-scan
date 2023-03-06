@@ -1,13 +1,13 @@
 #?/bin/bash
 
 lambda=${LAMBDA:-none}
-if [ "${repo}" == "none" ] || [ "$1" == "help" ]; then
+if [ "${lambda}" == "none" ] || [ "$1" == "help" ]; then
     printf '%s\n' "Please specify at least the lambda to be scanned."
     printf '%s\n' ""
     printf '%s\n' "Usage: LAMBDA=<lambda-name> [REGION=<aws-region>] sentry-trigger-lambda-scan"
     printf '%s\n' ""
     printf '%s\n' "Example:"
-    printf '%s\n' "  REPO=cloud-sentry-EbsResourceConsumer sentry-trigger-lambda-scan"
+    printf '%s\n' "  LAMBDA=cloud-sentry-EbsResourceConsumer sentry-trigger-lambda-scan"
     exit 0
 fi
 
