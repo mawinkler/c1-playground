@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ "$1" == "help" ]; then
+    printf '%s\n' "Usage: [REGION=<aws-region>] sentry-get-reports"
+    printf '%s\n' ""
+    printf '%s\n' "Example:"
+    printf '%s\n' "  REGION=eu-central-1 sentry-get-reports"
+    exit 0
+fi
+REGION=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
+printf '%s\n' "Using region ${REGION}"
+
+# Get the regions Sentry bucket
+BUCKET=$(
+    for bucket in $(aws s3api list-buckets --output json |  jq -r '.Buckets[] | select(.Name | test("^cloud-sentry.*-report-logging$")) | .Name') ; do
+        bucketregion=$(aws s3api get-bucket-location --bucket $bucket | jq -r .LocationConstraint)
+        if [ "$bucketregion" == "$REGION" ] ; then
+            echo ${bucket}
+        fi
+    done)
+if [ "${BUCKET}" == "" ]; then
+    printf '%s\n' "No bucket containing reports in ${REGION}"
+    exit 0
+fi
+printf '%s\n' "Using bucket ${BUCKET}"
+
+# Shift back in time
+DATE=$(date --date '-1 hour' +%Y-%m-%dT%H:%M:%S)
+OUTDIR=sentry-logs-$(date --date '-1 hour' +%Y-%m-%d_%H-%M-%S)
+
+# Ensure reports directory
+mkdir -p ${OUTDIR}
+
+# Get, identify and file reports in subdirectories
+for report in $(aws s3api list-objects-v2 --bucket "$BUCKET" --query 'Contents[?LastModified>=`'"$DATE"'`]' | jq -r '.[].Key') ; do
+
+    # Get and identify report
+    aws s3 cp s3://${BUCKET}/$report ${OUTDIR}/fragment.log
+    # cat ${OUTDIR}/fragment.log | cut -d' ' -f3- >> ${OUTDIR}/sentry-${OUTDIR}.log
+    cat ${OUTDIR}/fragment.log | cut -d' ' -f3- >> ${OUTDIR}/sentry-${OUTDIR}.log
+    rm ${OUTDIR}/fragment.log
+done

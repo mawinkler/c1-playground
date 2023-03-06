@@ -9,10 +9,11 @@ All the scripts and tools described here are at a proof-of-concept level. Some f
 Within the `tools` directory are some scripts for Sentry:
 
 1. `sentry-get-reports` - Downloads all Sentry reports generated within the last 24hs to your local directory
-2. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
-3. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
-4. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
-5. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
+2. `sentry-get-logs` - Downloads all Sentry logs generated within the last 24hs to your local directory
+3. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
+4. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
+5. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
+6. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
 
 ### Script `sentry-get-reports`
 
@@ -86,6 +87,39 @@ sentry-reports-2023-02-13_15-42-54
     ├── Storage-TM-FileStorageSecurit-BucketListenerLambda-a2bmnXZRLzxw.json
     ├── Storage-TM-FileStorageSecurit-BucketListenerLambda-C48dmTDLXKBK.json
     └── Storage-TM-FileStorageSecurity_ScanSendEmail.json
+```
+
+### Script `sentry-get-logs`
+
+The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used to query the logs.
+
+Example calls:
+
+```sh
+# Help
+sentry-get-logs help
+```
+
+```sh
+Usage: [REGION=<aws-region>] sentry-get-logs
+
+Example:
+  REGION=eu-central-1 sentry-get-logs
+```
+
+```sh
+# Get the logs from the current region
+sentry-get-logs
+
+# Get the logs from a region other than your current region
+REGION=us-east-1 sentry-get-logs
+```
+
+Example result:
+
+```sh
+sentry-logs-2023-03-06_14-47-57
+└── sentry-sentry-logs-2023-03-06_14-47-57.log
 ```
 
 ### Script `sentry-trigger-ebs-scan`
@@ -196,7 +230,7 @@ LAMBDA=cloud-sentry-EbsResourceConsumer sentry-trigger-lambda-scan
 
 ### Script `sentry-remove-snapshots`
 
-The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used to query the reports.
+The script is region-aware. This means unless you specify it the currently active AWS region from your shell will be used.
 
 Example calls:
 
