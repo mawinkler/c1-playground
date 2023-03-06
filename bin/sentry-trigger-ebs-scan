@@ -17,7 +17,8 @@ printf '%s\n' "Using region ${resourceregion} for user ${username}"
 
 description="Trend Micro Cloud Sentry Manual Scan"
 accountid=$(aws sts get-caller-identity | jq -r '.Account')
-statemachinearn=$(aws stepfunctions list-state-machines --region ${resourceregion} | jq -r '.stateMachines[] | select(.name | startswith("ScannerStateMachine-")) | .stateMachineArn')
+statemachinearn=$(aws stepfunctions list-state-machines --region ${resourceregion} | \
+    jq -r '.stateMachines[] | select(.name | startswith("ScannerStateMachine-")) | .stateMachineArn')
 printf '%s\n' "State machine is ${statemachinearn}"
 
 # Get attached volume ids
@@ -28,7 +29,8 @@ printf '%s\n' "${volumes}"
 
 # Create snapshots and trigger scan(s)
 for volumeid in ${volumes}; do
-    snapshotid=$(aws ec2 create-snapshot --volume-id ${volumeid} --description "${description}" --region ${resourceregion} --tag-specifications "ResourceType=snapshot,Tags=[{Key=purpose,Value=training},{Key=user,Value=${username}}]" | \
+    snapshotid=$(aws ec2 create-snapshot --volume-id ${volumeid} --description "${description}" --region ${resourceregion} \
+        --tag-specifications "ResourceType=snapshot,Tags=[{Key=purpose,Value=training},{Key=user,Value=${username}}]" | \
         jq -r '.SnapshotId')
 
     if [ "${snapshotid}" == "" ] ; then

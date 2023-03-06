@@ -79,7 +79,6 @@ services:
     ## Default value: 10Gi
     size: 10Gi
 
-    port: "5000"
     ## Registry username to set
     ## 
     ## Default value: admin
@@ -92,6 +91,7 @@ services:
 
     ## Other settings typically not required to be changed
     hostname: playground.localdomain
+    port: "5000"
     proxy_service_name: playground-registry
     proxy_service_port: "5000"
     proxy_listen_port: "5000"

@@ -1,0 +1,52 @@
+#?/bin/bash
+
+repo=${REPO:-none}
+imagetag=${TAG:-latest}
+if [ "${repo}" == "none" ] || [ "$1" == "help" ]; then
+    printf '%s\n' "Please specify at least the ecr repository to be scanned."
+    printf '%s\n' ""
+    printf '%s\n' "Usage: REPO=<repo-name> [TAG=<image-tag] [REGION=<aws-region>] sentry-trigger-ecr-scan"
+    printf '%s\n' ""
+    printf '%s\n' "Example:"
+    printf '%s\n' "  REPO=mawinkler/evil TAG=latest sentry-trigger-ecr-scan"
+    exit 0
+fi
+
+resourceregion=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
+printf '%s\n' "Using region ${resourceregion}"
+
+accountid=$(aws sts get-caller-identity | jq -r '.Account')
+statemachinearn=$(aws stepfunctions list-state-machines --region ${resourceregion} | \
+    jq -r '.stateMachines[] | select(.name | startswith("ScannerStateMachine-")) | .stateMachineArn')
+printf '%s\n' "State machine is ${statemachinearn}"
+
+# mawinkler/evil:latest
+imageuri="${accountid}.dkr.ecr.${resourceregion}.amazonaws.com/${repo}:${imagetag}"
+printf '%s\n' "Image URI is ${imageuri}"
+
+imagedigest=$(aws ecr describe-images --repository-name ${repo} --image-ids imageTag=${imagetag} --region ${resourceregion} | \
+    jq -r '.imageDetails[].imageDigest')
+printf '%s\n' "Image digest is ${imagedigest}"
+
+uuid=$(uuidgen)
+inputjson='{
+    "ScanID": "'${accountid}'-'${uuid}'",
+    "ResourceType": "aws-ecr-image",
+    "ResourceLocation": "'${imageuri}'",
+    "ResourceRegion": "'${resourceregion}'",
+    "MetaData": {
+        "AWSAccountID": "'${accountid}'",
+        "ImageTag": "'${imagetag}'",
+        "ImageURI": "'${imageuri}'",
+        "Digest": "'${imagedigest}'",
+        "Repository": "'${repo}'"
+    }
+}'
+
+printf '%s\n' "$(jq -r . <<< ${inputjson})"
+
+aws stepfunctions start-execution \
+    --name "Manual-ECR-resource-${accountid}-${uuid}" \
+    --state-machine-arn ${statemachinearn} \
+    --region ${resourceregion} \
+    --input "${inputjson}"
