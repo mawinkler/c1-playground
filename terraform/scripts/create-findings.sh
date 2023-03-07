@@ -4,7 +4,11 @@ cat <<EOF >.findings.sh
 #!/bin/bash
 
 curl --silent --location -O https://secure.eicar.org/eicar.com
+curl --silent --location -O https://secure.eicar.org/eicarcom2.zip
+sudo mv eicarcom2.zip /usr/local/bin
 sudo chmod 666 /etc/passwd
+sudo chmod 666 /etc/shadow
+sudo chown root:ubuntu -R /etc/cron.hourly
 echo "huhu" > /tmp/huhu.txt
 sudo mv /tmp/huhu.txt /etc
 EOF
