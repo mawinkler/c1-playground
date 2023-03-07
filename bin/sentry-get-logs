@@ -25,8 +25,8 @@ fi
 printf '%s\n' "Using bucket ${BUCKET}"
 
 # Shift back in time
-DATE=$(date --date '-1 hour' +%Y-%m-%dT%H:%M:%S)
-OUTDIR=sentry-logs-$(date --date '-1 hour' +%Y-%m-%d_%H-%M-%S)
+DATE=$(date --date '-1 day' +%Y-%m-%dT%H:%M:%S)
+OUTDIR=sentry-logs-$(date --date '-1 day' +%Y-%m-%d_%H-%M-%S)
 
 # Ensure reports directory
 mkdir -p ${OUTDIR}

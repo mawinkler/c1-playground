@@ -10,10 +10,11 @@ Within the `tools` directory are some scripts for Sentry:
 
 1. `sentry-get-reports` - Downloads all Sentry reports generated within the last 24hs to your local directory
 2. `sentry-get-logs` - Downloads all Sentry logs generated within the last 24hs to your local directory
-3. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
-4. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
-5. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
-6. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
+3. `sentry-get-cloudwatch-logs` - Downloads Sentry CloudWatch logs for AM, IM, Parse Volume and Reports
+4. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
+5. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
+6. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
+7. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
 
 ### Script `sentry-get-reports`
 
@@ -120,6 +121,40 @@ Example result:
 ```sh
 sentry-logs-2023-03-06_14-47-57
 └── sentry-sentry-logs-2023-03-06_14-47-57.log
+```
+
+### Script `sentry-get-cloudwatch-logs`
+
+Example calls:
+
+```sh
+# Help
+sentry-get-cloudwatch-logs help
+```
+
+```sh
+Usage: [REGION=<aws-region>] sentry-get-cloudwatch-logs
+
+Example:
+  REGION=eu-central-1 sentry-get-cloudwatch-logs
+```
+
+```sh
+# Get the logs from the current region
+sentry-get-cloudwatch-logs
+
+# Get the logs from a region other than your current region
+REGION=us-east-1 sentry-get-cloudwatch-logs
+```
+
+Example result:
+
+```sh
+sentry-cloudwatch-logs-2023-03-07_10-18-57
+├── sideScanAM.log
+├── sideScanIM.log
+├── sideScanPV.log
+└── sideScanRE.log
 ```
 
 ### Script `sentry-trigger-ebs-scan`
