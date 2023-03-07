@@ -133,18 +133,18 @@ sentry-get-cloudwatch-logs help
 ```
 
 ```sh
-Usage: [REGION=<aws-region>] sentry-get-cloudwatch-logs
+Usage: [RELATIVETIME=<relative time>] [REGION=<aws-region>] sentry-get-cloudwatch-logs
 
 Example:
-  REGION=eu-central-1 sentry-get-cloudwatch-logs
+  RELATIVETIME=30m REGION=eu-central-1 sentry-get-cloudwatch-logs
 ```
 
 ```sh
-# Get the logs from the current region
+# Get the logs from the past hour from the current region
 sentry-get-cloudwatch-logs
 
-# Get the logs from a region other than your current region
-REGION=us-east-1 sentry-get-cloudwatch-logs
+# Get the logs from the past 30 minutes from a region other than your current region
+RELATIVETIME=30m REGION=us-east-1 sentry-get-cloudwatch-logs
 ```
 
 Example result:

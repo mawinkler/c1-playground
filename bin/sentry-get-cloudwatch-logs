@@ -1,0 +1,47 @@
+#!/bin/bash
+
+if [ "$1" == "help" ]; then
+    printf '%s\n' "Usage: [RELATIVETIME=<relative time>] [REGION=<aws-region>] sentry-get-cloudwatch-logs"
+    printf '%s\n' ""
+    printf '%s\n' "Example:"
+    printf '%s\n' "  RELATIVETIME=30m REGION=eu-central-1 sentry-get-cloudwatch-logs"
+    exit 0
+fi
+REGION=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
+printf '%s\n' "Using region ${REGION}"
+RELATIVETIME=${RELATIVETIME:-1h}
+printf '%s\n' "Relative time ${RELATIVETIME}"
+
+# Get the regions Sentry sideScan* LogGroups
+SENTRY_GROUPS=$(aws logs describe-log-groups --log-group-name-prefix /aws/lambda/StackSet-SentryStackSet --output json)
+LOGGROUP_AM=$(jq -r ' .logGroups[] | select(.logGroupName | contains("sideScanAM")) | .logGroupName' <<<${SENTRY_GROUPS})
+LOGGROUP_IM=$(jq -r ' .logGroups[] | select(.logGroupName | contains("sideScanIM")) | .logGroupName' <<<${SENTRY_GROUPS})
+LOGGROUP_PV=$(jq -r ' .logGroups[] | select(.logGroupName | contains("sideScanParseVolume")) | .logGroupName' <<<${SENTRY_GROUPS})
+LOGGROUP_RE=$(jq -r ' .logGroups[] | select(.logGroupName | contains("sideScanReport")) | .logGroupName' <<<${SENTRY_GROUPS})
+if [ "${LOGGROUP_AM}" == "" ] || [ "${LOGGROUP_IM}" == "" ] || [ "${LOGGROUP_PV}" == "" ] || [ "${LOGGROUP_RE}" == "" ]; then
+    printf '%s\n' "Log group(s) not found in ${REGION}."
+    printf '%s\n' "  Parse volume: ${LOGGROUP_PV}"
+    printf '%s\n' "  Anti malware: ${LOGGROUP_AM}, Integrity monitoring: ${LOGGROUP_IM}"
+    printf '%s\n' "  Parse volume: ${LOGGROUP_PV}"
+    exit 0
+fi
+printf '%s\n' "Using log group ${LOGGROUP_PV} for parse volume"
+printf '%s\n' "Using log group ${LOGGROUP_AM} for anti malware"
+printf '%s\n' "Using log group ${LOGGROUP_IM} for integrity monitoring"
+printf '%s\n' "Using log group ${LOGGROUP_RE} for report"
+
+OUTDIR=sentry-cloudwatch-logs-$(date +%Y-%m-%d_%H-%M-%S)
+
+# Ensure reports directory
+mkdir -p ${OUTDIR}
+
+printf '%s\n' "Downloading last hours logs for parse volume"
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_PV} > ${OUTDIR}/sideScanPV.log
+printf '%s\n' "Downloading last hours logs for anti malware"
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_AM} > ${OUTDIR}/sideScanAM.log
+printf '%s\n' "Downloading last hours logs for integrity monitoring"
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_IM} > ${OUTDIR}/sideScanIM.log
+printf '%s\n' "Downloading last hours logs for report"
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_RE} > ${OUTDIR}/sideScanRE.log
+
+printf '%s\n' "Done"
