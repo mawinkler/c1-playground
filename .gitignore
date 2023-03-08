@@ -77,6 +77,5 @@ bin/deploy-attackers-victims.sh
 bin/playground2
 demos/demo-attack.sh
 demos/struts-exploit-headers.txt
-demos/dockerfiles
 templates/demo-java-goof.yaml
 templates/demo-openssl3.yaml
