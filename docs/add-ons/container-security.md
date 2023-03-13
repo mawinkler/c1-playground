@@ -74,3 +74,11 @@ export HTTP_PROXY=172.17.0.1:3128
 export HTTPS_PROXY=172.17.0.1:3128
 export NO_PROXY=localhost,127.0.0.1
 ```
+
+## Automatically create Runtime Security Findings
+
+Run
+
+```sh
+kubectl apply -f $PGPATH/demos/dockerfiles/atomic-red/AtomicRedDocker-FullFalco.yaml
+```

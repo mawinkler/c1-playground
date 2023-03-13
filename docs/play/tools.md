@@ -339,10 +339,10 @@ scans all used images within the current namespace. Eventually do a `kubectl con
 
 ### Scan-Image with Artifact Scanning as a Service
 
-The script `scan-assas` do what you would expect, creating a scan request utilizing syft to create an SBOM and upload it to ASaaS for the vulnerability scan. Running
+The script `scan-assas` does what you would expect, creating a scan request utilizing syft to create an SBOM and upload it to ASaaS for the vulnerability scan. Running
 
 ```sh
 scan-assas nginx:latest
 ```
 
-Should do the trick.
+should do the trick.
