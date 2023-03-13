@@ -58,7 +58,7 @@ for volumeid in ${volumes}; do
     printf '%s\n' "$(jq -r . <<< ${inputjson})"
 
     aws stepfunctions start-execution \
-        --name "Manual-EBS-resource-${accountid}-${uuid}" \
+        --name "aws-ebs-volume-${accountid}-${uuid}-manual" \
         --state-machine-arn ${statemachinearn} \
         --region ${resourceregion} \
         --input "${inputjson}"

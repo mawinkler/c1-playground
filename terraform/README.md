@@ -44,6 +44,12 @@ variable "EC2_USER" {
 ssh-keygen -f <AS NAMED IN VARS.TF PRIVATE_KEY_PATH> -q -N ""
 ```
 
+Example:
+
+```sh
+ssh-keygen -f cnctraining-key-pair -q -N ""
+```
+
 ## Terraform
 
 ```sh

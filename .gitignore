@@ -63,7 +63,8 @@ docs-20221124
 # Terraform
 .terraform*
 terraform.*
-frankfurt-region-key-pair*
+*-key-pair*
+public-ip
 
 # Sentry
 sentry-*/

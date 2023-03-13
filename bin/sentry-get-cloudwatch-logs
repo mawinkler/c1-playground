@@ -36,12 +36,12 @@ OUTDIR=sentry-cloudwatch-logs-$(date +%Y-%m-%d_%H-%M-%S)
 mkdir -p ${OUTDIR}
 
 printf '%s\n' "Downloading last hours logs for parse volume"
-aws logs tail --since ${RELATIVETIME} ${LOGGROUP_PV} > ${OUTDIR}/sideScanPV.log
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_PV} | sort > ${OUTDIR}/sideScanPV.log
 printf '%s\n' "Downloading last hours logs for anti malware"
-aws logs tail --since ${RELATIVETIME} ${LOGGROUP_AM} > ${OUTDIR}/sideScanAM.log
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_AM} | sort > ${OUTDIR}/sideScanAM.log
 printf '%s\n' "Downloading last hours logs for integrity monitoring"
-aws logs tail --since ${RELATIVETIME} ${LOGGROUP_IM} > ${OUTDIR}/sideScanIM.log
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_IM} | sort > ${OUTDIR}/sideScanIM.log
 printf '%s\n' "Downloading last hours logs for report"
-aws logs tail --since ${RELATIVETIME} ${LOGGROUP_RE} > ${OUTDIR}/sideScanRE.log
+aws logs tail --since ${RELATIVETIME} ${LOGGROUP_RE} | sort > ${OUTDIR}/sideScanRE.log
 
 printf '%s\n' "Done"
