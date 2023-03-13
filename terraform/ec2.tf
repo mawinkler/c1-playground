@@ -1,11 +1,10 @@
 resource "aws_instance" "web1" {
 
-    # ami                    = "${lookup(var.AMI, var.AWS_REGION)}"
     ami                    = "${data.aws_ami.ubuntu.id}"
     instance_type          = "t2.micro"
     subnet_id              = "${aws_subnet.prod-subnet-public-1.id}"
     vpc_security_group_ids = ["${aws_security_group.ssh-allowed.id}"]
-    key_name               = "${aws_key_pair.frankfurt-region-key-pair.id}"
+    key_name               = "${aws_key_pair.cnctraining-key-pair.id}"
 
     # nginx installation
     provisioner "file" {
@@ -36,7 +35,8 @@ resource "aws_instance" "web1" {
 
     provisioner "local-exec" {
         # copy the public-ip file back to CWD, which will be tested
-        command = "scp -i ${file("${var.PRIVATE_KEY_PATH}")} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.EC2_USER}@${aws_instance.web1.public_ip}:/tmp/public-ip public-ip"
+        # command = "scp -i ${file("${var.PRIVATE_KEY_PATH}")} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.EC2_USER}@${aws_instance.web1.public_ip}:/tmp/public-ip public-ip"
+        command = "scp -i ${var.PRIVATE_KEY_PATH} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.EC2_USER}@${aws_instance.web1.public_ip}:/tmp/public-ip public-ip"
     }
 
     connection {
@@ -46,8 +46,8 @@ resource "aws_instance" "web1" {
     }
 }
 
-resource "aws_key_pair" "frankfurt-region-key-pair" {
-    key_name               = "frankfurt-region-key-pair"
+resource "aws_key_pair" "cnctraining-key-pair" {
+    key_name               = "${var.PRIVATE_KEY_PATH}"
     public_key             = "${file(var.PUBLIC_KEY_PATH)}"
 }
 
