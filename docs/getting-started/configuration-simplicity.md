@@ -4,50 +4,35 @@ From within the main menu choose `Edit Configuration`
 
 Typically you don't need to change anything here besides setting your api-key and region for Cloud One. If you intent to run multiple clusters (e.g. a local and a GKE), adapt the `cluster_name` and the `policy_name`.
 
-```json
-{
-    "cluster_name": "playground",
-    "services": [
-...
-        {
-            "name": "cloudone",
-            "region": "YOUR CLOUD ONE REGION HERE",
-            "instance": "cloudone",
-            "api_key": "YOUR CLOUD ONE API KEY HERE"
-        }
-...
-        {
-            "name": "container_security",
-            "policy_name": "relaxed_playground",
-            "namespace": "trendmicro-system"
-        },
-...
-    ]
-}
-```
+```yaml
+## Kubernetes cluster name
+##
+## Default value: playground
+cluster_name: playground
 
-Other service sections you might want to adjust to your needs:
+## Editor for Playground. Defaults to autodetection of nano over vim and vi
+##
+## Default value: ''
+editor: vim
 
-*Pipelining*
+services:
+  - name: cloudone
+    ## Cloud One region to work with
+    ## 
+    ## Default value: trend-us-1
+    region: us-1
 
-By default, the configuration is pointing to the Uploader example from my GitHub. If you want to use a different app change the three github values accordingly.
+    ## Cloud One instance to use
+    ##
+    ## Allowed values: cloudone, staging-cloudone, dev-cloudone
+    ## 
+    ## Default value: cloudone
+    instance: cloudone
 
-```json
-{
-    "cluster_name": "playground",
-    "services": [
-...
-        {
-            "name": "pipeline",
-            "github_username": "mawinkler",
-            "github_email": "winkler.info@icloud.com",
-            "github_project": "c1-app-sec-uploader",
-            "docker_username": "YOUR USERNAME HERE",
-            "docker_password": "YOUR PASSWORD HERE",
-            "appsec_key": "YOUR KEY HERE",
-            "appsec_secret": "YOUR SECRET HERE"
-        },
-...
-    ]
-}
+    ## Cloud One API Key with Full Access
+    ## 
+    ## REQUIRED if you want to play with Cloud One
+    ##
+    ## Default value: ''
+    api_key: YOUR CLOUD ONE API KEY HERE
 ```

@@ -72,6 +72,13 @@ Now, run the Playground
 curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash
 ```
 
+If you run the above command on a newly created or rebooted Cloud9 instance and are receiving the following error, just wait a minute or two and rerun the curl command. The reason for this error is, that directly after starting the machine some update processes are running in the background causing the lock to the package manager process.
+
+```sh
+E: Could not get lock /var/lib/dpkg/lock-frontend - open (11: Resource temporarily unavailable)
+E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), is another process using it?
+```
+
 Choose `Bootstrap`. You will be asked for your AWS credentials. They will never be stored on disk and get removed from memory after creating and assigning an instance role to the Cloud9 instance.
 
 If you forgot to disable AWS managed temporary credentials you will asked to do it again.
