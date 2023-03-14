@@ -1,14 +1,16 @@
 #!/bin/bash
 
 if [ "$1" == "help" ]; then
-    printf '%s\n' "Usage: [REGION=<aws-region>] sentry-get-reports"
+    printf '%s\n' "Usage: [RELATIVETIME=<relative time in minutes>] [REGION=<aws-region>] sentry-get-logs"
     printf '%s\n' ""
     printf '%s\n' "Example:"
-    printf '%s\n' "  REGION=eu-central-1 sentry-get-reports"
+    printf '%s\n' "  RELATIVETIME=30 REGION=eu-central-1 sentry-get-logs"
     exit 0
 fi
 REGION=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
 printf '%s\n' "Using region ${REGION}"
+RELATIVETIME=${RELATIVETIME:-1440}
+printf '%s\n' "Relative time ${RELATIVETIME}m"
 
 # Get the regions Sentry bucket
 BUCKET=$(
@@ -19,24 +21,23 @@ BUCKET=$(
         fi
     done)
 if [ "${BUCKET}" == "" ]; then
-    printf '%s\n' "No bucket containing reports in ${REGION}"
+    printf '%s\n' "No bucket containing logs in ${REGION}"
     exit 0
 fi
 printf '%s\n' "Using bucket ${BUCKET}"
 
 # Shift back in time
-DATE=$(date --date '-1 day' +%Y-%m-%dT%H:%M:%S)
-OUTDIR=sentry-logs-$(date --date '-1 day' +%Y-%m-%d_%H-%M-%S)
+DATE=$(date --date  '-'${RELATIVETIME}' minutes' +%Y-%m-%dT%H:%M:%S)
+OUTDIR=sentry-logs-$(date --date '-'${RELATIVETIME}' minutes' +%Y-%m-%d_%H-%M-%S)
 
-# Ensure reports directory
+# Ensure logs directory
 mkdir -p ${OUTDIR}
 
-# Get, identify and file reports in subdirectories
+# Get, identify and file logs in subdirectories
 for report in $(aws s3api list-objects-v2 --bucket "$BUCKET" --query 'Contents[?LastModified>=`'"$DATE"'`]' | jq -r '.[].Key') ; do
 
     # Get and identify report
     aws s3 cp s3://${BUCKET}/$report ${OUTDIR}/fragment.log
-    # cat ${OUTDIR}/fragment.log | cut -d' ' -f3- >> ${OUTDIR}/sentry-${OUTDIR}.log
     cat ${OUTDIR}/fragment.log | cut -d' ' -f3- >> ${OUTDIR}/sentry-${OUTDIR}.log
     rm ${OUTDIR}/fragment.log
 done

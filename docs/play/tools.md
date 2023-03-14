@@ -11,10 +11,11 @@ Within the `tools` directory are some scripts for Sentry:
 1. `sentry-get-reports` - Downloads all Sentry reports generated within the last 24hs to your local directory
 2. `sentry-get-logs` - Downloads all Sentry logs generated within the last 24hs to your local directory
 3. `sentry-get-cloudwatch-logs` - Downloads Sentry CloudWatch logs for AM, IM, Parse Volume and Reports
-4. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
-5. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
-6. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
-7. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
+4. `sentry-get-last-failed-executions` - Returns metadata of recently failed state machine runs
+5. `sentry-trigger-ebs-scan` - Trigger a full scan for a given EC2 instance with one or more EBS volumes attached
+6. `sentry-trigger-ecr-scan` - Trigger a full scan for a given ECR repo
+7. `sentry-trigger-ebs-scan` - Trigger a full scan for a given Lambda
+8. `sentry-remove-snapshots` - Delete snapshots created by `sentry-trigger-ebs-scan`
 
 ### Script `sentry-get-reports`
 
@@ -28,10 +29,10 @@ sentry-get-reports help
 ```
 
 ```sh
-Usage: [REGION=<aws-region>] sentry-get-reports
+Usage: [RELATIVETIME=<relative time in minutes>] [REGION=<aws-region>] sentry-get-reports
 
 Example:
-  REGION=eu-central-1 sentry-get-reports
+  RELATIVETIME=30 REGION=eu-central-1 sentry-get-reports
 ```
 
 ```sh
@@ -102,10 +103,10 @@ sentry-get-logs help
 ```
 
 ```sh
-Usage: [REGION=<aws-region>] sentry-get-logs
+Usage: [RELATIVETIME=<relative time in minutes>] [REGION=<aws-region>] sentry-get-logs
 
 Example:
-  REGION=eu-central-1 sentry-get-logs
+  RELATIVETIME=30 REGION=eu-central-1 sentry-get-logs
 ```
 
 ```sh
@@ -155,6 +156,49 @@ sentry-cloudwatch-logs-2023-03-07_10-18-57
 ├── sideScanIM.log
 ├── sideScanPV.log
 └── sideScanRE.log
+```
+
+### Script `sentry-get-last-failed-executions`
+
+Example calls:
+
+```sh
+# Help
+sentry-get-last-failed-executions help
+```
+
+```sh
+Usage: [RELATIVETIME=<relative time in minutes>] [REGION=<aws-region>] sentry-get-last-failed-executions
+
+Example:
+  RELATIVETIME=60 sentry-get-last-failed-executions
+```
+
+```sh
+# Get the recently failed executions
+sentry-get-last-failed-executions
+
+# Get the failed executions from the past 30 minutes from a region other than your current region
+RELATIVETIME=30m REGION=us-east-1 sentry-get-last-failed-executions
+```
+
+Example result:
+
+```sh
+Using region eu-central-1
+Relative time 30m
+State machine is arn:aws:states:eu-central-1:634503960501:stateMachine:ScannerStateMachine-YPTDbTnpolcR
+Failed executions: 1
+{
+  "AWSAccountID": "634503960501",
+  "SnapshotID": "snap-0e0c0376ae6271d9d",
+  "VolumeID": "vol-01e7d57f91114b4c3",
+  "AttachedInstances": [
+    {
+      "InstanceID": "i-06342402d2d170aff"
+    }
+  ]
+}
 ```
 
 ### Script `sentry-trigger-ebs-scan`

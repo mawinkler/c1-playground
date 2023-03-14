@@ -576,7 +576,7 @@ function menu_create_cluster() {
             "EKS") 
                 clear
                 $PGPATH/bin/rapid-eks.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 111 rapid-eks
+                display_progress 96 rapid-eks
                 break
                 ;;
             "AKS")

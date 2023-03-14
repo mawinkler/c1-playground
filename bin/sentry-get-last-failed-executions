@@ -1,0 +1,38 @@
+#?/bin/bash
+
+if [ "$1" == "help" ]; then
+    printf '%s\n' "Usage: [RELATIVETIME=<relative time in minutes>] [REGION=<aws-region>] sentry-get-last-failed-executions"
+    printf '%s\n' ""
+    printf '%s\n' "Example:"
+    printf '%s\n' "  RELATIVETIME=60 sentry-get-last-failed-executions"
+    exit 0
+fi
+
+resourceregion=${REGION:-$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')}
+printf '%s\n' "Using region ${resourceregion}"
+RELATIVETIME=${RELATIVETIME:-30}
+printf '%s\n' "Relative time ${RELATIVETIME}m"
+
+statemachinearn=$(aws stepfunctions list-state-machines --region ${resourceregion} | \
+    jq -r '.stateMachines[] | select(.name | startswith("ScannerStateMachine-")) | .stateMachineArn')
+printf '%s\n' "State machine is ${statemachinearn}"
+
+DATE=$(date --date  '-'${RELATIVETIME}' minutes' +%Y-%m-%dT%H:%M:%S)
+
+executions=$(aws stepfunctions list-executions --state-machine-arn ${statemachinearn} --region ${resourceregion} | \
+    jq --arg s ${DATE} '[$s | strptime("%Y-%m-%dT%H:%M:%S")[0:6]] as $r | 
+        .executions | 
+        map(select(
+            (.startDate[:19] | strptime("%Y-%m-%dT%H:%M:%S")[0:6]) as $e 
+                | $e > $r[0]
+        )) | .[] | select(.status != "SUCCEEDED") | .executionArn
+    ')
+printf '%s\n' "Failed executions: $(wc -w <<< ${executions})"
+
+for execution in ${executions}; do
+    metadata=$(aws stepfunctions describe-execution --execution-arn $(jq -r . <<< ${execution}) --region ${resourceregion} | \
+        jq -r '.input' | jq '.MetaData')
+    jq . <<< ${metadata}
+    # echo ${metadata}
+    # printf '%s\n' "${metadata}"
+done
