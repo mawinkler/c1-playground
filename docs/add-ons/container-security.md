@@ -75,10 +75,22 @@ export HTTPS_PROXY=172.17.0.1:3128
 export NO_PROXY=localhost,127.0.0.1
 ```
 
-## Automatically create Runtime Security Findings
+## Automatically create Runtime Security and Sentry Findings 
 
-Run
+To get as much events as possible for runtime detection either uncheck or log only the following parameters in your deployment policy:
+
+- Kubectl access
+  - attempts to execute in/attach to a container
+  - attempts to establish port-forward on a container
+
+Ensure that an exception exists with
+
+Allow images with paths that equal `mawinkler/atomic_red_docker:latest`.
+
+Now, run
 
 ```sh
 kubectl apply -f $PGPATH/demos/dockerfiles/atomic-red/AtomicRedDocker-FullFalco.yaml
 ```
+
+Soon, you should find quite a lot of events logged for runtime security. Additionally, if Sentry scans your cluster it should detect multiple malwares as well :-).

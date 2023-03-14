@@ -372,6 +372,20 @@
                     "properties": [
                         {
                             "key": "equals",
+                            "value": "mawinkler/atomic_red_docker:latest"
+                        }
+                    ]
+                }
+            },
+            {
+                "action": "log",
+                "mitigation": "log",
+                "type": "imagePath",
+                "enabled": true,
+                "statement": {
+                    "properties": [
+                        {
+                            "key": "equals",
                             "value": "docker.io/ubuntu:latest"
                         }
                     ]
