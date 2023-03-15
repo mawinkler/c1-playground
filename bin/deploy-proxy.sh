@@ -6,7 +6,7 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-SERVICE=$1
+export SERVICE=$1
 SERVICE_NAME="$(yq '.services[] | select(.name==env(SERVICE)) | .proxy_service_name' $PGPATH/config.yaml)"
 SERVICE_NAMESPACE="$(yq '.services[] | select(.name==env(SERVICE)) | .namespace' $PGPATH/config.yaml)"
 SERVICE_PORT="$(yq '.services[] | select(.name==env(SERVICE)) | .proxy_service_port' $PGPATH/config.yaml)"
@@ -74,3 +74,5 @@ sudo service nginx restart
 if is_linux ; then
   echo "Service ${SERVICE} on: http(s)://$(hostname -I | awk '{print $1}'):${LISTEN_PORT}"
 fi
+
+unset SERVICE
