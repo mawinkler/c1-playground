@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: java-goof
-        image: raphabot/java-goof
+        image: mawinkler/java-goof
         ports:
         - containerPort: 80
 ---

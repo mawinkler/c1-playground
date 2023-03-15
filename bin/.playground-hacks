@@ -132,7 +132,6 @@ function menu_main() {
                         python3 exploit.py "http://$(kubectl get svc -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}')" 'cat /etc/passwd'
                     read -p "Press any key to resume..."
                 fi
-                read -p "Press any key to resume..."
                 ;;
             "Escape")
                 clear
