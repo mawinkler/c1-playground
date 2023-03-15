@@ -125,9 +125,20 @@ function menu_main() {
                 else
                     curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/bootstrap.sh -o /tmp/bootstrap.sh
                     . /tmp/bootstrap.sh ${CURRENT_PATH}
+
+                    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+                    unzip /tmp/awscliv2.zip -d /tmp
+                    sudo /tmp/aws/install --update
+                    rm -Rf /tmp/aws /tmp/awscliv2.zip
+
+                    curl -fsSL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                    sudo mv /tmp/eksctl /usr/local/bin
+                    rm -Rf /tmp/eksctl
+
                     read -p "Press any key to resume..."
-                    result="Exit menu and logout from the shell.\n\nThen relogin or create a new shell before continuing."
+                    result="You're getting a new shell now. Start the Playground afterwards by typing playground"
                     display_result "Important"
+                    exit 0
                 fi
                 ;;
             "Clusters")
