@@ -29,7 +29,7 @@ curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/
 
 Choose Bootstrap.
 
-After the bootstrapping has finished exit the menu and the terminal. Then create a new terminal.
+The bootstrapping process will exit your current terminal or shell after it has done it's work. Depending on your environment just create a new terminal session and continue.
 
 To restart the menu execute
 
@@ -87,7 +87,7 @@ Choose `Bootstrap`. You will be asked for your AWS credentials. They will never 
 
 If you forgot to disable AWS managed temporary credentials you will asked to do it again.
 
-After the bootstrapping has finished exit the menu and the terminal. Then create a new terminal.
+The bootstrapping process will exit your current terminal or shell after it has done it's work. Depending on your environment just create a new terminal session and continue.
 
 To restart the menu execute
 

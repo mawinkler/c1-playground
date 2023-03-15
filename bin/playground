@@ -136,7 +136,7 @@ function menu_main() {
                     rm -Rf /tmp/eksctl
 
                     read -p "Press any key to resume..."
-                    result="You're getting a new shell now. Start the Playground afterwards by typing playground"
+                    result="You're getting a new shell now. Start the Playground afterwards by typing:\n\nplayground"
                     display_result "Important"
                     exit 0
                 fi

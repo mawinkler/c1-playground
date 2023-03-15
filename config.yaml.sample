@@ -238,6 +238,21 @@ services:
     appsec_key: YOUR KEY HERE
     appsec_secret: YOUR SECRET HERE
 
+  - name: demo-java-goof
+    namespace: victims
+    proxy_service_name: java-goof-service
+    proxy_service_port: 80
+    proxy_listen_port: 8089
+
+  - name: demo-webapp
+    namespace: victims
+    proxy_service_name: web-app-service
+    proxy_service_port: 80
+    proxy_listen_port: 8090
+
+  - name: demo-attack
+    namespace: attackers
+
   - name: kube-system
     ## Target namespace for kube-system components
     ## 

