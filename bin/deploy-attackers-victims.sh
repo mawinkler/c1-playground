@@ -113,6 +113,7 @@ function deploy_privileged() {
         "containers":[{
           "name":"kod",
           "image": "mawinkler/kod:latest",
+          "volumeMounts":[{"mountPath": "/kubernetes", "name": "host-mount"}],
           "imagePullPolicy": "Always",
           "stdin": true,
           "tty": true,
@@ -123,8 +124,12 @@ function deploy_privileged() {
           "securityContext":{
             "privileged":true
           }
+        }],
+        "volumes":[{
+          "name": "host-mount",
+          "hostPath": {"path": "/etc/kubernetes"}
         }]
-      }
+      } 
     }
     '
   echo "💬 Privileged pod deployed."
