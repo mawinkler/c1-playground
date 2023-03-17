@@ -411,8 +411,9 @@ function ensure_stern() {
   printf "${BLUE}${BOLD}%s${RESET}\n" "Checking for stern"
   if ! command -v stern &>/dev/null; then
     printf "${RED}${BOLD}%s${RESET}\n" "Installing stern on linux"
-    curl -Lo stern https://github.com/wercker/stern/releases/download/1.11.0/stern_linux_amd64 && \
-      chmod +x stern && \
+    curl -Lo stern.tgz https://github.com/stern/stern/releases/download/v1.24.0/stern_1.24.0_linux_amd64.tar.gz && \
+      tar xfvz stern.tgz && \
+      rm -f LICENSE stern.tgz && \
       sudo mv stern /usr/local/bin/stern
   else
     printf "${YELLOW}%s${RESET}\n" "Stern already installed"
