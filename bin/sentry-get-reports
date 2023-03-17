@@ -41,27 +41,30 @@ for report in $(aws s3api list-objects-v2 --bucket "$BUCKET" --query 'Contents[?
     mkdir -p ${OUTDIR}/${scanid}
     aws s3 cp s3://${BUCKET}/$report ${OUTDIR}/${scanid}/final_report.json
     resourcetype=$(jq -r .resourceType ${OUTDIR}/${scanid}/final_report.json)
-
     mkdir -p ${OUTDIR}/${resourcetype}s
 
     # EBS
     if [ "$resourcetype" == "aws-ebs-volume" ] ; then
+        resourceid=$(jq -r .resourceID ${OUTDIR}/${scanid}/final_report.json)
+        timestamp=$(jq -r .timestamp ${OUTDIR}/${scanid}/final_report.json)
         instanceid=$(jq -r .metadata.AttachedInstances[0].InstanceID ${OUTDIR}/${scanid}/final_report.json)
-        cat ${OUTDIR}/${scanid}/final_report.json | jq . > ${OUTDIR}/${resourcetype}s/${instanceid}.json
+        cat ${OUTDIR}/${scanid}/final_report.json | jq . > ${OUTDIR}/${resourcetype}s/${instanceid}-${resourceid}-${timestamp//:/-}.json
         rm -rf ${OUTDIR}/${scanid}
     fi
 
     # Lambda
     if [ "$resourcetype" == "aws-lambda-function" ] ; then
         functionname=$(jq -r .metadata.FunctionName ${OUTDIR}/${scanid}/final_report.json)
-        cat ${OUTDIR}/${scanid}/final_report.json | jq . > ${OUTDIR}/${resourcetype}s/${functionname}.json
+        timestamp=$(jq -r .timestamp ${OUTDIR}/${scanid}/final_report.json)
+        cat ${OUTDIR}/${scanid}/final_report.json | jq . > ${OUTDIR}/${resourcetype}s/${functionname}-${timestamp//:/-}.json
         rm -rf ${OUTDIR}/${scanid}
     fi
 
     # ECR
     if [ "$resourcetype" == "aws-ecr-image" ] ; then
         imageuri=$(jq -r .metadata.ImageURI ${OUTDIR}/${scanid}/final_report.json)
-        cat ${OUTDIR}/${scanid}/final_report.json | jq . > ${OUTDIR}/${resourcetype}s/${imageuri//\//_}.json
+        timestamp=$(jq -r .timestamp ${OUTDIR}/${scanid}/final_report.json)
+        cat ${OUTDIR}/${scanid}/final_report.json | jq . > ${OUTDIR}/${resourcetype}s/${imageuri//\//_}-${timestamp//:/-}.json
         rm -rf ${OUTDIR}/${scanid}     
     fi
 done

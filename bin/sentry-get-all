@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sentry-get-cloudwatch-logs
+sentry-get-reports
+sentry-get-logs

@@ -36,16 +36,19 @@ OUTDIR=sentry-cloudwatch-logs-$(date +%Y-%m-%d_%H-%M-%S)
 mkdir -p ${OUTDIR}
 
 printf '%s\n' "Downloading latest logs for parse volume"
-aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_PV} > ${OUTDIR}/.tmp
-sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanPV.log
+# aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_PV} > ${OUTDIR}/.tmp
+# sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanPV.log
+aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_PV} > ${OUTDIR}/sideScanPV.log
 printf '%s\n' "Downloading latest logs for anti malware"
-aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_AM} > ${OUTDIR}/.tmp
-sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanAM.log
+# aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_AM} > ${OUTDIR}/.tmp
+# sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanAM.log
+aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_AM} > ${OUTDIR}/sideScanAM.log
 printf '%s\n' "Downloading latest logs for integrity monitoring"
-aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_IM} > ${OUTDIR}/.tmp
-sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanIM.log
+# aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_IM} > ${OUTDIR}/.tmp
+# sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanIM.log
+aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_IM} > ${OUTDIR}/sideScanIM.log
 printf '%s\n' "Downloading latest logs for report"
-aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_RE} > ${OUTDIR}/.tmp
-sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanRE.log
-rm ${OUTDIR}/.tmp
+# aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_RE} > ${OUTDIR}/.tmp
+# sort ${OUTDIR}/.tmp > ${OUTDIR}/sideScanRE.log
+aws logs tail --since ${RELATIVETIME}m ${LOGGROUP_RE} > ${OUTDIR}/sideScanRE.log
 printf '%s\n' "Done"

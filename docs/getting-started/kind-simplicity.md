@@ -24,7 +24,7 @@ Add the following line:
 Now, run the Playground
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash; exit
+curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash && exit
 ```
 
 Choose Bootstrap.
@@ -69,7 +69,7 @@ Update IAM Settings for the Workspace
 Now, run the Playground
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash; exit
+curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash && exit
 ```
 
 If you run the above command on a newly created or rebooted Cloud9 instance and are receiving the following error, just wait a minute or two and rerun the curl command. The reason for this error is, that directly after starting the machine some update processes are running in the background causing the lock to the package manager process.

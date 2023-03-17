@@ -2,6 +2,7 @@ site_name: Playground Simplicity
 nav:
   - Home: index.md
   - Getting Started:
+    - Cluster Variants: getting-started/cluster-variants.md
     - Built-in Cluster: getting-started/kind-simplicity.md
     - Managed Clusters: getting-started/managed-simplicity.md
     - Configuration: getting-started/configuration-simplicity.md
@@ -12,6 +13,7 @@ nav:
     - Container Security: add-ons/container-security.md
     - Falco: add-ons/falco.md
     - Gatekeeper: add-ons/gatekeeper.md
+    - KUBEClarity: add-ons/kubeclarity.md
     - Harbor: add-ons/harbor.md
     - Istio: add-ons/istio.md
     - Krew: add-ons/krew.md

@@ -26,8 +26,10 @@ service-gcrsvc_keyfile.json
 bin/rapid-aks-down.sh
 
 # AWS
-bin/rapid-eks-down.sh
 aws-iam-authenticator
+bin/rapid-eks-down.sh
+bin/rapid-eks-down-bottle.sh
+bin/rapid-eks-down-fargate.sh
 bin/pipeline-aws-down.sh
 
 # Migrate
@@ -76,3 +78,4 @@ training
 # Exploiting
 demos/demo-attack.sh
 demos/struts-exploit-headers.txt
+kubernetes-goat

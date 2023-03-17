@@ -48,9 +48,9 @@ Example result:
 ```sh
 sentry-reports-2023-02-13_15-42-54
 ├── aws-ebs-volumes
-│   ├── i-0076dab31026905f5.json
-│   ├── i-03c03a975195bf87b.json
-│   └── i-08a345a13318f7db0.json
+│   ├── i-0076dab31026905f5-vol-0c84097ebd8024cc0.json
+│   ├── i-03c03a975195bf87b-vol-0fc32faf32aaf378e.json
+│   └── i-08a345a13318f7db0-vol-036b3cf8196cea1c0.json
 ├── aws-ecr-images
 │   ├── 634503960501.dkr.ecr.eu-central-1.amazonaws.com_busybox:latest.json
 │   ├── 634503960501.dkr.ecr.eu-central-1.amazonaws.com_hello-world:latest.json
@@ -134,10 +134,10 @@ sentry-get-cloudwatch-logs help
 ```
 
 ```sh
-Usage: [RELATIVETIME=<relative time>] [REGION=<aws-region>] sentry-get-cloudwatch-logs
+Usage: [RELATIVETIME=<relative time in minutes>] [REGION=<aws-region>] sentry-get-cloudwatch-logs
 
 Example:
-  RELATIVETIME=30m REGION=eu-central-1 sentry-get-cloudwatch-logs
+  RELATIVETIME=30 REGION=eu-central-1 sentry-get-cloudwatch-logs
 ```
 
 ```sh
@@ -145,7 +145,7 @@ Example:
 sentry-get-cloudwatch-logs
 
 # Get the logs from the past 30 minutes from a region other than your current region
-RELATIVETIME=30m REGION=us-east-1 sentry-get-cloudwatch-logs
+RELATIVETIME=30 REGION=us-east-1 sentry-get-cloudwatch-logs
 ```
 
 Example result:

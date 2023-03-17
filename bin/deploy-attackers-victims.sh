@@ -110,6 +110,7 @@ function deploy_privileged() {
       }},
       "spec":{
         "hostPID": true,
+        "hostNetwork": true,
         "containers":[{
           "name":"kod",
           "image": "mawinkler/kod:latest",

@@ -6,6 +6,11 @@
 ## Default value: playground
 cluster_name: playground
 
+## Kubernetes cluster node instance type
+##
+## Default value: playground
+cluster_instance_type: t3.medium
+
 ## Editor for Playground. Defaults to autodetection of nano over vim and vi
 ##
 ## Default value: ''
@@ -190,6 +195,17 @@ services:
     ## 
     ## Default value: gatekeeper-system
     namespace: gatekeeper-system
+
+  - name: kubeclarity
+    ## Target namespace for Kubeclarity
+    ## 
+    ## Default value: kubeclarity
+    namespace: kubeclarity
+
+    ## Other settings typically not required to be changed
+    proxy_service_name: kubeclarity-kubeclarity
+    proxy_service_port: "8080"
+    proxy_listen_port: "8091"
 
   - name: harbor
     ## Target namespace for Harbor

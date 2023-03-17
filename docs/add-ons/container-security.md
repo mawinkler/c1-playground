@@ -2,14 +2,9 @@
 
 ## Deploy
 
-> ***Note:*** The script `deploy-container-security.sh` uses the Cloud One API Key, which is managed in Cloud One, not Workload Security anymore. If you're not using the new Cloud One API Key and are logging in to Cloud One with an Account Name, e-Mail and Password copy the legacy version of this script found in the `legacy`-directory over the `deploy-container-security.sh` script in the root directory.
+To deploy Container Security and/or Smart Check go to `Services --> Deploy` and choose either Container Security or Smart Check.
 
-To deploy Container Security run:
-
-```sh
-deploy-container-security.sh
-deploy-smartcheck.sh
-```
+> ***Note:*** If you want to deploy on EKS be aware of the fact that the node pool created by the Playground uses `t3.medium` instances. This enough for Container Security but ***NOT*** for Smart Check. If you want to deploy Smart Check choose `m5.xlarge` in the config.yaml before creating the cluster.
 
 ## Access Container Security
 

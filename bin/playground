@@ -545,7 +545,9 @@ function menu_create_cluster() {
 
     # exec 3>&1
     local items=("Kind" "Local Cluster" \
-                 "EKS" "Elastic Kubernetes Cluster" \
+                 "EKS-A" "Elastic Kubernetes Cluster (Amazon Linux)" \
+                 "EKS-B" "Elastic Kubernetes Cluster (Bottlerocket)" \
+                 "EKS-F" "Elastic Kubernetes Cluster with Fargate (Bottlerocket)" \
                  "AKS" "Azure Kubernetes Cluster" \
                  "GKE" "Google Kubernetes Engine")
     local TITLE="Create a Cluster"
@@ -584,10 +586,22 @@ function menu_create_cluster() {
                 fi
                 break
                 ;;
-            "EKS") 
+            "EKS-A") 
                 clear
                 $PGPATH/bin/rapid-eks.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 96 rapid-eks
+                display_progress 96 rapid-eks-a
+                break
+                ;;
+            "EKS-B") 
+                clear
+                $PGPATH/bin/rapid-eks-bottle.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 107 rapid-eks-b
+                break
+                ;;
+            "EKS-F") 
+                clear
+                $PGPATH/bin/rapid-eks-fargate.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 96 rapid-eks-f
                 break
                 ;;
             "AKS")
@@ -612,7 +626,9 @@ function menu_teardown_cluster() {
 
     # exec 3>&1
     local items=("Kind" "Local Cluster" \
-                 "EKS" "Elastic Kubernetes Cluster" \
+                 "EKS-A" "Elastic Kubernetes Cluster (Amazon Linux)" \
+                 "EKS-B" "Elastic Kubernetes Cluster (Bottlerocket)" \
+                 "EKS-F" "Elastic Kubernetes Cluster with Fargate (Bottlerocket)" \
                  "AKS" "Azure Kubernetes Cluster" \
                  "GKE" "Google Kubernetes Engine" \
                  "Logs" "Clear Logs")
@@ -649,11 +665,27 @@ function menu_teardown_cluster() {
                 fi
                 break
                 ;;
-            "EKS") 
+            "EKS-A") 
                 if [ -f "$PGPATH/bin/rapid-eks-down.sh" ]; then
                     clear
                     $PGPATH/bin/rapid-eks-down.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 25 rapid-eks-down
+                fi
+                break
+                ;;
+            "EKS-B") 
+                if [ -f "$PGPATH/bin/rapid-eks-down-bottle.sh" ]; then
+                    clear
+                    $PGPATH/bin/rapid-eks-down-bottle.sh > $PGPATH/log/last.log 2>&1 &
+                    display_progress 25 rapid-eks-down-bottle
+                fi
+                break
+                ;;
+            "EKS-F") 
+                if [ -f "$PGPATH/bin/rapid-eks-down-fargate.sh" ]; then
+                    clear
+                    $PGPATH/bin/rapid-eks-down-fargate.sh > $PGPATH/log/last.log 2>&1 &
+                    display_progress 25 rapid-eks-down-fargate
                 fi
                 break
                 ;;
@@ -745,6 +777,7 @@ function menu_deploy() {
                  "Gatekeeper" "OPA Gatekeeper" \
                  "Prometheus" "Prometheus & Grafana" \
                  "Trivy" "Trivy" \
+                 "Kubeclarity" "KUBEClarity" \
                  "Harbor" "Harbor Registry (Beta)" \
                  "Jenkins" "Jenkins CI/CD (Beta)" \
                  "GitLab" "GitLab CI/CD (Beta)")
@@ -777,7 +810,7 @@ function menu_deploy() {
                 if check_cloudone; then
                     clear
                     $PGPATH/bin/deploy-container-security.sh > $PGPATH/log/last.log 2>&1 &
-                    display_progress 16 deploy-container-security
+                    display_progress 15 deploy-container-security
                 else
                     result="Verify your Cloud One Configuration.\n\nCheck Cloud One Region and API KEY."
                     display_result "Important"
@@ -825,6 +858,12 @@ function menu_deploy() {
                 display_progress 25 deploy-trivy
                 break
                 ;;
+            "Kubeclarity")
+                clear
+                $PGPATH/bin/deploy-kubeclarity.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 42 deploy-kubeclarity
+                break
+                ;;
             "Harbor")
                 clear
                 $PGPATH/bin/deploy-harbor.sh > $PGPATH/log/last.log 2>&1 &
@@ -860,6 +899,7 @@ function menu_delete() {
                  "Gatekeeper" "OPA Gatekeeper" \
                  "Prometheus" "Prometheus & Grafana" \
                  "Trivy" "Trivy" \
+                 "Kubeclarity" "KUBEClarity" \
                  "Harbor" "Harbor Registry" \
                  "Jenkins" "Jenkins CI/CD" \
                  "GitLab" "GitLab CI/CD")
@@ -928,6 +968,12 @@ function menu_delete() {
                 clear
                 $PGPATH/bin/delete-trivy.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 4 delete-trivy
+                break
+                ;;
+            "Kubeclarity")
+                clear
+                $PGPATH/bin/delete-kubeclarity.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 4 delete-kubeclarity
                 break
                 ;;
             "Harbor")

@@ -23,7 +23,7 @@ In a nutshell:
 - Bootstrapping directly from the clouds. It will attempt to upgrade already installed tools to the latest available version.  
 
   ```sh
-  curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash; exit
+  curl -fsSL https://raw.githubusercontent.com/mawinkler/c1-playground/master/bin/playground | bash && exit
   ```
 
 - No `git clone`.

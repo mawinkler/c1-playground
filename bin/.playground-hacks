@@ -89,7 +89,9 @@ function menu_main() {
             "CVE-2017-5638" "Apache Struts 2 Jakarta" \
             "Escape" "Escape to Host" \
             "Privileged" "Get a privileged shell" \
-            "AtomicRed" "Runtime Violations")
+            "AtomicRed" "Runtime Violations" \
+            "Goat Setup" "Setup Goat" \
+            "Goat Teardown" "Teardown Goat")
         TITLE="Exploits Menu"
         check_k8s
         BACKTITLE="Playground: ${CLUSTER}"
@@ -150,6 +152,27 @@ function menu_main() {
             "AtomicRed")
                 clear
                 kubectl apply -f $PGPATH/demos/dockerfiles/atomic-red/AtomicRedDocker-FullFalco.yaml
+                read -p "Press any key to resume..."
+                ;;
+            "Goat Setup")
+                clear
+                cd $PGPATH
+                if [ -d $PGPATH/kubernetes-goat ]; then
+                    cd $PGPATH/kubernetes-goat
+                    git pull
+                else
+                    git clone https://github.com/madhuakula/kubernetes-goat.git
+                    cd $PGPATH/kubernetes-goat
+                fi
+                bash setup-kubernetes-goat.sh
+                read -p "Press any key to resume..."
+                ;;
+            "Goat Teardown")
+                clear
+                if [ -d $PGPATH/kubernetes-goat ]; then
+                    cd $PGPATH/kubernetes-goat
+                    bash teardown-kubernetes-goat.sh
+                fi
                 read -p "Press any key to resume..."
                 ;;
             *) ;; # some action on other

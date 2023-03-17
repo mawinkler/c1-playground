@@ -22,7 +22,7 @@ Falco is integrated with Prometheus and Grafana as well. A Dashboard is availabl
 
 ## Access
 
-Follow the steps for your platform below. A file called `services` is either created or updated with the link and the credentials to connect to smartcheck.
+Follow the steps for your platform below. A file called `services` is either created or updated with the link and the credentials to connect to falco.
 
 ***Linux***
 

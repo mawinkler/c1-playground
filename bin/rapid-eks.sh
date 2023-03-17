@@ -15,7 +15,10 @@ function main() {
   aws kms create-alias --alias-name ${KEY_ALIAS_NAME} --target-key-id $(aws kms create-key --query KeyMetadata.Arn --output text)
   export MASTER_ARN=$(aws kms describe-key --key-id ${KEY_ALIAS_NAME} --query KeyMetadata.Arn --output text)
   echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bashrc
-  export CLUSTER_NAME=$(yq '.cluster_name' $PGPATH/config.yaml)-$(openssl rand -hex 4)
+  export CLUSTER_NAME=$(yq '.cluster_name' $PGPATH/config.yaml)-a-$(openssl rand -hex 4)
+
+  T=$(yq '.cluster_instance_type' $PGPATH/config.yaml)
+  [ ${T} == "null" ] && export INSTANCE_TYPE='t3.medium' || export INSTANCE_TYPE=${T}
 
   cat << EOF | eksctl create cluster -f -
 ---
@@ -28,6 +31,9 @@ metadata:
 
 managedNodeGroups:
 - name: nodegroup
+  instanceType: ${INSTANCE_TYPE}
+  minSize: 2
+  maxSize: 4
   desiredCapacity: 2
   iam:
     withAddonPolicies:

@@ -42,6 +42,18 @@ cloudOne:
     # - falco
     # - starboard
 
+scout:
+  excludeSameNamespace: true
+  # auditlog:
+  #   enabled: true
+
+# For Bottlerocket
+securityContext:
+  scout:
+    scout:
+      allowPrivilegeEscalation: true
+      privileged: true
+
 # proxy:
 #   httpProxy: 172.17.0.1:3128
 #   httpsProxy: 172.17.0.1:3128
@@ -53,7 +65,3 @@ cloudOne:
 #     registry: 172.250.255.1:5000
 #     tag: 2.2.9
 #     imagePullSecret: regcred
-scout:
-  excludeSameNamespace: true
-  # auditlog:
-  #   enabled: true

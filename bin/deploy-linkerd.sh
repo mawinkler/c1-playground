@@ -1,4 +1,5 @@
 linkerd check --pre
+linkerd install --crds | kubectl apply -f -
 linkerd install | kubectl apply -f -
 
 linkerd viz install | kubectl apply -f - # install the on-cluster metrics stack
