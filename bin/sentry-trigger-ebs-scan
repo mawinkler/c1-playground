@@ -22,7 +22,7 @@ statemachinearn=$(aws stepfunctions list-state-machines --region ${resourceregio
 printf '%s\n' "State machine is ${statemachinearn}"
 
 # Get attached volume ids
-volumes=$(aws ec2 describe-instances --instance-ids ${instanceid} | \
+volumes=$(aws ec2 describe-instances --instance-ids ${instanceid} --region ${resourceregion} | \
     jq -r '.Reservations[0].Instances[0].BlockDeviceMappings[].Ebs.VolumeId')
 printf '%s\n' "Instance volume(s):"
 printf '%s\n' "${volumes}"
