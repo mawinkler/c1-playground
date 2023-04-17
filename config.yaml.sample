@@ -37,6 +37,36 @@ services:
     ## Default value: ''
     api_key: ''
 
+    ## Cloud One Workload Security Tenant ID
+    ## 
+    ## REQUIRED if you want to play with Cloud One Workload Security
+    ##
+    ## Default value: ''
+    ws_tenant_id: ''
+
+    ## Cloud One Workload Security Token
+    ## 
+    ## REQUIRED if you want to play with Cloud One Workload Security
+    ##
+    ## Default value: ''
+    ws_token: ''
+
+    ## Cloud One Workload Security Linux Policy ID
+    ## 
+    ## REQUIRED if you want to play with Cloud One Workload Security
+    ##
+    ## Default value: ''
+    ws_policy_id: ''
+
+  - name: visionone
+
+    ## Vision One Basecamp agent download url
+    ##
+    ## REQUIRED if you want to play with Vision One
+    ##
+    ## Default value: ''
+    xbc_agent_url: ''
+
   - name: container_security
     ## The name of the created or reused policy
     ## 

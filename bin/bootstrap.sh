@@ -512,8 +512,8 @@ ensure_yq
 ensure_kind
 ensure_syft
 ensure_grype
-if [ "${PACKAGE_MANAGER}" != "brew" ]; then
-  ensure_krew
-fi
+# if [ "${PACKAGE_MANAGER}" != "brew" ]; then
+#   ensure_krew
+# fi
 
 printf '\n%s\n' "###TASK-COMPLETED###"

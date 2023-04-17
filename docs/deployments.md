@@ -4,12 +4,17 @@ The playground provides a couple of scripts which deploy pre-configured versions
 
 - Container Security
 - Smart Check
-- Prometheus & Grafana
-- Starboard
 - Falco Runtime Security
-- Harbor
 - Open Policy Agent
 - Gatekeeper
+- Prometheus & Grafana
+- Trivy
+- KUBEClarity
+- Kubescape
+- Harbor
+- Jenkins
+- GitLab
+- Workload Security
 
 Deploy the products via `Deploy...` in the menu.
 

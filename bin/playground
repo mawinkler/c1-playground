@@ -66,8 +66,8 @@ display_progress() {
     cp $PGPATH/log/last.log $PGPATH/log/$(date +'%d-%m-%YT%H-%M-%S-')$2.log
     echo "$(date +'%d-%m-%Y %H:%M:%S') $2 $(cat $PGPATH/log/last.log | wc -l)" >> $PGPATH/log/length.log
 
-    if [ "$(grep -i 'error' $PGPATH/log/last.log)" != "" ] ; then
-        grep -i 'error' $PGPATH/log/last.log >> $PGPATH/log/last.err
+    if [ "$(grep 'Error' $PGPATH/log/last.log)" != "" ] ; then
+        grep 'Error' $PGPATH/log/last.log >> $PGPATH/log/last.err
         result="$(tail -n 10 $PGPATH/log/last.log)"
         display_result "Error occured"
     else
@@ -88,10 +88,18 @@ function menu_main() {
         if [ "${PGPATH}" == "" ]; then
             items=( "Tools" "Bootstrap" )
         else
-            items=( "Tools" "Manage Tools and CSPs..." \
+            items=( "Tools"    "Manage Tools and CSPs..." \
                     "Clusters" "Manage Clusters..." \
                     "Services" "Manage Services..." \
-                    "Config" "Manage Configuration..." )
+                    "Config"   "Manage Configuration..." \
+                    ""         "" \
+                    ""         "" \
+                    ""         "" \
+                    ""         "" \
+                    ""         "" \
+                    ""         "" \
+                    ""         "" \
+                    "Hacks"    "The evil side")
         fi
             TITLE="Main Menu"
             check_k8s
@@ -149,6 +157,9 @@ function menu_main() {
                 ;;
             "Config")
                 menu_config
+                ;;
+            "Hacks")
+                menu_hacks
                 ;;
             *) ;; # some action on other
         esac
@@ -409,6 +420,118 @@ function menu_config() {
     done
 }
 
+#######################################
+# Hacks Menu
+#######################################
+function menu_hacks() {
+
+    # exec 3>&1
+
+    local items=( "Prepare"       "Deploy Attackers and Victims" \
+                  ""              "" \
+                  "CVE-2017-5638" "Apache Struts 2 Jakarta" \
+                  "Escape"        "Escape to Host" \
+                  "Privileged"    "Get a privileged shell" \
+                  "AtomicRed"     "Generate Runtime Violations" \
+                  ""              "" \
+                  "Goat Setup"    "Setup Goat" \
+                  "Goat Teardown" "Teardown Goat")
+    local TITLE="Hacks Menu"
+    check_k8s
+    local BACKTITLE="Playground: ${CLUSTER}"
+    while choice=$(dialog --title "${TITLE}" \
+                --backtitle "${BACKTITLE}" \
+                --cancel-label "Back" \
+                --separate-widget "Widget" \
+                --menu "Please select" ${HEIGHT} ${WIDTH} 12 "${items[@]}" \
+                2>&1 1>&3)
+    do
+        exit_status=$?
+        case $exit_status in
+            $DIALOG_CANCEL)
+            clear
+            echo "Going back."
+            break
+            ;;
+            $DIALOG_ESC)
+            clear
+            echo "Program aborted." >&2
+            exec 3>&-
+            exit 1
+            ;;
+        esac
+        case $choice in
+            "Prepare")
+                clear
+                $PGPATH/bin/deploy-attackers-victims.sh
+                ;;
+            "CVE-2017-5638")
+                clear
+                if is_eks; then
+                    kubectl exec -n attackers \
+                        $(kubectl -n attackers get pods --selector=app=attacker-cve-2017-5638 -o jsonpath='{.items[0].metadata.name}') -- \
+                        python3 exploit.py "http://$(kubectl get svc -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')" 'cat /etc/passwd'
+                    read -p "Press any key to resume..."
+                else
+                    kubectl exec -n attackers \
+                        $(kubectl -n attackers get pods --selector=app=attacker-cve-2017-5638 -o jsonpath='{.items[0].metadata.name}') -- \
+                        python3 exploit.py "http://$(kubectl get svc -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}')" 'cat /etc/passwd'
+                    read -p "Press any key to resume..."
+                fi
+                ;;
+            "Escape")
+                clear
+                kubectl exec -n attackers -it \
+                    $(kubectl -n attackers get pod --selector=app=shell -o jsonpath='{.items[0].metadata.name}') -- \
+                    /bin/bash -c 'godmode'
+                read -p "Press any key to resume..."
+                ;;
+            "Privileged")
+                clear
+                kubectl exec -n attackers -it \
+                    $(kubectl -n attackers get pod --selector=app=shell -o jsonpath='{.items[0].metadata.name}') -- \
+                    /bin/bash
+                read -p "Press any key to resume..."
+                ;;
+            "AtomicRed")
+                clear
+                if [ -z "$(kubectl get jobs --output='name' | grep atomicred)" ]; then
+                    echo Job to be created
+                else
+                    kubectl delete job atomicred
+                fi
+                kubectl apply -f $PGPATH/demos/dockerfiles/atomic-red/AtomicRedDocker-FullFalco.yaml
+                read -p "Press any key to resume..."
+                ;;
+            "Goat Setup")
+                clear
+                cd $PGPATH
+                if [ -d $PGPATH/kubernetes-goat ]; then
+                    cd $PGPATH/kubernetes-goat
+                    git pull
+                else
+                    git clone https://github.com/madhuakula/kubernetes-goat.git
+                    cd $PGPATH/kubernetes-goat
+                fi
+                bash setup-kubernetes-goat.sh
+                read -p "Press any key to resume..."
+                ;;
+            "Goat Teardown")
+                clear
+                if [ -d $PGPATH/kubernetes-goat ]; then
+                    cd $PGPATH/kubernetes-goat
+                    bash teardown-kubernetes-goat.sh
+                fi
+                read -p "Press any key to resume..."
+                ;;
+            *) ;; # some action on other
+        esac
+    done
+}
+
+#######################################
+# Sub Menu
+#######################################
 function menu_cli() {
 
     # exec 3>&1
@@ -780,7 +903,8 @@ function menu_deploy() {
                  "Kubeclarity" "KUBEClarity" \
                  "Harbor" "Harbor Registry (Beta)" \
                  "Jenkins" "Jenkins CI/CD (Beta)" \
-                 "GitLab" "GitLab CI/CD (Beta)")
+                 "GitLab" "GitLab CI/CD (Beta)" \
+                 "AWSPG" "AWS WS and V1 Playground")
     local TITLE="Deploy"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -788,7 +912,7 @@ function menu_deploy() {
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
                     --separate-widget "Widget" \
-                    --menu "Please select" ${HEIGHT} ${WIDTH} 10 "${items[@]}" \
+                    --menu "Please select" ${HEIGHT} ${WIDTH} 14 "${items[@]}" \
                     2>&1 1>&3)
     do
         exit_status=$?
@@ -882,6 +1006,18 @@ function menu_deploy() {
                 display_progress 342 deploy-gitlab
                 break
                 ;;
+            "AWSPG")
+                clear
+                $PGPATH/bin/deploy-aws-playground.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 7 deploy-aws-playground
+                result="To create the AWS environment with WS and V1 agents change to\n"
+                result="${result}${PGPATH}/terraform-ws\n\n"
+                result="${result}After validating the variables.tf and locals.tf files run:\n\n"
+                result="${result}terraform init\n"
+                result="${result}terraform apply --auto-approve"
+                display_result "Important"
+                break
+                ;;
             *) 
                 ;;
         esac
@@ -902,7 +1038,8 @@ function menu_delete() {
                  "Kubeclarity" "KUBEClarity" \
                  "Harbor" "Harbor Registry" \
                  "Jenkins" "Jenkins CI/CD" \
-                 "GitLab" "GitLab CI/CD")
+                 "GitLab" "GitLab CI/CD (Beta)" \
+                 "AWSPG" "AWS WS and V1 Playground")
     local TITLE="(Danger Zone) Delete"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -910,7 +1047,7 @@ function menu_delete() {
                     --backtitle "${BACKTITLE}" \
                     --cancel-label "Back" \
                     --separate-widget "Widget" \
-                    --menu "Please select" ${HEIGHT} ${WIDTH} 10 "${items[@]}" \
+                    --menu "Please select" ${HEIGHT} ${WIDTH} 14 "${items[@]}" \
                     2>&1 1>&3)
     do
         exit_status=$?
@@ -992,6 +1129,12 @@ function menu_delete() {
                 clear
                 $PGPATH/bin/delete-gitlab.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 6 delete-gitlab
+                break
+                ;;
+            "AWSPG")
+                clear
+                $PGPATH/bin/delete-aws-playground.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 505 delete-aws-playground
                 break
                 ;;
             *) 

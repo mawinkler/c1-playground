@@ -64,9 +64,10 @@ docs-20221124
 
 # Terraform
 .terraform*
-terraform.*
+terraform.tfstate*
 *-key-pair*
 public-ip
+terraform-ws/variables.tf
 
 # Sentry
 sentry-*/
@@ -79,3 +80,5 @@ training
 demos/demo-attack.sh
 demos/struts-exploit-headers.txt
 kubernetes-goat
+terraform-ws/scripts/dsa.sh
+bin/kubeclarity-cli
