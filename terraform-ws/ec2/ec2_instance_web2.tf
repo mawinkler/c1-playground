@@ -19,18 +19,18 @@ resource "aws_instance" "web2" {
         ]
     }
 
-    # atomic
-    provisioner "file" {
-        source      = "files/atomic_launcher_linux_1.0.0.1009.zip"
-        destination = "/home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
-    }
+    # # atomic
+    # provisioner "file" {
+    #     source      = "files/atomic_launcher_linux_1.0.0.1009.zip"
+    #     destination = "/home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
+    # }
 
-    provisioner "remote-exec" {
-        inline = [
-            "sudo apt-get -y install unzip",
-            "unzip -P virus /home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
-        ]
-    }
+    # provisioner "remote-exec" {
+    #     inline = [
+    #         "sudo apt-get -y install unzip",
+    #         "unzip -P virus /home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
+    #     ]
+    # }
 
     # dsa installation
     provisioner "file" {
@@ -67,6 +67,28 @@ resource "aws_instance" "web2" {
     connection {
         user = "${var.ec2_user}"
         host = self.public_ip
+        private_key = "${file("${var.private_key_path}")}"
+    }
+}
+
+resource "null_resource" "atomic_zip" {
+    count = fileexists("files/atomic_launcher_linux_1.0.0.1009.zip") ? 1 : 0
+
+    provisioner "file" {
+        source      = "files/atomic_launcher_linux_1.0.0.1009.zip"
+        destination = "/home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo apt-get -y install unzip",
+            "unzip -P virus /home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
+        ]
+    }
+
+    connection {
+        user = "${var.ec2_user}"
+        host = aws_instance.web1.public_ip
         private_key = "${file("${var.private_key_path}")}"
     }
 }

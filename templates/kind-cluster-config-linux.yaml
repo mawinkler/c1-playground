@@ -7,7 +7,8 @@ networking:
   apiServerAddress: "${HOST_IP}"
   apiServerPort: 6443
   disableDefaultCNI: true # disable kindnet
-  podSubnet: 192.168.0.0/16 # set to Calico's default subnet
+  # podSubnet: 192.168.0.0/16 # set to Calico's default subnet
+  podSubnet: 10.10.0.0/16 # set to Calico's default subnet
 name: ${CLUSTER_NAME}
 nodes:
 #

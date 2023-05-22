@@ -82,3 +82,5 @@ demos/struts-exploit-headers.txt
 kubernetes-goat
 terraform-ws/scripts/dsa.sh
 bin/kubeclarity-cli
+terraform-ws/files/atomic_launcher_linux_1.0.0.1009.zip-nothere
+terraform-ws/files/atomic_launcher_windows_1.0.0.1013.zip

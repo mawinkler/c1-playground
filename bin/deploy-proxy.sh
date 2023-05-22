@@ -46,7 +46,8 @@ function create_proxy_configuration {
     cp $PGPATH/templates/passthrough.conf /tmp/passthrough.conf
   fi
 
-  if grep -Fq "upstream ${SERVICE_NAME} " /tmp/passthrough.conf
+  # if grep -Fq "upstream ${SERVICE_NAME} " /tmp/passthrough.conf
+  if grep -Fq "upstream ${SERVICE} " /tmp/passthrough.conf
   then
     printf '%s\n' "Proxy already configured for ${SERVICE_NAME}"
     exit 0
@@ -55,7 +56,8 @@ function create_proxy_configuration {
 
     sed -i "s|###|${FRAGMENT}|" /tmp/passthrough.conf
 
-    sed -i "s|_SERVICE|${SERVICE_NAME}|g" /tmp/passthrough.conf
+    # sed -i "s|_SERVICE|${SERVICE_NAME}|g" /tmp/passthrough.conf
+    sed -i "s|_SERVICE|${SERVICE}|g" /tmp/passthrough.conf
     sed -i "s|_DESTINATION_HOST|${SERVICE_HOST}|" /tmp/passthrough.conf
     sed -i "s|_DESTINATION_PORT|${SERVICE_PORT}|" /tmp/passthrough.conf
     sed -i "s|_LISTEN_PORT|${LISTEN_PORT}|" /tmp/passthrough.conf
