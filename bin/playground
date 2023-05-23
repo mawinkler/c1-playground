@@ -904,6 +904,7 @@ function menu_deploy() {
                  "Harbor" "Harbor Registry (Beta)" \
                  "Jenkins" "Jenkins CI/CD (Beta)" \
                  "GitLab" "GitLab CI/CD (Beta)" \
+                 "AWSPipe" "AWS Pipelining" \
                  "AWSOne" "AWS V1 & C1 Playground")
     local TITLE="Deploy"
     check_k8s
@@ -1006,6 +1007,12 @@ function menu_deploy() {
                 display_progress 342 deploy-gitlab
                 break
                 ;;
+            "AWSPipe")
+                clear
+                $PGPATH/bin/deploy-pipeline-aws.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 24 deploy-pipeline-aws
+                break
+                ;;
             "AWSOne")
                 clear
                 $PGPATH/bin/deploy-awsone.sh > $PGPATH/log/last.log 2>&1 &
@@ -1039,6 +1046,7 @@ function menu_delete() {
                  "Harbor" "Harbor Registry" \
                  "Jenkins" "Jenkins CI/CD" \
                  "GitLab" "GitLab CI/CD (Beta)" \
+                 "AWSPipe" "AWS Pipelining" \
                  "AWSOne" "AWS V1 & C1 Playground")
     local TITLE="(Danger Zone) Delete"
     check_k8s
@@ -1129,6 +1137,12 @@ function menu_delete() {
                 clear
                 $PGPATH/bin/delete-gitlab.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 6 delete-gitlab
+                break
+                ;;
+            "AWSPipe")
+                clear
+                $PGPATH/bin/pipeline-aws-down.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 505 pipeline-aws-down
                 break
                 ;;
             "AWSOne")

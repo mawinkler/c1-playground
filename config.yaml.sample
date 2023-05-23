@@ -37,6 +37,13 @@ services:
     ## Default value: ''
     api_key: ''
 
+    ## Cloud One Scanner API Key
+    ## 
+    ## REQUIRED if you want to play with Artifac Scanning as a Service
+    ##
+    ## Default value: ''
+    scanner_api_key: ''
+
     ## Cloud One Workload Security Tenant ID
     ## 
     ## REQUIRED if you want to play with Cloud One Workload Security
@@ -77,31 +84,6 @@ services:
     ## 
     ## Default value: trendmicro-system
     namespace: trendmicro-system
-
-  - name: smartcheck
-    ## Target namespace for Smart Check
-    ## 
-    ## Default value: trendmicro-smartcheck
-    namespace: trendmicro-smartcheck
-
-    ## Smart Check username to set
-    ## 
-    ## Default value: admin
-    username: admin
-
-    ## Smart Check password to set
-    ## 
-    ## Default value: trendmicro
-    password: trendmicro
-
-    ## Other settings typically not required to be changed
-    hostname: smartcheck
-    reg_username: admin
-    reg_password: trendmicro
-    reg_hostname: smartcheck-registry
-    proxy_service_name: proxy
-    proxy_service_port: "443"
-    proxy_listen_port: "8443"
 
   - name: playground-registry
     ## Target namespace for registry
@@ -281,8 +263,6 @@ services:
     github_project: c1-app-sec-uploader
     docker_username: YOUR USERNAME HERE
     docker_password: YOUR PASSWORD HERE
-    appsec_key: YOUR KEY HERE
-    appsec_secret: YOUR SECRET HERE
 
   - name: demo-java-goof
     namespace: victims

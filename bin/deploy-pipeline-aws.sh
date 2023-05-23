@@ -7,8 +7,7 @@
 #     - tools/cloud9-instance-role.sh
 #   - If running on Linux/Mac:
 #     - aws configure
-#   - clusters/rapid-eks.sh
-#   - $PGPATH/bin/deploy-smartcheck.sh
+#   - rapid-eks.sh
 #######################################
 
 set -e
@@ -24,17 +23,12 @@ if [ ${INSTANCE} = null ]; then
   INSTANCE=cloudone
 fi
 
+CLOUD_ONE_SCANNER_API_KEY="$(yq '.services[] | select(.name=="cloudone") | .scanner_api_key' $PGPATH/config.yaml)"
 GITHUB_USERNAME="$(yq '.services[] | select(.name=="pipeline") | .github_username' $PGPATH/config.yaml)"
 GITHUB_EMAIL="$(yq '.services[] | select(.name=="pipeline") | .github_email' $PGPATH/config.yaml)"
 APP_NAME="$(yq '.services[] | select(.name=="pipeline") | .github_project' $PGPATH/config.yaml)"
-TREND_AP_KEY="$(yq '.services[] | select(.name=="pipeline") | .appsec_key' $PGPATH/config.yaml)"
-TREND_AP_SECRET="$(yq '.services[] | select(.name=="pipeline") | .appsec_secret' $PGPATH/config.yaml)"
 DOCKER_USERNAME="$(yq '.services[] | select(.name=="pipeline") | .docker_username' $PGPATH/config.yaml)"
 DOCKER_PASSWORD="$(yq '.services[] | select(.name=="pipeline") | .docker_password' $PGPATH/config.yaml)"
-DSSC_USERNAME="$(yq '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.yaml)"
-DSSC_PASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.yaml)"
-DSSC_REGUSER="$(yq '.services[] | select(.name=="smartcheck") | .reg_username' $PGPATH/config.yaml)"
-DSSC_REGPASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .reg_password' $PGPATH/config.yaml)"
 
 mkdir -p $PGPATH/overrides
 
@@ -85,7 +79,7 @@ function create_iam_role_eks() {
     aws iam put-role-policy \
     --role-name ${CODEBUILD_ROLE_NAME} \
     --policy-name eks-describe-ecr-pull \
-    --policy-document file://templates/pipeline-aws-iam-role-policy.json
+    --policy-document file://$PGPATH/templates/pipeline-aws-iam-role-policy.json
 
     echo "aws iam delete-role-policy --role-name ${CODEBUILD_ROLE_NAME} --policy-name eks-describe-ecr-pull" >> $PGPATH/bin/pipeline-aws-down.sh
     echo "aws iam delete-role --role-name ${CODEBUILD_ROLE_NAME}" >> $PGPATH/bin/pipeline-aws-down.sh
@@ -114,13 +108,8 @@ function create_iam_role_eks() {
 #   APP_NAME
 #   AWS_REGION
 #   AWS_ACCOUNT_ID
-#   DSSC_USERNAME
-#   DSSC_PASSWORD
-#   DSSC_REGUSER
-#   DSSC_REGPASSWORD
+#   CLOUD_ONE_SCANNER_API_KEY
 #   CODEBUILD_ROLE_NAME
-#   TREND_AP_KEY
-#   TREND_AP_SECRET
 #   DOCKER_USERNAME
 #   DOCKER_PASSWORD
 # Arguments:
@@ -131,24 +120,16 @@ function create_iam_role_eks() {
 function create_cloudformation() {
   printf '%s\n' "Creating CloudFormation Template"
 
-  get_smartcheck
-
   AWS_REGION=${AWS_REGION} \
     IMAGE_NAME=${APP_NAME} \
-    DSSC_HOST=${SC_HOST} \
-    DSSC_USERNAME=${DSSC_USERNAME} \
-    DSSC_PASSWORD=${DSSC_PASSWORD} \
-    DSSC_REGUSER=${DSSC_REGUSER} \
-    DSSC_REGPASSWORD=${DSSC_REGPASSWORD} \
+    CLOUD_ONE_SCANNER_API_KEY=${CLOUD_ONE_SCANNER_API_KEY} \
     CODEBUILD_ROLE_NAME=${CODEBUILD_ROLE_NAME} \
     CLUSTER_NAME=$(eksctl get cluster -o json | jq -r '.[].Name') \
-    TREND_AP_KEY=${TREND_AP_KEY} \
-    TREND_AP_SECRET=${TREND_AP_SECRET} \
     DOCKER_USERNAME=${DOCKER_USERNAME} \
     DOCKER_PASSWORD=${DOCKER_PASSWORD} \
     AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
     CODEBUILD_ROLE_NAME=$(aws iam list-roles | jq -r '.Roles[] | select(.RoleName|startswith("ekscluster-codebuild")) | .RoleName') \
-    envsubst '$AWS_REGION,$IMAGE_NAME,$DSSC_HOST,$DSSC_USERNAME,$DSSC_PASSWORD,$DSSC_REGUSER,$DSSC_REGPASSWORD,$CODEBUILD_ROLE_NAME,$CLUSTER_NAME,$TREND_AP_KEY,$TREND_AP_SECRET,$DOCKER_USERNAME,$DOCKER_PASSWORD,$AWS_ACCOUNT_ID,$CODEBUILD_ROLE_NAME' \
+    envsubst '$AWS_REGION,$IMAGE_NAME,$CLOUD_ONE_SCANNER_API_KEY,$CODEBUILD_ROLE_NAME,$CLUSTER_NAME,$DOCKER_USERNAME,$DOCKER_PASSWORD,$AWS_ACCOUNT_ID,$CODEBUILD_ROLE_NAME' \
       <$PGPATH/templates/pipeline-aws-pipeline.cfn.yaml \
       >$PGPATH/overrides/${APP_NAME}-pipeline.cfn.yml
 }
@@ -190,8 +171,6 @@ function deploy_cloudformation() {
 #   GITHUB_EMAIL
 #   APP_NAME
 #   AWS_REGION
-#   TREND_AP_KEY
-#   TREND_AP_SECRET
 # Arguments:
 #   None
 # Outputs:
@@ -202,6 +181,8 @@ function prepare_codecommit_repo() {
 
   if [ ! -d ${APP_NAME} ]; then
     git clone https://github.com/${GITHUB_USERNAME}/${APP_NAME}.git
+    echo "rm -Rf ${APP_NAME}" >> $PGPATH/bin/pipeline-aws-down.sh
+
     cd ${APP_NAME}
     git init
     git remote add aws https://git-codecommit.${AWS_REGION}.amazonaws.com/v1/repos/${APP_NAME}
@@ -211,8 +192,6 @@ function prepare_codecommit_repo() {
 
     cp $PGPATH/templates/pipeline-aws-buildspec.yaml ./buildspec.yml
     IMAGE_NAME=${APP_NAME} \
-      TREND_AP_KEY=${TREND_AP_KEY} \
-      TREND_AP_SECRET=${TREND_AP_SECRET} \
       envsubst <$PGPATH/templates/pipeline-aws-app.yml > ./app-eks.yml
     
     # Enable the credential helper for git to modify `~/.gitconfig`
@@ -275,3 +254,6 @@ function test() {
 if [[ $# -eq 0 ]] ; then
   main
 fi
+
+printf '\n%s\n' "###TASK-COMPLETED###"
+echo "###TASK-COMPLETED###" >> $PGPATH/bin/pipeline-aws-down.sh

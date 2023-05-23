@@ -4,32 +4,12 @@
 
 Pipelining on AWS requires an EKS cluster, of course. So this pipeline does not work with any other Playground variant.
 
-At a minimum, the following steps needs to be executed prior running the `deploy-pipeline-aws.sh`-script:
-
-```sh
-# Playground needs to be bootstrapped
-
-# If running on Cloud9
-# Don't forget to turn off managed credentials in your Cloud9
-tools/cloud9-resize.sh
-tools/cloud9-instance-role.sh
-
-# If running on Linux/Mac:
-aws configure
-
-# Build EKS cluster
-clusters/rapid-eks.sh
-
-# Deploy Smart Check
-./deploy-smartcheck.sh
-```
-
 ## Deployment
 
 Run
 
 ```sh
-./deploy-pipeline-aws.sh
+deploy-pipeline-aws.sh
 ```
 
 This script automates the following:
@@ -40,11 +20,13 @@ This script automates the following:
 4. Next, we're adding a remote repository in AWS CodeCommit which our pipeline will use. At the time of writing the script clones my `c1-app-sec-uploader`. While doing this we create the kubernetes manifest for our app.
 5. Finally, we push our code to the CodeCommit repo which will trigger the pipeline run.
 
-The pipeline builds the container image, pushes it to ECR, scans the image with Smart Check and finally deploys it to EKS.
+The pipeline builds the container image, pushes it to ECR, scans the image with Artifact Scanning as a Service and finally deploys it to EKS (if the image does not exceed the vulnerability threshold :-))
+
+The interaction with Artifact Scanning as a Service is actually done by a containerized `tmas` client which I'm hosting here: (c1-cs-tmas)[https://github.com/mawinkler/c1-cs-tmas].
 
 The deployment obviously can fail if you're running Cloud One Container Security on the cluster, since the image will contain vulnerabilities. So it just depends on you and your defined policy.
 
-If everything works you'll have a running uploader demo on your cluster. Query the URL by `kubectl -n default get svc` and upload some malware, if you want
+If everything works you'll have a running uploader demo on your cluster.
 
 ## Further Reading
 

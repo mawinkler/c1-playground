@@ -40,10 +40,5 @@ spec:
       - name: ${IMAGE_NAME}
         image: CONTAINER_IMAGE
         imagePullPolicy: Always
-        env:
-        - name: TREND_AP_KEY
-          value: ${TREND_AP_KEY}
-        - name: TREND_AP_SECRET
-          value: ${TREND_AP_SECRET}
         ports:
         - containerPort: 80

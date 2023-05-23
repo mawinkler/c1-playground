@@ -2,6 +2,12 @@
 
 The AWS One Playground is a small environment in AWS and easily created with the help of Terraform.
 
+Trend Micro Solutions currently in scope of this environment are:
+
+- Vision One
+- Cloud One Workload Security
+- Cloud One Sentry
+
 All instances are based on Ubuntu Focal 20.04 with different configurations:
 
 Instance Web1:
@@ -27,6 +33,27 @@ Instance Db1:
 
 Ensure the latest AWS CLI via the Playground menu `Tools --> CLIs --> AWS` and to have authenticated via `aws configure`.
 
+Next, verify that your `config.yaml` contains the following settings (get the correct values from C1WS and V1):
+
+```yaml
+services:
+  - name: cloudone
+...
+    ## Cloud One Workload Security Tenant ID
+    ws_tenant_id: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+    ## Cloud One Workload Security Token
+    ws_token: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+    ## Cloud One Workload Security Linux Policy ID
+    ws_policy_id: 2
+
+  - name: visionone
+
+    ## Vision One Basecamp agent download url
+    xbc_agent_url: https://api-us1.xbc.trendmicro.com/api/public/download_xbc_agent/v1.0/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+```
+
 To prepare AWS One Playground demo environmant run:
 
 ```sh
@@ -39,7 +66,7 @@ Change in the terraform subdirectory
 cd $PGPATH/terraform-awsone
 ```
 
-## Optional: Adapt `variables.tf`
+### Optional: Adapt `variables.tf`
 
 The `variables.tf`-file contains the definitions for the AWS region and keypair to use. Adapt it to your needs as required.
 
@@ -67,7 +94,7 @@ variable "access_ip" {
 }
 ```
 
-## Optional: Adapt `terraform.tfvars`
+### Optional: Adapt `terraform.tfvars`
 
 The `terraform.tfvars`-file allows you to restrict internet access to your EC2 instances to only your public IP address. For this you need to change
 
@@ -81,7 +108,7 @@ to
 access_ip      = "<YOUR IP>/32"
 ```
 
-## Create SSH Keypair
+### Create SSH Keypair
 
 ```sh
 ssh-keygen -f <AS NAMED IN VARS.TF private_key_path> -q -N ""

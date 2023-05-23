@@ -9,18 +9,10 @@ phases:
       - chmod +x ./kubectl ./aws-iam-authenticator
       - export PATH=${PWD}/:${PATH}
 
-      # Install jq
-      - apt-get update && apt-get -y install jq
-
       # Install AWS CLI v2
       - curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o ~/awscliv2.zip
       - unzip -q ~/awscliv2.zip -d ~/
       - ~/aws/install
-
-      # If using not publicly trusted certificates, we do a dynamic certificate trust
-      # - >-
-      #   openssl s_client -showcerts -connect ${SMARTCHECK_HOST}:443 < /dev/null |
-      #   sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /usr/local/share/ca-certificates/${SMARTCHECK_HOST}.crt && update-ca-certificates
 
   pre_build:
     commands:
@@ -64,19 +56,11 @@ phases:
       - docker push ${REPOSITORY_URI}:${TAG}
       - docker push ${REPOSITORY_URI}:latest
 
-      # Smart Check Registry-Scan
-      - export PULL_AUTH='{"aws":{"region":"eu-central-1"}}'
+      # Scan Image using tmas
       - >-
-        docker run --read-only --cap-drop ALL
-        -v /var/run/docker.sock:/var/run/docker.sock
-        deepsecurity/smartcheck-scan-action
-        --image-name "${REPOSITORY_URI}:${TAG}"
-        --smartcheck-host="${SMARTCHECK_HOST}"
-        --smartcheck-user="${SMARTCHECK_USER}"
-        --smartcheck-password="${SMARTCHECK_PWD}"
-        --image-pull-auth=${PULL_AUTH}
-        --insecure-skip-registry-tls-verify
-        --insecure-skip-tls-verify || true
+        docker run --cap-drop ALL --rm --name tmas
+        -e CLOUD_ONE_API_KEY=${CLOUD_ONE_SCANNER_API_KEY}
+        mawinkler/tmas -t medium -u ${ECR_USERNAME} -p ${ECR_PASSWORD} registry:${REPOSITORY_URI}:${TAG} | tee findings.json
 
       # Assume Role to manage Kubernetes
       - CREDENTIALS=$(aws sts assume-role --role-arn ${EKS_KUBECTL_ROLE_ARN} --role-session-name codebuild-kubectl --duration-seconds 900)
@@ -94,4 +78,6 @@ phases:
 
 
 artifacts:
-  files: build.json
+  files:
+    - build.json
+    - findings.json
