@@ -24,7 +24,7 @@ nav:
     - Trivy: add-ons/trivy.md
     - Jenkins: add-ons/jenkins.md
     - GitLab: add-ons/gitlab.md
-    - Workload Security: add-ons/workload-security.md
+    - AWS One Playground: add-ons/awsone.md
   - Play with the Playground:
     - Tools and Scripts: play/tools.md
     - With Falco: play/with-falco.md

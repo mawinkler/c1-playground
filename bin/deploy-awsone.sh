@@ -27,13 +27,13 @@ mkdir -p $PGPATH/overrides
 function create_dsa_deployment_script() {
 
   printf '%s\n' "Create agent deployment script"
-  cp $PGPATH/templates/terraform-dsa.sh $PGPATH/terraform-ws/scripts/dsa.sh
+  cp $PGPATH/templates/terraform-dsa.sh $PGPATH/terraform-awsone/scripts/dsa.sh
   WS_TENANT_ID=${WS_TENANT_ID} \
     WS_TOKEN=${WS_TOKEN} \
     WS_POLICY_ID=${WS_POLICY_ID} \
-    echo '/opt/ds_agent/dsa_control -a $ACTIVATIONURL "tenantID:'${WS_TENANT_ID}'" "token:'${WS_TOKEN}'" "policyid:'${WS_POLICY_ID}'"' >> $PGPATH/terraform-ws/scripts/dsa.sh
+    echo '/opt/ds_agent/dsa_control -a $ACTIVATIONURL "tenantID:'${WS_TENANT_ID}'" "token:'${WS_TOKEN}'" "policyid:'${WS_POLICY_ID}'"' >> $PGPATH/terraform-awsone/scripts/dsa.sh
 
-  echo "💬 Agent deployment script dropped to $PGPATH/terraform-ws/scripts/dsa.sh"
+  echo "💬 Agent deployment script dropped to $PGPATH/terraform-awsone/scripts/dsa.sh"
 }
 
 #######################################
@@ -49,14 +49,14 @@ function create_tf_variables() {
 
   printf '%s\n' "Create terraform variables.tf"
   V1_XBC_AGENT_URL=${V1_XBC_AGENT_URL} \
-    envsubst <$PGPATH/templates/terraform-variables.tf >$PGPATH/terraform-ws/variables.tf
+    envsubst <$PGPATH/templates/terraform-variables.tf >$PGPATH/terraform-awsone/variables.tf
 
-  echo "💬 Terraform variables.tf dropped to $PGPATH/terraform-ws/variables.tf"
+  echo "💬 Terraform variables.tf dropped to $PGPATH/terraform-awsone/variables.tf"
 }
 
 #######################################
-# Deploys a small but full Workload
-# Security demo environment
+# Prepares a AWS based V1 & C1
+# demo environment
 # Globals:
 #   None
 # Arguments:
@@ -66,9 +66,9 @@ function create_tf_variables() {
 #######################################
 function create_environment() {
 
-  cd $PGPATH/terraform-ws
+  cd $PGPATH/terraform-awsone
 
-  if [ -f $PGPATH/terraform-ws/cnctraining-key-pair ]; then
+  if [ -f $PGPATH/terraform-awsone/cnctraining-key-pair ]; then
       printf '%s\n' "Reusing keypair"
   else
       ssh-keygen -f cnctraining-key-pair -q -N ""
@@ -80,8 +80,8 @@ function create_environment() {
 
 #######################################
 # Main:
-# Implements Workload Security demo
-# environment
+# Deploys a AWS based V1 & C1
+# demo environment
 #######################################
 function main() {
 

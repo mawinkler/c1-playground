@@ -5,6 +5,9 @@ resource "aws_instance" "web1" {
     subnet_id              = var.public_subnet
     vpc_security_group_ids = [var.public_sg]
     key_name               = "${aws_key_pair.cnctraining_key_pair.id}"
+    tags = {
+        Name = "playground-web1"
+    }
 
     # nginx installation
     provisioner "file" {
@@ -26,7 +29,6 @@ resource "aws_instance" "web1" {
     # }
 
     # provisioner "remote-exec" {
-    #     count = fileexists("files/atomic_launcher_linux_1.0.0.1009.zip") ? 1 : 0
     #     inline = [
     #         "sudo apt-get -y install unzip",
     #         "unzip -P virus /home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
@@ -71,8 +73,13 @@ resource "aws_instance" "web1" {
     }
 }
 
-resource "null_resource" "atomic_zip" {
+resource "null_resource" "atomic_web1" {
     count = fileexists("files/atomic_launcher_linux_1.0.0.1009.zip") ? 1 : 0
+
+    triggers = {
+        instance_running = aws_instance.web1.instance_state == "running" ? 1 : 0
+        #"${timestamp()}"
+    }
 
     provisioner "file" {
         source      = "files/atomic_launcher_linux_1.0.0.1009.zip"

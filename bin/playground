@@ -904,7 +904,7 @@ function menu_deploy() {
                  "Harbor" "Harbor Registry (Beta)" \
                  "Jenkins" "Jenkins CI/CD (Beta)" \
                  "GitLab" "GitLab CI/CD (Beta)" \
-                 "AWSPG" "AWS WS and V1 Playground")
+                 "AWSOne" "AWS V1 & C1 Playground")
     local TITLE="Deploy"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -1006,12 +1006,12 @@ function menu_deploy() {
                 display_progress 342 deploy-gitlab
                 break
                 ;;
-            "AWSPG")
+            "AWSOne")
                 clear
-                $PGPATH/bin/deploy-aws-playground.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 7 deploy-aws-playground
-                result="To create the AWS environment with WS and V1 agents change to\n"
-                result="${result}${PGPATH}/terraform-ws\n\n"
+                $PGPATH/bin/deploy-awsone.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 7 deploy-awsone
+                result="To create the AWS environment change to\n"
+                result="${result}${PGPATH}/terraform-awsone\n\n"
                 result="${result}After validating the variables.tf and locals.tf files run:\n\n"
                 result="${result}terraform init\n"
                 result="${result}terraform apply --auto-approve"
@@ -1039,7 +1039,7 @@ function menu_delete() {
                  "Harbor" "Harbor Registry" \
                  "Jenkins" "Jenkins CI/CD" \
                  "GitLab" "GitLab CI/CD (Beta)" \
-                 "AWSPG" "AWS WS and V1 Playground")
+                 "AWSOne" "AWS V1 & C1 Playground")
     local TITLE="(Danger Zone) Delete"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -1131,10 +1131,10 @@ function menu_delete() {
                 display_progress 6 delete-gitlab
                 break
                 ;;
-            "AWSPG")
+            "AWSOne")
                 clear
-                $PGPATH/bin/delete-aws-playground.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 505 delete-aws-playground
+                $PGPATH/bin/delete-awsone.sh > $PGPATH/log/last.log 2>&1 &
+                display_progress 505 delete-awsone
                 break
                 ;;
             *) 

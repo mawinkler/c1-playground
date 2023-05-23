@@ -1,6 +1,6 @@
-# Create a simple AWS WS and V1 Playground
+# Add-On: AWS One Playground
 
-This Terraform project creates everything which is required to run preconfigured EC2 instances in AWS.
+The AWS One Playground is a small environment in AWS and easily created with the help of Terraform.
 
 All instances are based on Ubuntu Focal 20.04 with different configurations:
 
@@ -21,16 +21,22 @@ Instance Db1:
 - MySql databse
 - Workload Security agent
 
-> ***Note:*** You need to download the Atomic Launcher from [here](https://powerbox-jarvis-file.trendmicro-cloud.com/SFDC/DownloadFile_iv_jarvis.php?Query=qFFk%2B1MYPMLKEci1xi14KCgv1vM3eXaXOauUOhpMNNvwnxQddJMSFOHKNsbQ9F2LoIFZHLssJibE2BTXUIDXKiZQF0H4L%2FTjVNji9DGALMQk0P9PFprMO2gOpJgGjlRqIIbkBV3SGTjY4DJVqGqoEQ%3D%3D&iv=ZDSEnjIt0ZefLf74) and store it in the `./terraform-ws/files`-directory. You do NOT need to unzip the file.
+> ***Note:*** You need to download the Atomic Launcher from [here](https://powerbox-jarvis-file.trendmicro-cloud.com/SFDC/DownloadFile_iv_jarvis.php?Query=qFFk%2B1MYPMLKEci1xi14KCgv1vM3eXaXOauUOhpMNNvwnxQddJMSFOHKNsbQ9F2LoIFZHLssJibE2BTXUIDXKiZQF0H4L%2FTjVNji9DGALMQk0P9PFprMO2gOpJgGjlRqIIbkBV3SGTjY4DJVqGqoEQ%3D%3D&iv=ZDSEnjIt0ZefLf74) and store it in the `./terraform-awsone/files`-directory. You do *NOT* need to unzip the file.
 
 ## Prepare
 
 Ensure the latest AWS CLI via the Playground menu `Tools --> CLIs --> AWS` and to have authenticated via `aws configure`.
 
+To prepare AWS One Playground demo environmant run:
+
+```sh
+deploy-awsone.sh
+```
+
 Change in the terraform subdirectory
 
 ```sh
-cd $PGPATH/terraform-ws
+cd $PGPATH/terraform-awsone
 ```
 
 ## Optional: Adapt `variables.tf`
@@ -87,7 +93,7 @@ Example:
 ssh-keygen -f cnctraining-key-pair -q -N ""
 ```
 
-## Terraform
+## Deploy with Terraform
 
 Prepare your terraform environment by running
 

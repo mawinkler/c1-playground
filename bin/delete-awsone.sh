@@ -5,7 +5,7 @@ set -e
 # Source helpers
 .  $PGPATH/bin/playground-helpers.sh
 
-cd $PGPATH/terraform-ws
+cd $PGPATH/terraform-awsone
 terraform init
 terraform destroy -auto-approve
 

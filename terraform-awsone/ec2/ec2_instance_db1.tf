@@ -5,6 +5,9 @@ resource "aws_instance" "db1" {
     subnet_id              = var.public_subnet
     vpc_security_group_ids = [var.public_sg]
     key_name               = "${aws_key_pair.cnctraining_key_pair.id}"
+    tags = {
+        Name = "playground-db1"
+    }
 
     # mysql installation
     provisioner "file" {
