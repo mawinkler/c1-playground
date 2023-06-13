@@ -64,7 +64,7 @@ Falco | X | X | X | X | X | X
 Gatekeeper | X |X | X | X | X | X
 Open Policy Agent | X | X | X | X | X | X
 Prometheus & Grafana | X | X | X | X | X | X
-Starboard | X | X | X | X | X | X
+Trivy | X | X | X | X | X | X
 Cilium | X | X | X | X | X
 Kubescape | X | X | X | X | X | X
 Harbor | X (2) | | | | | |
@@ -88,9 +88,6 @@ Besides the obvious cli tools like `kubectl`, `docker`, etc. the Playground offe
 Command | Function
 ------- | --------
 playground | The Playground's menu
-scan-image | Scan an image using Smart Check<br>Example:<br>`scan-image nginx:latest`
-scan-namespace | Scans all images in use within the current namespace<br>Example:<br>`kubectl config set-context --current --namespace <NAMESPACE>`<br>`scan-namespace`
-collect-logs-sc | Collects logs from Smart Check
 collect-logs-cs | Collects logs from Container Security
 stern | Tail logs from multiple pods simultaneously<br>Example:<br>`stern -n trendmicro-system . -t -s2m`
 syft | See [github.com/anchore/syft](https://github.com/anchore/syft)

@@ -26,7 +26,6 @@ cloudOne:
     ## List of namespaces for which Deploy and Continuous feature will not trigger events.
     namespaces:
     - kube-system
-    - trendmicro-smartcheck
     - trendmicro-system
     - calico-system
     - calico-apiserver

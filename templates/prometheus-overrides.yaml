@@ -11,7 +11,6 @@ prometheusOperator:
     releaseNamespace: true
     additional:
     - kube-system
-    - smartcheck
     - container-security
     - registry
     - falco
@@ -35,10 +34,3 @@ prometheus:
       metrics_path: /metrics
       static_configs:
       - targets: ['falco-exporter.falco:9376']
-    - job_name: smartcheck-metrics
-      scrape_interval: 15s
-      scrape_timeout: 5s
-      scheme: http
-      metrics_path: /metrics
-      static_configs:
-      - targets: ['metrics.smartcheck:8082']

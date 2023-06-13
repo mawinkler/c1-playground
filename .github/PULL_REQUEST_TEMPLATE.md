@@ -39,8 +39,6 @@ Please remove the leading whitespace before the `/kind <>` you uncommented.
 
 > /area prometheus
 
-> /area smartcheck
-
 <!--
 Please remove the leading whitespace before the `/area <>` you uncommented.
 -->

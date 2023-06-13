@@ -16,7 +16,6 @@ spec:
     - registry
     - prometheus
     - falco
-    - smartcheck
     - container-security
     - trivy
     - opa

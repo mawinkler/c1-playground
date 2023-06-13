@@ -250,7 +250,7 @@ Resources:
             Value: !Ref AwsAccountId
 
       Name: BuildScanPushDeploy
-      Description: Build container image, push to registry and scan with Smartcheck
+      Description: Build container image, push to registry and scan with ASaaS
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
 
   CodePipeline:

@@ -34,9 +34,19 @@ Example:
 
 ***Cloud9***
 
-See: [Access Smart Check (Cloud9)](./container-security.md#access-smart-check), but use the `proxy_listen_port`s configured in your config.yaml (default: 8082) and choose Source Anywhere. Don't forget to check your inbound rules to allow the port.
+If working on a Cloud9 environment you need to adapt the security group of the corresponding EC2 instance to enable access from your browwer. To share Falco over the internet, follow the steps below.
 
-Alternatively, you can get the configured port for the service with `cat services`.
+1. Query the public IP of your Cloud9 instance with
+
+   ```sh
+   curl http://169.254.169.254/latest/meta-data/public-ipv4
+   ```
+
+2. In the IDE for the environment, on the menu bar, choose your user icon, and then choose Manage EC2 Instance
+3. Select the security group associated to the instance and select Edit inbound rules.
+4. Add an inbound rule for the `proxy_listen_port` configured in you config.yaml (default: 8082) and choose Source Anywhere
+5. Depending on the currently configured Network ACL you might need to add a rule to allow ingoing traffic on the same port. To do this go to the VPC within the Cloud9 instance is running and proceed to the associated Main network ACL.
+6. Ensure that an inbound rule is set which allows traffic on the `proxy_listen_port`. If not, click on `Edit inbound rules` and add a rule with a low Rule number, Custom TCP, Port range 8443 (or your configured port), Source 0.0.0.0/0 and Allow.
 
 Access to the services should then be possible with the public ip of your Cloud9 instance with your configured port(s).
 

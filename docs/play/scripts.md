@@ -1,5 +1,7 @@
 # Demo Scripts
 
+> ***TODO:*** Migrate to ASaaS
+
 The Playground supports automated scripts to demonstrate functionalities of deployments. Currently, there are two scripts available showing some capabilities of Cloud One Container Security.
 
 To run them, ensure to have an EKS cluster up and running and have Smart Check and Container Security deployed.

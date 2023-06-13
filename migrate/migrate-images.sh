@@ -36,7 +36,8 @@ for ns in migrate/source/*.json ; do
     # Initiate a scan with pull and push to cluster registry
     for image in ${IMAGES} ; do
         printf '%s\n' "Processing image ${image}"
-        scan-image ${image} || true
+        # TODO: Integerate tmas here
+        # scan-image ${image} || true
     done
 
     cat <<EOF >migrate/kustomization.yaml

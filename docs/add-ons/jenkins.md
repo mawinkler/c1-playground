@@ -1,5 +1,7 @@
 # Add-On: Jenkins
 
+> ***TODO:*** Remove Smart Check from sample pipeline
+
 ## Deploy
 
 > ***Note:*** The script `deploy-jenkins.sh` deploys a Jenkins with Docker Pipeline Support and BlueOcean directly on the Docker engine. In other words, Jenkins does *NOT* run on Kubernetes but locally on your machine. This is because Jenkins needs to have access to the Docker Socket which is typically not available anymore on managed clusters nor easily within Kind.

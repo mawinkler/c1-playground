@@ -9,7 +9,6 @@ set -e
 CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
 CS_POLICY_NAME="$(yq '.services[] | select(.name=="container_security") | .policy_name' $PGPATH/config.yaml)"
 CS_NAMESPACE="$(yq '.services[] | select(.name=="container_security") | .namespace' $PGPATH/config.yaml)"
-SC_NAMESPACE="$(yq '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.yaml)"
 API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
 REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"
 INSTANCE="$(yq '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.yaml)"
@@ -25,7 +24,7 @@ API_KEY=${API_KEY} envsubst <$PGPATH/templates/cloudone-header.txt >$PGPATH/over
 #######################################
 # Creates Kubernetes namespace
 # Globals:
-#   SC_NAMESPACE
+#   CS_NAMESPACE
 # Arguments:
 #   None
 # Outputs:

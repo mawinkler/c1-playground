@@ -130,62 +130,6 @@ function is_darwin() {
 }
 
 #######################################
-# Reads basic configuration for Smart
-# Check
-# Globals:
-#   None
-# Arguments:
-#   None
-# Outputs:
-#   SC_USERNAME
-#   SC_PASSWORD
-#   SC_PORT
-#   SC_NAMESPACE
-#######################################
-function setup_smartcheck() {
-  SC_USERNAME="$(yq '.services[] | select(.name=="smartcheck") | .username' $PGPATH/config.yaml)"
-  SC_PASSWORD="$(yq '.services[] | select(.name=="smartcheck") | .password' $PGPATH/config.yaml)"
-  SC_PORT="$(yq '.services[] | select(.name=="smartcheck") | .proxy_service_port' $PGPATH/config.yaml)"
-  SC_NAMESPACE="$(yq '.services[] | select(.name=="smartcheck") | .namespace' $PGPATH/config.yaml)"
-}
-
-#######################################
-# Retrieves the url of Smart Check
-# Globals:
-#   OS
-#   SC_NAMESPACE
-# Arguments:
-#   None
-# Outputs:
-#   SC_HOST
-#######################################
-function get_smartcheck() {
-  setup_smartcheck
-  # gke
-  if is_gke ; then
-    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-  # aks
-  elif is_aks ; then
-    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-              -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-  # eks
-  elif is_eks ; then
-    SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-  # local
-  else
-    if is_linux ; then
-      SC_HOST=$(kubectl get svc -n ${SC_NAMESPACE} proxy \
-                    -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    fi
-    if is_darwin ; then
-      SC_HOST="$(yq '.services[] | select(.name=="smartcheck") | .hostname' $PGPATH/config.yaml)"
-    fi
-  fi
-}
-
-#######################################
 # Retrieves the url of the registry
 # Globals:
 #   GCP_HOSTNAME

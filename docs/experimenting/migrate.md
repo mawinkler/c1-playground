@@ -20,6 +20,6 @@ migrate/migrate-images.sh
 
 This second script updates the saved manifests in regards the image location to point them to the private registry. If the image has a digest within it's name it is stripped.
 
-The image get's then pulled from the public repo and pushed to the internal one. This is followed by an image scan (currently by Smart Check) and the redeployment.
+The image get's then pulled from the public repo and pushed to the internal one. TODO: This is followed by an image scan and the redeployment.
 
 > ***Note:*** at the time of writing the only supported private registry is the internal one.

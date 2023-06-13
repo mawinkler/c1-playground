@@ -498,7 +498,6 @@
     - registry
     - prometheus
     - falco
-    - smartcheck
     - container_security
     - trivy
     - starboard

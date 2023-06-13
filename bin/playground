@@ -894,7 +894,6 @@ function menu_deploy() {
     # exec 3>&1
     
     local items=("C1CS" "Container Security" \
-                 "C1SC" "Smart Check" \
                  "Falco" "Falco Runtime Security" \
                  "OPA" "Open Policy Agent" \
                  "Gatekeeper" "OPA Gatekeeper" \
@@ -936,17 +935,6 @@ function menu_deploy() {
                     clear
                     $PGPATH/bin/deploy-container-security.sh > $PGPATH/log/last.log 2>&1 &
                     display_progress 15 deploy-container-security
-                else
-                    result="Verify your Cloud One Configuration.\n\nCheck Cloud One Region and API KEY."
-                    display_result "Important"
-                fi
-                break
-                ;;
-            "C1SC")
-                if check_cloudone; then
-                    clear
-                    $PGPATH/bin/deploy-smartcheck.sh > $PGPATH/log/last.log 2>&1 &
-                    display_progress 44 deploy-smartcheck
                 else
                     result="Verify your Cloud One Configuration.\n\nCheck Cloud One Region and API KEY."
                     display_result "Important"
@@ -1036,7 +1024,6 @@ function menu_delete() {
     # exec 3>&1
     
     local items=("C1CS" "Container Security" \
-                 "C1SC" "Smart Check" \
                  "Falco" "Falco Runtime Security" \
                  "OPA" "Open Policy Agent" \
                  "Gatekeeper" "OPA Gatekeeper" \
@@ -1077,12 +1064,6 @@ function menu_delete() {
                 clear
                 $PGPATH/bin/delete-container-security.sh > $PGPATH/log/last.log 2>&1 &
                 display_progress 4 delete-container-security
-                break
-                ;;
-            "C1SC") 
-                clear
-                $PGPATH/bin/delete-smartcheck.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 4 delete-smartcheck
                 break
                 ;;
             "Falco")

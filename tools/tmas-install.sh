@@ -30,7 +30,9 @@ OS=$(uname -s)
 ARCH=$(uname -m)
 if [ "$ARCH" = "aarch64" ]; then ARCH=arm64; fi
 ARCHITECTURE="${OS}_${ARCH}"
-URL="https://d2p96w1gp1r0u8.cloudfront.net/tmas-cli/$VERSION/tmas-cli_${VERSION}_$ARCHITECTURE.tar.gz"
+
+# https://cli.artifactscan.cloudone.trendmicro.com/tmas-cli/latest/tmas-cli_Linux_x86_64.tar.gz
+URL="https://cli.artifactscan.cloudone.trendmicro.com/tmas-cli/latest/tmas-cli_$ARCHITECTURE.tar.gz"
 echo "Downloading version $VERSION of tmas CLI for $OS in architecture $ARCHITECTURE"
 
 curl -s "$URL" | tar -xz tmas
