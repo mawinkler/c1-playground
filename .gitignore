@@ -11,6 +11,7 @@ log/*
 config.json
 config.json.old
 config.yaml
+config.yaml.c9
 services*
 env.sh
 
@@ -85,3 +86,5 @@ bin/kubeclarity-cli
 terraform-awsone/files/atomic_launcher_linux_1.0.0.1009.zip-nothere
 terraform-awsone/files/atomic_launcher_windows_1.0.0.1013.zip
 terraform-awsone/files/atomic_launcher_linux_1.0.0.1009.zip
+terraform-awsone/atomic_launcher_linux_1.0.0.1009.zip
+terraform-awsone/atomic_launcher_linux_1.0.0.1009/see_documentation

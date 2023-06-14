@@ -1,5 +1,7 @@
 # Demo Scripts
 
+> ***Note:*** Demo scripts are now located in the repo [Playground Demos](https://github.com/mawinkler/c1-playground-demos)
+
 > ***TODO:*** Migrate to ASaaS
 
 The Playground supports automated scripts to demonstrate functionalities of deployments. Currently, there are two scripts available showing some capabilities of Cloud One Container Security.
