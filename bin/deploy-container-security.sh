@@ -6,8 +6,8 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
-CS_POLICY_NAME="$(yq '.services[] | select(.name=="container_security") | .policy_name' $PGPATH/config.yaml)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
+CS_POLICY_NAME="$(yq '.services[] | select(.name=="container_security") | .policy_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
 CS_NAMESPACE="$(yq '.services[] | select(.name=="container_security") | .namespace' $PGPATH/config.yaml)"
 API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
 REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"

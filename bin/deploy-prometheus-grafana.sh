@@ -6,7 +6,7 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
 PROMETHEUS_HOSTNAME="$(yq '.services[] | select(.name=="prometheus") | .hostname' $PGPATH/config.yaml)"
 PROMETHEUS_SERVICE_PORT="$(yq '.services[] | select(.name=="prometheus") | .proxy_service_port' $PGPATH/config.yaml)"
 PROMETHEUS_LISTEN_PORT="$(yq '.services[] | select(.name=="prometheus") | .proxy_listen_port' $PGPATH/config.yaml)"

@@ -85,6 +85,9 @@ services:
     ## Default value: trendmicro-system
     namespace: trendmicro-system
 
+  # ================ DO NOT CHANGE ANYTHING BELOW THIS LINE ===============
+  # ================== UNLESS YOU KNOW WHAT YOU'RE DOING ==================
+
   - name: playground-registry
     ## Target namespace for registry
     ## 

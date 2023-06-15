@@ -6,7 +6,7 @@
 #######################################
 function main() {
   # Exports
-  export APP_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+  export APP_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
   export CLUSTER_NAME=${APP_NAME}-aks
 
   az group create --name ${APP_NAME} --location westeurope
@@ -21,7 +21,7 @@ function main() {
   echo "Creating rapid-aks-down.sh script"
   cat <<EOF >$PGPATH/bin/rapid-aks-down.sh
 #!/bin/bash
-export APP_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+export APP_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
 az group delete --name ${APP_NAME} -y
 sudo rm -Rf $PGPATH/auth $PGPATH/certs $PGPATH/audit/audit-webhook.yaml /tmp/passthrough.conf $PGPATH/services $PGPATH/opa
 

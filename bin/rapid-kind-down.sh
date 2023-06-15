@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o errexit
 
-CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
 
 echo Deleting Cluster ${CLUSTER_NAME}
 kind delete clusters ${CLUSTER_NAME}

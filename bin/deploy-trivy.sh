@@ -2,7 +2,7 @@
 
 set -e
 
-CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
 NAMESPACE_TRIVY="$(yq '.services[] | select(.name=="trivy") | .namespace' $PGPATH/config.yaml)"
 
 #######################################

@@ -19,7 +19,7 @@ function main() {
   export MASTER_ARN=$(aws kms describe-key --key-id ${KEY_ALIAS_NAME} --query KeyMetadata.Arn --output text)
   echo "export MASTER_ARN=${MASTER_ARN}" | tee -a ~/.bashrc
 
-  export CLUSTER_NAME=$(yq '.cluster_name' $PGPATH/config.yaml)-f-$(openssl rand -hex 4)
+  export CLUSTER_NAME=$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')-f-$(openssl rand -hex 4)
 
   T=$(yq '.cluster_instance_type' $PGPATH/config.yaml)
   [ ${T} == "null" ] && export INSTANCE_TYPE='t3.medium' || export INSTANCE_TYPE=${T}

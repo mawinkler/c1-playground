@@ -5,7 +5,7 @@ set -o errexit
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
-CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+CLUSTER_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
 HOST_IP=$(hostname -I | awk '{print $1}')
 
 mkdir -p $PGPATH/overrides

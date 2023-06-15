@@ -151,7 +151,7 @@ function get_registry() {
     REGISTRY=${GCP_HOSTNAME}/${GCP_PROJECTID}
   # aks
   elif is_aks ; then
-    PLAYGROUND_NAME="$(yq '.cluster_name' $PGPATH/config.yaml)"
+    PLAYGROUND_NAME="$(yq '.cluster_name' $PGPATH/config.yaml | tr '[:upper:]' '[:lower:]')"
     if [[ $(az group list | jq -r --arg PLAYGROUND_NAME ${PLAYGROUND_NAME} '.[] | select(.name==$PLAYGROUND_NAME) | .name') == "" ]]; then
       printf '%s\n' "creating resource group ${PLAYGROUND_NAME}"
       az group create --name ${PLAYGROUND_NAME} --location westeurope
