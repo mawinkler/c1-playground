@@ -500,7 +500,7 @@ function menu_hacks() {
                 else
                     kubectl delete job atomicred
                 fi
-                kubectl apply -f $PGPATH/demos/dockerfiles/atomic-red/AtomicRedDocker-FullFalco.yaml
+                kubectl apply -f $PGPATH/templates/AtomicRedDocker-FullFalco.yaml
                 read -p "Press any key to resume..."
                 ;;
             "Goat Setup")

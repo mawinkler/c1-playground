@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: atomicred
+  labels:
+    app: atomicred
+spec:
+  template:
+    metadata:
+      labels:
+        app: atomicred
+    spec:
+      containers:
+      - name: atomicred
+        image: mawinkler/atomic_red_docker:latest
+        command: ["pwsh", "/root/RunTests.ps1", "T1003.008", "T1014", "T1027.002", "T1036.003", "T1037.004", "T1053.003", "T1070.002", "T1070.003", "T1087.001", "T1201", "T1543.002", "T1546.004", "T1547.006", "T1548.001", "T1552.004", "T1556.003", "T1560.001", "T1562.004", "T1574.006" ]
+        securityContext:
+          privileged: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: Never
+  backoffLimit: 4
+
+# command: ["pwsh", "/root/RunTests.ps1", "T1003.008", "T1014", "T1027.002", "T1036.003", "T1037.004", "T1053.003", "T1070.002", "T1070.003", "T1070.004", "T1087.001", "T1201", "T1543.002", "T1546.004", "T1547.006", "T1548.001", "T1552.004", "T1556.003", "T1560.001", "T1562.004", "T1574.006" ]
