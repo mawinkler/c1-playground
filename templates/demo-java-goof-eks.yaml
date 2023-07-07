@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-goof
+  namespace: ${NAMESPACE}
+  labels:
+    app: java-goof
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-goof
+  template:
+    metadata:
+      labels:
+        app: java-goof
+    spec:
+      containers:
+      - name: java-goof
+        image: mawinkler/java-goof
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: java-goof-service
+  namespace: ${NAMESPACE}
+  labels:
+    app: java-goof
+spec:
+  selector:
+    app: java-goof
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: ${NAMESPACE}
+  name: ingress-java-goof
+  labels:
+    app: java-goof
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: java-goof-service
+              port:
+                number: 80

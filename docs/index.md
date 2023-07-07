@@ -6,7 +6,16 @@ Ultra fast and slim kubernetes playground.
 
 ## Latest News
 
-!!! Announcing the ***Playground SIMPLICITY*** !!!
+!!! ***Playground prepares for Vision One*** !!!
+
+The Playground is preparing for Vision One.
+
+Deploy
+
+- workload ready to be exploited on an EKS cluster integrated with XDR for Containers
+- virtual machines on AWS integrated with Vision One Endpoint Security (soon)
+
+!!! ***Playground SIMPLICITY*** !!!
 
 In a nutshell:
 
@@ -18,8 +27,20 @@ In a nutshell:
 
 - No `git clone`.
 - No `daemon.json` configuration.
-- It got a menu :-). Run it via `playground` from anywhere on your system.
+- Run the menu by executing `playground` from anywhere on your system.
 - Bootstrapping has never been easier!
+
+## Change Log
+
+07/07/2023
+
+- EKS with Amazon Linux nodes now support Application Load Balancing (required for XDR for Containers). The other two variants will follow
+- Built in attack victims are now using ALBs instead of ELB classic
+
+## Currently Work in Progress
+
+- Preparing the sub project `terraform-awsone` to integrate with V1ES for Server & Workload Protection (Windows & Linux)
+- Enable ALB for Bottlerocket and Fargate cluster
 
 ## Requirements and Support Matrix
 
@@ -50,6 +71,8 @@ Internal Registry | X | X | GCR | ECR | ACR
 Scanning Scripts | X |X | X | X | X
 C1CS Admission & Continuous | X | X | X | X | X
 C1CS Runtime Security | X (1) | X | X | X | X
+V1 XDR for Containers | | | | X | |
+AWS One Playground | | | | X | |
 Falco | X | X | X | X | X | X
 Gatekeeper | X |X | X | X | X | X
 Open Policy Agent | X | X | X | X | X | X

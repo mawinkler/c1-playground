@@ -2,21 +2,11 @@
 
 - [Playground](#playground)
   - [Latest News](#latest-news)
-  - [Requirements and Support Matrix](#requirements-and-support-matrix)
-    - [Supported Cluster Variants](#supported-cluster-variants)
-    - [Support Matrix](#support-matrix)
-  - [CLI Commands of the Playground](#cli-commands-of-the-playground)
-  - [Good to Know](#good-to-know)
+  - [Documentation](#documentation)
 
-Ultra fast and slim kubernetes playground.
-
-Full documentation: [Playground Pages](https://mawinkler.github.io/playground-pages/)
+Ultra fast and slim kubernetes playground designed for educational and demoing purposes.
 
 ![alt text](https://raw.githubusercontent.com/mawinkler/c1-playground/master/images/video-bootstrap.gif "bootstrap")
-
-## Latest News
-
-!!! Announcing the ***Playground SIMPLICITY*** !!!
 
 In a nutshell:
 
@@ -28,72 +18,20 @@ In a nutshell:
 
 - No `git clone`.
 - No `daemon.json` configuration.
-- It got a menu :-). Run it via `playground` from anywhere on your system.
+- Run the menu by executing `playground` from anywhere on your system.
 - Bootstrapping has never been easier!
 
-## Requirements and Support Matrix
+## Latest News
 
-The Playground is designed to work on these operating systems
+!!! ***Playground prepares for Vision One*** !!!
 
-- Ubuntu Bionic and newer
-- Cloud9 with Ubuntu
+The Playground is preparing for Vision One.
 
-for a locally running cluster.
+Deploy
 
-The deployment scripts for managed cloud clusters are supporting the following cluster types:
+- workload ready to be exploited on an EKS cluster integrated with XDR for Containers
+- virtual machines on AWS integrated with Vision One Endpoint Security (soon)
 
-- GKE
-- EKS
-- AKS
+## Documentation
 
-### Supported Cluster Variants
-
-Originally, the playground was designed to create a kubernetes cluster locally on the host running the playground scripts. This is still the fastest way of getting a cluster up and running.
-
-In addition to the local cluster, it is also possible to use most functionality of the playground on the managed clusters of the main cloud providers AWS, GCP & Azure as well. Going into this direction requires you to work on a Linux shell and an authenticated CLI to the chosen cloud provider (`aws`, `az` or `gcloud`).
-
-### Support Matrix
-
-Add-On | **Ubuntu**<br>*Local* | **Cloud9**<br>*Local* | GKE<br>*Cloud* | EKS<br>*Cloud* | AKS<br>*Cloud*
------- | ------ | ----- | --- | --- | ---
-Internal Registry | X | X | GCR | ECR | ACR
-Scanning Scripts | X |X | X | X | X
-C1CS Admission & Continuous | X | X | X | X | X
-C1CS Runtime Security | X (1) | X | X | X | X
-Falco | X | X | X | X | X | X
-Gatekeeper | X |X | X | X | X | X
-Open Policy Agent | X | X | X | X | X | X
-Prometheus & Grafana | X | X | X | X | X | X
-Trivy | X | X | X | X | X | X
-Cilium | X | X | X | X | X
-Kubescape | X | X | X | X | X | X
-Harbor | X (2) | | | | | |
-Smarthome | X (2) | | | | | |
-Pipelines | | | | X | |
-Jenkins | X | | X | | | |
-GitLab | X | | X | | | |
-
-*Local* means, the cluster will run on the machine you're working on.
-
-*Cloud* means, that the cluster is a cloud managed cluster using the named service.
-
-*(1)* Depending on the Kernel in use. Currently the kernels 4.15.x and 5.4.x are supported.
-
-*(2)* In development.
-
-## CLI Commands of the Playground
-
-Besides the obvious cli tools like `kubectl`, `docker`, etc. the Playground offers you additional commands shown in the table below (and more):
-
-Command | Function
-------- | --------
-playground | The Playground's menu
-collect-logs-cs | Collects logs from Container Security
-stern | Tail logs from multiple pods simultaneously<br>Example:<br>`stern -n trendmicro-system . -t -s2m`
-syft | See [github.com/anchore/syft](https://github.com/anchore/syft)
-grype | See [github.com/anchore/grype](https://github.com/anchore/grype)
-k9s | See [k9scli.io](https://k9scli.io/)
-
-## Good to Know
-
-If you're curious check out the `templates`-directory which holds the configuration of all components. Modify at your own risk ;-).
+Full documentation: ***[Playground Pages](https://mawinkler.github.io/playground-pages/)***

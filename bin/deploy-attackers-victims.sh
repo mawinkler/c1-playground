@@ -48,17 +48,24 @@ function deploy_java_goof() {
   #   envsubst <$PGPATH/templates/container-security-overrides.yaml >$PGPATH/overrides/container-security-overrides.yaml
 
   printf '%s\n' "(Re-)deploy vulnerable applications"
-  NAMESPACE=${VICTIMS_NAMESPACE} \
-    envsubst <$PGPATH/templates/demo-java-goof.yaml >$PGPATH/overrides/demo-java-goof.yaml
-  kubectl apply -f $PGPATH/overrides/demo-java-goof.yaml
- 
-  until kubectl get svc -n ${VICTIMS_NAMESPACE} java-goof-service --output=jsonpath='{.status.loadBalancer}' | grep "ingress"; do : ; done
+
   if is_eks ; then
-    JAVAGOOFURL=$(kubectl get svc -n ${VICTIMS_NAMESPACE} --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
+    NAMESPACE=${VICTIMS_NAMESPACE} \
+      envsubst <$PGPATH/templates/demo-java-goof-eks.yaml >$PGPATH/overrides/demo-java-goof.yaml
+    kubectl apply -f $PGPATH/overrides/demo-java-goof.yaml
+  
+    until kubectl get ingress -n ${VICTIMS_NAMESPACE} ingress-java-goof --output=jsonpath='{.status.loadBalancer}' | grep "ingress"; do : ; done
+    JAVAGOOFURL=$(kubectl get ingress -n ${VICTIMS_NAMESPACE} --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
   else
+    NAMESPACE=${VICTIMS_NAMESPACE} \
+      envsubst <$PGPATH/templates/demo-java-goof.yaml >$PGPATH/overrides/demo-java-goof.yaml
+    kubectl apply -f $PGPATH/overrides/demo-java-goof.yaml
+  
+    until kubectl get svc -n ${VICTIMS_NAMESPACE} java-goof-service --output=jsonpath='{.status.loadBalancer}' | grep "ingress"; do : ; done
     JAVAGOOFURL=$(kubectl get svc -n ${VICTIMS_NAMESPACE} --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}')
   fi
   echo "💬 java-goof URL: http://${JAVAGOOFURL}"
+  echo "💬 java-goof credentials : foo@bar.org / foobar"
 }
 
 #######################################
@@ -73,18 +80,39 @@ function deploy_java_goof() {
 #######################################
 function deploy_openssl3() {
 
-  NAMESPACE=${VICTIMS_NAMESPACE} \
-    envsubst <$PGPATH/templates/demo-openssl3.yaml >$PGPATH/overrides/demo-openssl3.yaml
-  kubectl apply -f $PGPATH/overrides/demo-openssl3.yaml
-
-  until kubectl get -n ${VICTIMS_NAMESPACE} svc web-app-service --output=jsonpath='{.status.loadBalancer}' | grep "ingress"; do : ; done
   if is_eks ; then
-    WEBAPPURL=$(kubectl get svc -n ${VICTIMS_NAMESPACE} --selector=app=web-app -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
+    NAMESPACE=${VICTIMS_NAMESPACE} \
+      envsubst <$PGPATH/templates/demo-openssl3-eks.yaml >$PGPATH/overrides/demo-openssl3.yaml
+    kubectl apply -f $PGPATH/overrides/demo-openssl3.yaml
+
+    until kubectl get ingress -n ${VICTIMS_NAMESPACE} ingress-web-app --output=jsonpath='{.status.loadBalancer}' | grep "ingress"; do : ; done
+    WEBAPPURL=$(kubectl get ingress -n ${VICTIMS_NAMESPACE} --selector=app=web-app -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
   else
+    NAMESPACE=${VICTIMS_NAMESPACE} \
+      envsubst <$PGPATH/templates/demo-openssl3.yaml >$PGPATH/overrides/demo-openssl3.yaml
+    kubectl apply -f $PGPATH/overrides/demo-openssl3.yaml
+
+    until kubectl get svc -n ${VICTIMS_NAMESPACE} web-app-service --output=jsonpath='{.status.loadBalancer}' | grep "ingress"; do : ; done
     WEBAPPURL=$(kubectl get svc -n ${VICTIMS_NAMESPACE} --selector=app=web-app -o jsonpath='{.items[*].status.loadBalancer.ingress[0].ip}')
   fi
+
   echo "💬 web-app URL: http://${WEBAPPURL}"
   echo "💬 Vulnerable apps deployed."
+}
+
+#######################################
+# Deploys openssl3 based vulnerable app
+# to Kubernetes
+# Globals:
+#   VICTIMS_NAMESPACE
+# Arguments:
+#   None
+# Outputs:
+#   None
+#######################################
+function deploy_log4j() {
+  # kubectl run log4j --rm -i --tty --image guillaumem/java_app
+  kubectl run log4j -n ${VICTIMS_NAMESPACE} --rm -i --tty --image guillaumem/java_app
 }
 
 #######################################

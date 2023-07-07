@@ -14,6 +14,7 @@ config.yaml
 config.yaml.c9
 services*
 env.sh
+venv
 
 # Cloud One
 cloud-one/api_key

@@ -332,11 +332,13 @@ function menu_services() {
                     result=$(kubectl get namespace)
                     display_result "Namespaces"
                     result=$(kubectl get svc -A | grep "LoadBalancer\|NAMESPACE")
-                    display_result "LoadBalancers"
+                    display_result "Load Balancers"
+                    result=$(kubectl get ingress -A)
+                    display_result "Ingress Controllers"
                     result=$(kubectl get deployments -A)
                     display_result "Deployments"
                     result=$(kubectl get daemonset -A)
-                    display_result "DaemonSets"
+                    display_result "Daemon Sets"
                 fi
                 ;;
             "Services")
@@ -468,9 +470,10 @@ function menu_hacks() {
             "CVE-2017-5638")
                 clear
                 if is_eks; then
+                    # JAVAGOOFURL=$(kubectl get ingress -n ${VICTIMS_NAMESPACE} --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')
                     kubectl exec -n attackers \
                         $(kubectl -n attackers get pods --selector=app=attacker-cve-2017-5638 -o jsonpath='{.items[0].metadata.name}') -- \
-                        python3 exploit.py "http://$(kubectl get svc -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')" 'cat /etc/passwd'
+                        python3 exploit.py "http://$(kubectl get ingress -n victims --selector=app=java-goof -o jsonpath='{.items[*].status.loadBalancer.ingress[0].hostname}')" 'cat /etc/passwd'
                     read -p "Press any key to resume..."
                 else
                     kubectl exec -n attackers \
@@ -712,7 +715,7 @@ function menu_create_cluster() {
             "EKS-A") 
                 clear
                 $PGPATH/bin/rapid-eks.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 96 rapid-eks-a
+                display_progress 123 rapid-eks-a
                 break
                 ;;
             "EKS-B") 
@@ -792,7 +795,7 @@ function menu_teardown_cluster() {
                 if [ -f "$PGPATH/bin/rapid-eks-down.sh" ]; then
                     clear
                     $PGPATH/bin/rapid-eks-down.sh > $PGPATH/log/last.log 2>&1 &
-                    display_progress 25 rapid-eks-down
+                    display_progress 39 rapid-eks-down
                 fi
                 break
                 ;;
