@@ -1,3 +1,6 @@
 # aws_access_key = ""
 # aws_secret_key = ""
 access_ip      = "0.0.0.0/0"
+linux_username = "ubuntu"
+windows_username = "winadmin1"
+windows_password = "Chang3.M3!"

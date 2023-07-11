@@ -7,9 +7,9 @@ module "network" {
 
 module "ec2" {
   source           = "./ec2"
-  public_key_path  = var.public_key_path
-  private_key_path = var.private_key_path
   public_sg        = module.network.public_sg
   public_subnet    = module.network.public_subnet
-  xbc_agent_url    = var.xbc_agent_url
+  linux_username   = var.linux_username
+  windows_username = var.windows_username
+  windows_password = var.windows_password
 }

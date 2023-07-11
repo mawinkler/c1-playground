@@ -24,7 +24,7 @@ EOF
 
 identity=$(terraform output -raw private_key_path)
 # identity=cnctraining-key-pair
-host_ip=$(terraform output -raw public_instance_ip_web2)
+host_ip=$(terraform output -raw public_instance_ip_web1)
 # host_ip=3.70.227.113
 
 scp -i ${identity} -o StrictHostKeyChecking=no .findings.sh ubuntu@${host_ip}:

@@ -3,7 +3,6 @@ output "vpc_id" {
 }
 
 output "public_sg" {
-#   value = aws_security_group.pg_sg.id
   value = aws_security_group.pg_sg["public"].id
 }
 

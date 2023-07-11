@@ -26,6 +26,19 @@ locals {
           protocol    = "tcp"
           cidr_blocks = [var.access_ip]
         }
+        rdp = {
+          from        = 3389
+          to          = 3389
+          protocol    = "tcp"
+          cidr_blocks = [var.access_ip]
+        }
+        winrm = {
+          description = "WinRM Access"
+          from        = 5985
+          to          = 5986
+          protocol    = "tcp"
+          cidr_blocks = [var.access_ip]
+        }
       }
     }
   }
