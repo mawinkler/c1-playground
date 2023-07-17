@@ -36,15 +36,15 @@ function Write-Log {
 function Create-LocalAdmin {
     process {
         try {
-        # Create new local user
-        New-LocalUser "$username" -Password $password -FullName "$username" -Description "local admin" -ErrorAction stop
-        Write-Log -message "$username local user created"
+            # Create new local user
+            New-LocalUser "$username" -Password $password -FullName "$username" -Description "local admin" -ErrorAction stop
+            Write-Log -message "$username local user created"
 
-        # Add user to administrator group
-        Add-LocalGroupMember -Group "Administrators" -Member "$username" -ErrorAction stop
-        Write-Log -message "$username added to the Administrators group"
+            # Add user to administrator group
+            Add-LocalGroupMember -Group "Administrators" -Member "$username" -ErrorAction stop
+            Write-Log -message "$username added to the Administrators group"
 
-        }catch{ Write-log -message $_.Exception.message -level "ERROR"}
+        } catch{ Write-log -message $_.Exception.message -level "ERROR"}
     }    
 }
 
@@ -70,7 +70,7 @@ function Configure-WinRMHttpsListener {
     
     Delete-WinRMListener
     
-        try {
+    try {
         Write-Log -message "creating self-signed certificate"
         $Cert = (New-SelfSignedCertificate -CertstoreLocation Cert:\LocalMachine\My -dnsname $fqdn -NotAfter (Get-Date).AddMonths(36)).Thumbprint
         
@@ -81,14 +81,14 @@ function Configure-WinRMHttpsListener {
         $WinrmCreate= "winrm create --% winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=`"$fqdn`";CertificateThumbprint=`"$Cert`"}"
         invoke-expression $WinrmCreate
         winrm set winrm/config/service/auth '@{Basic="true"}'
-        } catch { Write-log -message "Create certificate - "+ $_.Exception.message -level "ERROR"}
+    } catch { Write-log -message "Create certificate - "+ $_.Exception.message -level "ERROR"}
     
 }
 
 
 function Add-FirewallRule-WinRM {
     
-        try {
+    try {
         # Delete an exisitng rule
         Write-Log -message "Deleting the existing firewall rule for port $port_winrm"
         netsh advfirewall firewall delete rule name="Windows Remote Management (HTTPS-In)" dir=in protocol=TCP localport=$port_winrm | Out-Null
@@ -96,13 +96,13 @@ function Add-FirewallRule-WinRM {
         # Add a new firewall rule
         Write-Log -message "Adding the firewall rule for port $port_winrm"
         netsh advfirewall firewall add rule name="Windows Remote Management (HTTPS-In)" dir=in action=allow protocol=TCP localport=$port_winrm | Out-Null
-        } catch { Write-log -message "Add/Remove firewall rule - "+ $_.Exception.message -level "ERROR"}
+    } catch { Write-log -message "Add/Remove firewall rule - "+ $_.Exception.message -level "ERROR"}
     
 }
 
 function Add-FirewallRule-SSH {
     
-        try {
+    try {
         # Delete an exisitng rule
         Write-Log -message "Deleting the existing firewall rule for port $port_ssh"
         netsh advfirewall firewall delete rule name="SSH Daemon (SSH-In)" dir=in protocol=TCP localport=$port_ssh | Out-Null
@@ -110,7 +110,7 @@ function Add-FirewallRule-SSH {
         # Add a new firewall rule
         Write-Log -message "Adding the firewall rule for port $port_ssh"
         netsh advfirewall firewall add rule name="SSH Daemon (SSH-In)" dir=in action=allow protocol=TCP localport=$port_ssh | Out-Null
-        } catch { Write-log -message "Add/Remove firewall rule - "+ $_.Exception.message -level "ERROR"}
+    } catch { Write-log -message "Add/Remove firewall rule - "+ $_.Exception.message -level "ERROR"}
     
 }
 
@@ -154,11 +154,11 @@ function Configure-OpenSSHService {
         Add-Content -Force -Path C:\ProgramData\ssh\administrators_authorized_keys -Value $authorizedKey
 
         # Set the config to allow the pubkey auth
-        $sshd_config="C:\ProgramData\ssh\sshd_config" 
+        $sshd_config="C:\ProgramData\ssh\sshd_config"
         (Get-Content $sshd_config) -replace '#PubkeyAuthentication', 'PubkeyAuthentication' | Out-File -encoding ASCII $sshd_config
         (Get-Content $sshd_config) -replace 'AuthorizedKeysFile	.ssh/authorized_keys', '#AuthorizedKeysFile	.ssh/authorized_keys' | Out-File -encoding ASCII $sshd_config
         # (Get-Content $sshd_config) -replace 'AuthorizedKeysFile __PROGRAMDATA__', 'AuthorizedKeysFile __PROGRAMDATA__' | Out-File -encoding ASCII $sshd_config
-        (Get-Content $sshd_config) -replace 'Match Group administrators', '#Match Group administrators' | Out-File -encoding ASCII $sshd_config
+        # (Get-Content $sshd_config) -replace 'Match Group administrators', '#Match Group administrators' | Out-File -encoding ASCII $sshd_config
 
         # Set proper permissions on administrators_authorized_keys
         icacls.exe "C:\ProgramData\ssh\administrators_authorized_keys" /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F"
@@ -174,12 +174,13 @@ function Configure-OpenSSHService {
 }
 
 function Configure-AWS-Tools {
+
     $ListofModulesInstalled = (Get-InstalledModule).Name
     Write-Log -message "Ckecking if AWS.Tools.Installer is installed on this instance."
-    if ($ListofModulesInstalled -contains "AWS.Tools.Installer")
-    { 
+    
+    if ($ListofModulesInstalled -contains "AWS.Tools.Installer") { 
         Write-Log -message "AWS.Tools.Installer module exists."
-    }else { 
+    } else { 
         Write-Log -message "AWS.Tools.Installer module does not exist and needs to be installed."
         $ListofPackagesInstalled = (Get-PackageProvider -ListAvailable).Name
         Write-Log -message "AWS.Tools.Installer requires nuget package version 2.8.5.201 or above to be installed. Checking if correct version of nuget package is installed."

@@ -86,7 +86,6 @@ bin/kubeclarity-cli
 terraform-awsone/files/atomic_launcher_linux_1.0.0.1009.zip-nothere
 terraform-awsone/files/atomic_launcher_windows_1.0.0.1013.zip
 terraform-awsone/files/atomic_launcher_linux_1.0.0.1009.zip
-terraform-awsone/atomic_launcher_linux_1.0.0.1009.zip
-terraform-awsone/atomic_launcher_linux_1.0.0.1009/see_documentation
-terraform-awsone/ec2/files/TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip
-terraform-awsone/ec2/files/TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar
+terraform-awsone/files/TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip
+terraform-awsone/files/TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar
+terraform-awsone/terraform.tfvars

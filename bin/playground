@@ -1010,7 +1010,7 @@ function menu_deploy() {
                 display_progress 29 deploy-awsone
                 result="To create the AWS environment change to\n"
                 result="${result}${PGPATH}/terraform-awsone\n\n"
-                result="${result}After validating the variables.tf and terraform.tfvars files run:\n\n"
+                result="${result}After validating the terraform.tfvars files run:\n\n"
                 result="${result}terraform apply --auto-approve"
                 display_result "Important"
                 clear
