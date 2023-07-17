@@ -44,6 +44,23 @@ services:
     ## Default value: ''
     scanner_api_key: ''
 
+  - name: aws
+    ## The account id of your AWS account
+    ## 
+    ## Default value: ''
+    account_id: ''
+
+    ## The default AWS region to use
+    ## 
+    ## Default value: "eu-central-1"
+    region: "eu-central-1"
+
+  - name: awsone
+    ## The windows administrator password
+    ## 
+    ## Default value: "Chang3.M3!"
+    windows_password: "Chang3.M3!"
+
   - name: container_security
     ## The name of the created or reused policy
     ## 

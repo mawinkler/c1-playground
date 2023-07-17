@@ -25,3 +25,7 @@ output "public_instance_ip_srv1" {
 output "private_key_path" {
     value = module.ec2.private_key_path
 }
+
+output "s3_bucket" {
+    value = module.s3.s3_bucket
+}

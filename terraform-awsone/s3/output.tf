@@ -1,8 +1,6 @@
 # #############################################################################
-# Variables
+# Outputs
 # #############################################################################
-variable "vpc_cidr" {}
-
-variable "access_ip" {}
-
-variable "security_groups" {}
+output "s3_bucket" {
+  value = aws_s3_bucket.playground_awsone.id
+}

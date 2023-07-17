@@ -1,6 +1,6 @@
-Start-Transcript -Path 'C:/Windows/Temp/PS-logs.txt'
+Start-Transcript -Path $HOME/Downloads/PS-logs.txt
 
-Set-Location 'C:/Windows/Temp'
+Set-Location $HOME/Downloads
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Warning "You are not running as an Administrator. Please try again with admin privileges."
@@ -9,12 +9,12 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
 
 Write-Host "Extracting XBC/Basecamp Package" -ForegroundColor Green
 
-Expand-Archive -LiteralPath 'C:/Windows/Temp/TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip' -DestinationPath C:/Windows/Temp -Force
+Expand-Archive -LiteralPath $HOME/Downloads/TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip -DestinationPath $HOME/Downloads -Force
 
 try {
     Write-Host "Starting XBC/Basecamp Install Process" -ForegroundColor Green
 
-    Start-Process -FilePath 'C:/Windows/Temp/EndpointBasecamp.exe' -WorkingDirectory 'C:/Windows/Temp' -NoNewWindow
+    Start-Process -FilePath $HOME/Downloads/EndpointBasecamp.exe -WorkingDirectory $HOME/Downloads -NoNewWindow
 
     Write-Host "Install Process Completed" -ForegroundColor Green
 }

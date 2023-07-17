@@ -1,9 +1,18 @@
 variable "aws_region" {
-  default = "eu-central-1"
+  type = string
 }
 
 variable "access_ip" {
   type = string
+}
+
+variable "account_id" {
+  type = string
+}
+
+variable "s3_bucket" {
+  type    = string
+  default = "playground-awsone"
 }
 
 variable "linux_username" {
@@ -16,4 +25,12 @@ variable "windows_username" {
 
 variable "windows_password" {
   type = string
+}
+
+variable "create_linux" {
+  type = bool
+}
+
+variable "create_windows" {
+  type = bool
 }

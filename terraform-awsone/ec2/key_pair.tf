@@ -1,3 +1,6 @@
+# #############################################################################
+# Keypair for SSH instance access
+# #############################################################################
 # Generates a secure private key and encodes it as PEM
 resource "tls_private_key" "key_pair" {
   algorithm = "RSA"

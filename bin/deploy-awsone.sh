@@ -6,48 +6,32 @@ set -e
 .  $PGPATH/bin/playground-helpers.sh
 
 # Get config
+AWS_ACCOUNT_ID="$(yq '.services[] | select(.name=="aws") | .account_id' $PGPATH/config.yaml)"
+AWS_REGION="$(yq '.services[] | select(.name=="aws") | .region' $PGPATH/config.yaml)"
+AWSONE_WINDOWS_PASSWORD="$(yq '.services[] | select(.name=="awsone") | .windows_password' $PGPATH/config.yaml)"
+
 mkdir -p $PGPATH/overrides
 
 #######################################
-# Create DSA deployment script
+# Create Terraform variables.tfvars
 # Globals:
-#   WS_TENANT_ID
-#   WS_TOKEN
-#   WS_POLICY_ID
+#   AWS_ACCOUNT_ID
+#   AWSONE_WINDOWS_PASSWORD
 # Arguments:
 #   None
 # Outputs:
 #   None
 #######################################
-# function create_dsa_deployment_script() {
+function create_tf_variables() {
 
-#   printf '%s\n' "Create agent deployment script"
-#   cp $PGPATH/templates/terraform-dsa.sh $PGPATH/terraform-awsone/scripts/dsa.sh
-#   WS_TENANT_ID=${WS_TENANT_ID} \
-#     WS_TOKEN=${WS_TOKEN} \
-#     WS_POLICY_ID=${WS_POLICY_ID} \
-#     echo '/opt/ds_agent/dsa_control -a $ACTIVATIONURL "tenantID:'${WS_TENANT_ID}'" "token:'${WS_TOKEN}'" "policyid:'${WS_POLICY_ID}'"' >> $PGPATH/terraform-awsone/scripts/dsa.sh
+  printf '%s\n' "Create terraform variables.tf"
+  AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
+  AWS_REGION=${AWS_REGION} \
+  AWSONE_WINDOWS_PASSWORD=${AWSONE_WINDOWS_PASSWORD} \
+    envsubst <$PGPATH/templates/terraform-variables.tf >$PGPATH/terraform-awsone/terraform.tfvars
 
-#   echo "💬 Agent deployment script dropped to $PGPATH/terraform-awsone/scripts/dsa.sh"
-# }
-
-#######################################
-# Create Terraform variables.tf
-# Globals:
-#   V1_XBC_AGENT_URL
-# Arguments:
-#   None
-# Outputs:
-#   None
-#######################################
-# function create_tf_variables() {
-
-#   printf '%s\n' "Create terraform variables.tf"
-#   V1_XBC_AGENT_URL=${V1_XBC_AGENT_URL} \
-#     envsubst <$PGPATH/templates/terraform-variables.tf >$PGPATH/terraform-awsone/variables.tf
-
-#   echo "💬 Terraform variables.tf dropped to $PGPATH/terraform-awsone/variables.tf"
-# }
+  echo "💬 Terraform variables.tf dropped to $PGPATH/terraform-awsone/terraform.tfvars"
+}
 
 #######################################
 # Prepares a AWS based V1 & C1
@@ -63,12 +47,6 @@ function create_environment() {
 
   cd $PGPATH/terraform-awsone
 
-  # if [ -f $PGPATH/terraform-awsone/cnctraining-key-pair ]; then
-  #     printf '%s\n' "Reusing keypair"
-  # else
-  #     ssh-keygen -f cnctraining-key-pair -q -N ""
-  # fi
-
   terraform init
   # terraform apply 
   #-auto-approve
@@ -81,8 +59,7 @@ function create_environment() {
 #######################################
 function main() {
 
-  # create_dsa_deployment_script
-  # create_tf_variables
+  create_tf_variables
   create_environment
 }
 

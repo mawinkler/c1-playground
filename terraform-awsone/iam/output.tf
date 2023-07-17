@@ -1,8 +1,6 @@
 # #############################################################################
-# Variables
+# Outputs
 # #############################################################################
-variable "vpc_cidr" {}
-
-variable "access_ip" {}
-
-variable "security_groups" {}
+output "ec2_profile" {
+  value = aws_iam_instance_profile.ec2_profile.name
+}

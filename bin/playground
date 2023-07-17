@@ -907,7 +907,7 @@ function menu_deploy() {
                  "Jenkins" "Jenkins CI/CD (Beta)" \
                  "GitLab" "GitLab CI/CD (Beta)" \
                  "AWSPipe" "AWS Pipelining" \
-                 "AWSOne" "AWS V1 & C1 Playground")
+                 "AWSOne" "AWS V1ES Playground")
     local TITLE="Deploy"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -1007,13 +1007,14 @@ function menu_deploy() {
             "AWSOne")
                 clear
                 $PGPATH/bin/deploy-awsone.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 7 deploy-awsone
+                display_progress 29 deploy-awsone
                 result="To create the AWS environment change to\n"
                 result="${result}${PGPATH}/terraform-awsone\n\n"
-                result="${result}After validating the variables.tf and locals.tf files run:\n\n"
-                result="${result}terraform init\n"
+                result="${result}After validating the variables.tf and terraform.tfvars files run:\n\n"
                 result="${result}terraform apply --auto-approve"
                 display_result "Important"
+                clear
+                exit 0
                 break
                 ;;
             *) 
@@ -1037,7 +1038,7 @@ function menu_delete() {
                  "Jenkins" "Jenkins CI/CD" \
                  "GitLab" "GitLab CI/CD (Beta)" \
                  "AWSPipe" "AWS Pipelining" \
-                 "AWSOne" "AWS V1 & C1 Playground")
+                 "AWSOne" "AWS V1ES Playground")
     local TITLE="(Danger Zone) Delete"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -1132,7 +1133,7 @@ function menu_delete() {
             "AWSOne")
                 clear
                 $PGPATH/bin/delete-awsone.sh > $PGPATH/log/last.log 2>&1 &
-                display_progress 505 delete-awsone
+                display_progress 672 delete-awsone
                 break
                 ;;
             *) 

@@ -1,19 +1,24 @@
-variable "aws_region" {
-  default = "eu-central-1"
-}
+# aws_access_key   = ""
+# Allow access to the environment from any location or restrict it to your public ip
+# Example:
+#   access_ip      = "<YOUR IP>/32"
+access_ip        = "0.0.0.0/0"
 
-variable "public_key_path" {
-  default = "cnctraining-key-pair.pub"
-}
+# Linux Username (Do not change)
+linux_username   = "ubuntu"
 
-variable "private_key_path" {
-  default = "cnctraining-key-pair"
-}
+# Windows Username and Password
+windows_username = "admin"
+windows_password = "${AWSONE_WINDOWS_PASSWORD}"
 
-variable "access_ip" {
-  type = string
-}
+# Create Linux instance(s)
+create_linux     = true
 
-variable "xbc_agent_url" {
-    default = "${V1_XBC_AGENT_URL}"
-}
+# Create Windows instance(s)
+create_windows   = true
+
+# AWS Account ID
+account_id       = "${AWS_ACCOUNT_ID}"
+
+# AWS Region
+aws_region       = "${AWS_REGION}"

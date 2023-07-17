@@ -1,8 +1,6 @@
 # #############################################################################
 # Variables
 # #############################################################################
-variable "vpc_cidr" {}
+variable "account_id" {}
 
-variable "access_ip" {}
-
-variable "security_groups" {}
+variable "s3_bucket" {}

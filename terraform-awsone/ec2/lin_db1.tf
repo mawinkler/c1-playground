@@ -1,13 +1,24 @@
+# #############################################################################
+# Linux Instance
+#   MYSQL
+#   Vision One Server & Workload Protection
+#   Atomic Launcher
+# #############################################################################
 resource "aws_instance" "db1" {
+
+    count                  = var.create_linux ? 1 : 0
 
     ami                    = "${data.aws_ami.ubuntu.id}"
     instance_type          = "t3.medium"
     subnet_id              = var.public_subnet
     vpc_security_group_ids = [var.public_sg]
+    iam_instance_profile   = var.ec2_profile
     key_name               = aws_key_pair.key_pair.key_name
     tags = {
         Name = "playground-db1"
     }
+
+    user_data = data.template_file.linux_userdata.rendered
 
     connection {
         user        = "${var.linux_username}"
@@ -28,34 +39,11 @@ resource "aws_instance" "db1" {
         ]
     }
 
-    # xdr basecamp agent deployment (V1ES)
-    provisioner "file" {
-        source = "${path.module}/files/TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar"
-        destination = "/tmp/TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar"
-    }
-
-    provisioner "file" {
-        source = "${path.module}/files/TMServerAgent_Linux_deploy.sh"
-        destination = "/tmp/TMServerAgent_Linux_deploy.sh"
-    }
-
+    # v1 basecamp installation
     provisioner "remote-exec" {
         inline = [
-            "chmod +x /tmp/TMServerAgent_Linux_deploy.sh",
-            "sudo /tmp/TMServerAgent_Linux_deploy.sh"
+            "chmod +x $HOME/download/TMServerAgent_Linux_deploy.sh",
+            "$HOME/download/TMServerAgent_Linux_deploy.sh"
         ]
     }
-
-    # # dsa installation
-    # provisioner "file" {
-    #     source      = "scripts/dsa.sh"
-    #     destination = "/tmp/dsa.sh"
-    # }
-
-    # provisioner "remote-exec" {
-    #     inline = [
-    #         "chmod +x /tmp/dsa.sh",
-    #         "sudo /tmp/dsa.sh"
-    #     ]
-    # }
 }

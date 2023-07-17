@@ -1,13 +1,25 @@
+# #############################################################################
+# Linux Instance
+#   Nginx
+#   Wordpress
+#   Vision One Server & Workload Protection
+#   Atomic Launcher
+# #############################################################################
 resource "aws_instance" "web1" {
+
+    count                  = var.create_linux ? 1 : 0
 
     ami                    = "${data.aws_ami.ubuntu.id}"
     instance_type          = "t3.medium"
     subnet_id              = var.public_subnet
     vpc_security_group_ids = [var.public_sg]
+    iam_instance_profile   = var.ec2_profile
     key_name               = aws_key_pair.key_pair.key_name
     tags = {
         Name = "playground-web1"
     }
+
+    user_data = data.template_file.linux_userdata.rendered
 
     connection {
         user        = "${var.linux_username}"
@@ -28,73 +40,24 @@ resource "aws_instance" "web1" {
         ]
     }
 
-    # wordpress installation
-    provisioner "file" {
-        source      = "scripts/wordpress.sh"
-        destination = "/tmp/wordpress.sh"
-    }
+    # # wordpress installation
+    # provisioner "file" {
+    #     source      = "scripts/wordpress.sh"
+    #     destination = "/tmp/wordpress.sh"
+    # }
 
-    provisioner "remote-exec" {
-        inline = [
-            "chmod +x /tmp/wordpress.sh",
-            "sudo /tmp/wordpress.sh"
-        ]
-    }
-
-    # xdr basecamp agent deployment (V1ES)
-    provisioner "file" {
-        source = "${path.module}/files/TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar"
-        destination = "/tmp/TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar"
-    }
-
-    provisioner "file" {
-        source = "${path.module}/files/TMServerAgent_Linux_deploy.sh"
-        destination = "/tmp/TMServerAgent_Linux_deploy.sh"
-    }
-
-    provisioner "remote-exec" {
-        inline = [
-            "chmod +x /tmp/TMServerAgent_Linux_deploy.sh",
-            "sudo /tmp/TMServerAgent_Linux_deploy.sh"
-        ]
-    }
-
-    # # xdr basecamp agent deployment
     # provisioner "remote-exec" {
     #     inline = [
-    #         "if [ ! -z \"${var.xbc_agent_url}\" ]; then ",
-    #         "  cd /tmp",
-    #         "  wget ${var.xbc_agent_url} -O /tmp/tmxbc_linux64.tgz",
-    #         "  tar -xvf /tmp/tmxbc_linux64.tgz",
-    #         "  sudo /tmp/tmxbc install",
-    #         "fi",
+    #         "chmod +x /tmp/wordpress.sh",
+    #         "sudo /tmp/wordpress.sh"
     #     ]
     # }
-}
 
-resource "null_resource" "atomic_web1" {
-    count = fileexists("files/atomic_launcher_linux_1.0.0.1009.zip") ? 1 : 0
-
-    triggers = {
-        instance_running = aws_instance.web1.instance_state == "running" ? 1 : 0
-        #"${timestamp()}"
-    }
-
-    provisioner "file" {
-        source      = "files/atomic_launcher_linux_1.0.0.1009.zip"
-        destination = "/home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
-    }
-
+    # v1 basecamp installation
     provisioner "remote-exec" {
         inline = [
-            "sudo apt-get -y install unzip",
-            # "unzip -P virus /home/ubuntu/atomic_launcher_linux_1.0.0.1009.zip"
+            "chmod +x $HOME/download/TMServerAgent_Linux_deploy.sh",
+            "$HOME/download/TMServerAgent_Linux_deploy.sh"
         ]
-    }
-
-    connection {
-        user = "${var.linux_username}"
-        host = aws_instance.web1.public_ip
-        private_key = "${file("${aws_key_pair.key_pair.key_name}.pem")}"
     }
 }

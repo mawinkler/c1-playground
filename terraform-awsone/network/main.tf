@@ -1,3 +1,10 @@
+# #############################################################################
+# Create
+#   Internet Gateway
+#   Route Table
+#   Route Table Association
+#   Security Group
+# #############################################################################
 # create an IGW (Internet Gateway)
 # It enables your vpc to connect to the internet
 resource "aws_internet_gateway" "pg_igw" {
