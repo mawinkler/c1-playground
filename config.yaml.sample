@@ -56,10 +56,15 @@ services:
     region: "eu-central-1"
 
   - name: awsone
-    ## The windows administrator password
+    ## Create Linux instance(s)
     ## 
-    ## Default value: "Chang3.M3!"
-    windows_password: "Chang3.M3!"
+    ## Default value: true
+    create_linux: true
+
+    ## Create Windows instance(s)
+    ## 
+    ## Default value: true
+    create_windows: true
 
   - name: container_security
     ## The name of the created or reused policy

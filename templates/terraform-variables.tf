@@ -6,15 +6,14 @@ access_ip        = "0.0.0.0/0"
 # Linux Username (Do not change)
 linux_username   = "ubuntu"
 
-# Windows Username and Password
+# Windows Username
 windows_username = "admin"
-windows_password = "${AWSONE_WINDOWS_PASSWORD}"
 
 # Create Linux instance(s)
-create_linux     = true
+create_linux     = ${CREATE_LINUX}
 
 # Create Windows instance(s)
-create_windows   = true
+create_windows   = ${CREATE_WINDOWS}
 
 # AWS Account ID
 account_id       = "${AWS_ACCOUNT_ID}"

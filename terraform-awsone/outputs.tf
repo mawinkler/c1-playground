@@ -22,6 +22,11 @@ output "public_instance_ip_srv1" {
     value = module.ec2.public_instance_ip_srv1
 }
 
+output "public_instance_password_srv1" {
+    value = module.ec2.windows_password
+    sensitive = true
+}
+
 output "private_key_path" {
     value = module.ec2.private_key_path
 }

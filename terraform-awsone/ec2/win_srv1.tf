@@ -3,6 +3,12 @@
 #   Vision One Server & Workload Protection
 #   Atomic Launcher
 # #############################################################################
+resource "random_password" "windows_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
 resource "aws_instance" "srv1" {
 
     count                  = var.create_windows ? 1 : 0
@@ -24,7 +30,7 @@ resource "aws_instance" "srv1" {
         type = "winrm"
         port = 5986
         user = var.windows_username
-        password = var.windows_password
+        password = random_password.windows_password.result
         https = true
         insecure = true
         timeout = "13m"

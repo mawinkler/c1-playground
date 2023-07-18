@@ -13,7 +13,7 @@ $fqdn="$env:computername"
 $port_winrm=5986 
 $port_ssh=22
 $username = '${var.windows_username}'
-$password = ConvertTo-SecureString '${var.windows_password}' -AsPlainText -Force 
+$password = ConvertTo-SecureString '${random_password.windows_password.result}' -AsPlainText -Force 
 
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force -ErrorAction Ignore
 $ErrorActionPreference = "stop"
@@ -100,6 +100,7 @@ function Add-FirewallRule-WinRM {
     
 }
 
+
 function Add-FirewallRule-SSH {
     
     try {
@@ -113,6 +114,7 @@ function Add-FirewallRule-SSH {
     } catch { Write-log -message "Add/Remove firewall rule - "+ $_.Exception.message -level "ERROR"}
     
 }
+
 
 function Configure-WinRMService {
 
@@ -129,6 +131,7 @@ function Configure-WinRMService {
         cmd.exe /c winrm set "winrm/config/service/auth" '@{CredSSP="true"}'
     } catch  { Write-log -message "configure winrm service - "+ $_.Exception.message -level "ERROR"}
 }
+
 
 function Configure-OpenSSHService {
 
@@ -173,6 +176,7 @@ function Configure-OpenSSHService {
     } catch  { Write-log -message "configure openssh service - "+ $_.Exception.message -level "ERROR"}
 }
 
+
 function Configure-AWS-Tools {
 
     $ListofModulesInstalled = (Get-InstalledModule).Name
@@ -203,6 +207,7 @@ function Configure-AWS-Tools {
         Write-Log -message "AWS.Tools.Installer was installed successfully."
     }
 }
+
 
 # Create local admin user
 Create-LocalAdmin 

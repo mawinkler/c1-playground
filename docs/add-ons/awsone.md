@@ -79,10 +79,15 @@ Your `config.yaml` needs to set the following variables (see `config.yaml.sample
     region: "eu-central-1"
 
   - name: awsone
-    ## The windows administrator password
+    ## Create Linux instance(s)
     ## 
-    ## Default value: "Chang3.M3!"
-    windows_password: "Chang3.M3!"
+    ## Default value: true
+    create_linux: true
+
+    ## Create Windows instance(s)
+    ## 
+    ## Default value: true
+    create_windows: true
 ```
 
 Ensure the latest AWS CLI via the Playground menu `Tools --> CLIs --> AWS` and to have authenticated via `aws configure`.
@@ -128,9 +133,8 @@ access_ip        = "0.0.0.0/0"
 # Linux Username (Do not change)
 linux_username   = "ubuntu"
 
-# Windows Username and Password
+# Windows Username
 windows_username = "admin"
-windows_password = "Chang3.M3!"
 
 # Create Linux instance(s)
 create_linux     = true
@@ -191,6 +195,7 @@ public_instance_id_web1 = "i-0d083f310276959e0"
 public_instance_ip_db1 = "3.74.163.217"
 public_instance_ip_srv1 = "3.66.215.220"
 public_instance_ip_web1 = "18.185.121.227"
+public_instance_password_srv1 = <sensitive>
 s3_bucket = "playground-awsone-e6yhxjjf"
 ```
 
@@ -209,7 +214,11 @@ ssh -i $(terraform output -raw private_key_path) -o StrictHostKeyChecking=no ubu
 ssh -i $(terraform output -raw private_key_path) -o StrictHostKeyChecking=no admin@$(terraform output -raw public_instance_ip_srv1)
 ```
 
-To connect to the Windows Server you can also use Remote Desktop with username/password from `terraform.tfvars`. Use the configured admin user for authentication, the ip address is shown in the outputs section after `terraform apply`.
+To connect to the Windows Server you can also use Remote Desktop. Use the configured `admin` user for authentication, the ip address is shown in the outputs section after `terraform apply`. Retrieve the password with
+
+```sh
+terraform output -raw public_instance_password_srv1
+```
 
 ### Create Findings and Scan with Sentry
 

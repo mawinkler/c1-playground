@@ -34,3 +34,7 @@ output "public_instance_ip_srv1" {
 output "private_key_path" {
     value = "${aws_key_pair.key_pair.key_name}.pem"
 }
+
+output "windows_password" {
+    value = "${random_password.windows_password.result}"
+}

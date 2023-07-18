@@ -8,7 +8,8 @@ set -e
 # Get config
 AWS_ACCOUNT_ID="$(yq '.services[] | select(.name=="aws") | .account_id' $PGPATH/config.yaml)"
 AWS_REGION="$(yq '.services[] | select(.name=="aws") | .region' $PGPATH/config.yaml)"
-AWSONE_WINDOWS_PASSWORD="$(yq '.services[] | select(.name=="awsone") | .windows_password' $PGPATH/config.yaml)"
+CREATE_LINUX="$(yq '.services[] | select(.name=="awsone") | .create_linux' $PGPATH/config.yaml)"
+CREATE_WINDOWS="$(yq '.services[] | select(.name=="awsone") | .create_windows' $PGPATH/config.yaml)"
 
 mkdir -p $PGPATH/overrides
 
@@ -27,7 +28,8 @@ function create_tf_variables() {
   printf '%s\n' "Create terraform variables.tf"
   AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
   AWS_REGION=${AWS_REGION} \
-  AWSONE_WINDOWS_PASSWORD=${AWSONE_WINDOWS_PASSWORD} \
+  CREATE_LINUX=${CREATE_LINUX} \
+  CREATE_WINDOWS=${CREATE_WINDOWS} \
     envsubst <$PGPATH/templates/terraform-variables.tf >$PGPATH/terraform-awsone/terraform.tfvars
 
   echo "💬 Terraform variables.tf dropped to $PGPATH/terraform-awsone/terraform.tfvars"
