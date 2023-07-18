@@ -10,12 +10,14 @@ resource "aws_instance" "db1" {
 
     ami                    = "${data.aws_ami.ubuntu.id}"
     instance_type          = "t3.medium"
-    subnet_id              = var.public_subnet
+    subnet_id              = var.public_subnet[0]
     vpc_security_group_ids = [var.public_sg]
     iam_instance_profile   = var.ec2_profile
     key_name               = aws_key_pair.key_pair.key_name
+
     tags = {
-        Name = "playground-db1"
+        Name        = "${var.environment}-db1"
+        Environment = "${var.environment}"
     }
 
     user_data = data.template_file.linux_userdata.rendered

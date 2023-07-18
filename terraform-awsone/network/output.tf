@@ -2,13 +2,17 @@
 # Outputs
 # #############################################################################
 output "vpc_id" {
-  value = aws_vpc.pg_vpc.id
+    value = aws_vpc.vpc.id
 }
 
 output "public_sg" {
-  value = aws_security_group.pg_sg["public"].id
+    value = aws_security_group.sg["public"].id
 }
 
 output "public_subnet" {
-  value = aws_subnet.pg_public_subnet.id
+    value = aws_subnet.public_subnet.*.id
+}
+
+output "private_subnet" {
+    value = aws_subnet.private_subnet.*.id
 }

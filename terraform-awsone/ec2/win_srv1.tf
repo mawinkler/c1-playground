@@ -4,9 +4,9 @@
 #   Atomic Launcher
 # #############################################################################
 resource "random_password" "windows_password" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+    length           = 16
+    special          = true
+    override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
 resource "aws_instance" "srv1" {
@@ -15,12 +15,14 @@ resource "aws_instance" "srv1" {
 
     ami                    = "${data.aws_ami.windows.id}"
     instance_type          = "t3.medium"
-    subnet_id              = var.public_subnet
+    subnet_id              = var.public_subnet[1]
     vpc_security_group_ids = [var.public_sg]
     iam_instance_profile   = var.ec2_profile
     key_name               = aws_key_pair.key_pair.key_name
+
     tags = {
-        Name = "playground-srv1"
+        Name        = "${var.environment}-srv1"
+        Environment = "${var.environment}"
     }
 
     user_data = data.template_file.windows_userdata.rendered

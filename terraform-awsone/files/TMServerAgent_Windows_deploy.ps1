@@ -7,26 +7,29 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
     exit 1
 }
 
-Write-Host "Extracting XBC/Basecamp Package" -ForegroundColor Green
 
-Expand-Archive -LiteralPath $HOME/Downloads/TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip -DestinationPath $HOME/Downloads -Force
+$archive="TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip"
+if (Test-Path $archive) {
 
-try {
-    Write-Host "Starting XBC/Basecamp Install Process" -ForegroundColor Green
+    Write-Host "Extracting XBC/Basecamp Package" -ForegroundColor Green
 
-    Start-Process -FilePath $HOME/Downloads/EndpointBasecamp.exe -WorkingDirectory $HOME/Downloads -NoNewWindow
+    Expand-Archive -LiteralPath $HOME/Downloads/TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip -DestinationPath $HOME/Downloads -Force
 
-    Write-Host "Install Process Completed" -ForegroundColor Green
-}
-catch {
-    # Catch errors if they exist.
-    throw $_.Exception.Message
+    try {
+        Write-Host "Starting XBC/Basecamp Install Process" -ForegroundColor Green
 
-    Write-Host "The installer ran into an issue. Try running the installer manually to determine the casue." -ForegroundColor Red
+        Start-Process -FilePath $HOME/Downloads/EndpointBasecamp.exe -WorkingDirectory $HOME/Downloads -NoNewWindow
 
-    exit 3
+        Write-Host "Install Process Completed" -ForegroundColor Green
+    }
+    catch {
+        # Catch errors if they exist.
+        throw $_.Exception.Message
+
+        Write-Host "The installer ran into an issue. Try running the installer manually to determine the casue." -ForegroundColor Red
+
+        exit 3
+    }
 }
 
 Stop-Transcript
-
-# -Verb RunAs

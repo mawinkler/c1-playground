@@ -24,7 +24,8 @@ variable "windows_username" {
 }
 
 variable "windows_password" {
-  type = string
+    type    = string
+    default = ""
 }
 
 variable "create_linux" {
@@ -33,4 +34,13 @@ variable "create_linux" {
 
 variable "create_windows" {
   type = bool
+}
+
+variable "create_cluster" {
+  type = bool
+}
+
+variable "environment" {
+  type    = string
+  default = "playground"
 }
