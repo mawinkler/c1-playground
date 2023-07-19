@@ -32,10 +32,6 @@ variable "create_windows" {
   type = bool
 }
 
-variable "create_cluster" {
-  type = bool
-}
-
 variable "environment" {
   type    = string
   default = "playground"

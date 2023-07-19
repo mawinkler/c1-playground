@@ -896,7 +896,8 @@ function menu_deploy() {
 
     # exec 3>&1
     
-    local items=("C1CS" "Container Security" \
+    local items=("AWSOne" "AWS V1ES Playground" \
+                 "C1CS" "Container Security" \
                  "Falco" "Falco Runtime Security" \
                  "OPA" "Open Policy Agent" \
                  "Gatekeeper" "OPA Gatekeeper" \
@@ -906,8 +907,7 @@ function menu_deploy() {
                  "Harbor" "Harbor Registry (Beta)" \
                  "Jenkins" "Jenkins CI/CD (Beta)" \
                  "GitLab" "GitLab CI/CD (Beta)" \
-                 "AWSPipe" "AWS Pipelining" \
-                 "AWSOne" "AWS V1ES Playground")
+                 "AWSPipe" "AWS Pipelining")
     local TITLE="Deploy"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"
@@ -1010,8 +1010,12 @@ function menu_deploy() {
                 display_progress 29 deploy-awsone
                 result="To create the AWS environment change to\n"
                 result="${result}${PGPATH}/terraform-awsone\n\n"
-                result="${result}After validating the terraform.tfvars files run:\n\n"
-                result="${result}terraform apply --auto-approve"
+                result="${result}2-network   - Network configuration (required)\n"
+                result="${result}3-instances - Instances configuration (optional)\n"
+                result="${result}4-cluster   - EKS cluster configuration (optional)\n\n"
+                result="${result}Change in one of the directory and run:\n"
+                result="${result}$ terraform init\n"
+                result="${result}$ terraform apply --auto-approve"
                 display_result "Important"
                 clear
                 exit 0
@@ -1027,7 +1031,8 @@ function menu_delete() {
 
     # exec 3>&1
     
-    local items=("C1CS" "Container Security" \
+    local items=("AWSOne" "AWS V1ES Playground" \
+                 "C1CS" "Container Security" \
                  "Falco" "Falco Runtime Security" \
                  "OPA" "Open Policy Agent" \
                  "Gatekeeper" "OPA Gatekeeper" \
@@ -1037,8 +1042,7 @@ function menu_delete() {
                  "Harbor" "Harbor Registry" \
                  "Jenkins" "Jenkins CI/CD" \
                  "GitLab" "GitLab CI/CD (Beta)" \
-                 "AWSPipe" "AWS Pipelining" \
-                 "AWSOne" "AWS V1ES Playground")
+                 "AWSPipe" "AWS Pipelining")
     local TITLE="(Danger Zone) Delete"
     check_k8s
     local BACKTITLE="Playground: ${CLUSTER}"

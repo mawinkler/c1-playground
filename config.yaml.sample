@@ -56,6 +56,11 @@ services:
     region: "eu-central-1"
 
   - name: awsone
+    ## Restrict access to AWS One
+    ## 
+    ## Default value: "0.0.0.0/0"
+    access_ip: "0.0.0.0/0"
+
     ## Create Linux instance(s)
     ## 
     ## Default value: true
