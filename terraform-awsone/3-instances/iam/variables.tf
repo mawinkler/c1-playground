@@ -1,7 +1,4 @@
 # #############################################################################
-# Data
+# Variables
 # #############################################################################
-# Get Availability Zones
-data "aws_availability_zones" "available" {
-    state = "available"
-}
+variable "s3_bucket" {}

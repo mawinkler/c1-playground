@@ -6,10 +6,6 @@ variable "access_ip" {
   type = string
 }
 
-variable "account_id" {
-  type = string
-}
-
 variable "s3_bucket" {
   type    = string
   default = "playground-awsone"

@@ -1,6 +1,7 @@
 # #############################################################################
-# Variables
+# Data
 # #############################################################################
-variable "account_id" {}
-
-variable "s3_bucket" {}
+# Get Availability Zones
+data "aws_availability_zones" "available" {
+  state = "available"
+}

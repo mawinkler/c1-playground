@@ -58,6 +58,9 @@ function is_eks() {
   if [[ $(kubectl config current-context) =~ arn:aws:eks:* ]] || [[ $(kubectl config current-context) =~ .*eksctl.io ]]; then
     return
   fi
+  if [[ ! -z "$(kubectl config get-contexts | grep "^*" | grep "arn:aws")" ]]; then
+    return
+  fi
   false
 }
 

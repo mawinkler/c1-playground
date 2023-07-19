@@ -1,11 +1,10 @@
 # #############################################################################
 # Linux Instance
-#   Nginx
-#   Wordpress
+#   MYSQL
 #   Vision One Server & Workload Protection
 #   Atomic Launcher
 # #############################################################################
-resource "aws_instance" "web1" {
+resource "aws_instance" "db1" {
 
     count                  = var.create_linux ? 1 : 0
 
@@ -17,7 +16,7 @@ resource "aws_instance" "web1" {
     key_name               = aws_key_pair.key_pair.key_name
 
     tags = {
-        Name        = "${var.environment}-web1"
+        Name        = "${var.environment}-db1"
         Environment = "${var.environment}"
     }
 
@@ -29,31 +28,18 @@ resource "aws_instance" "web1" {
         private_key = "${file("${aws_key_pair.key_pair.key_name}.pem")}"
     }
 
-    # nginx installation
+    # mysql installation
     provisioner "file" {
-        source      = "scripts/nginx.sh"
-        destination = "/tmp/nginx.sh"
+        source      = "../1-scripts/mysql.sh"
+        destination = "/tmp/mysql.sh"
     }
 
     provisioner "remote-exec" {
         inline = [
-            "chmod +x /tmp/nginx.sh",
-            "sudo /tmp/nginx.sh"
+            "chmod +x /tmp/mysql.sh",
+            "sudo /tmp/mysql.sh"
         ]
     }
-
-    # # wordpress installation
-    # provisioner "file" {
-    #     source      = "scripts/wordpress.sh"
-    #     destination = "/tmp/wordpress.sh"
-    # }
-
-    # provisioner "remote-exec" {
-    #     inline = [
-    #         "chmod +x /tmp/wordpress.sh",
-    #         "sudo /tmp/wordpress.sh"
-    #     ]
-    # }
 
     # v1 basecamp installation
     provisioner "remote-exec" {
