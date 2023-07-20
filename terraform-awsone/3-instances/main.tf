@@ -15,7 +15,6 @@ module "ec2" {
     s3_bucket        = module.s3.s3_bucket
     linux_username   = var.linux_username
     windows_username = var.windows_username
-    windows_password = var.windows_password
     create_linux     = var.create_linux
     create_windows   = var.create_windows
 }

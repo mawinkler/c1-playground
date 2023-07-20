@@ -1,3 +1,6 @@
+# AWS Region
+aws_region = "${AWS_REGION}"
+
 # Allow access to the environment from any location or restrict it to your public ip
 # Example:
 #   access_ip      = "<YOUR IP>/32"
@@ -15,5 +18,5 @@ create_linux = ${CREATE_LINUX}
 # Create Windows instance(s)
 create_windows = ${CREATE_WINDOWS}
 
-# AWS Region
-aws_region = "${AWS_REGION}"
+# Environment Name
+environment = "playground"

@@ -12,5 +12,4 @@ variable "account_id" {
 
 variable "environment" {
   type    = string
-  default = "playground"
 }

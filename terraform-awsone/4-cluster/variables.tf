@@ -11,5 +11,5 @@ variable "account_id" {
 }
 
 variable "environment" {
-  type    = string
+  type = string
 }

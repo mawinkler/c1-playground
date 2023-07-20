@@ -43,6 +43,7 @@ locals {
         }
       }
     }
+
     private = {
       name        = "private_sg"
       description = "Security group"

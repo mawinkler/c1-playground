@@ -17,8 +17,3 @@ variable "kubernetes_version" {
   description = "Cluster Kubernetes version"
   default     = "1.25"
 }
-
-variable "cluster_name" {
-  type    = string
-  default = "playground_eks"
-}
