@@ -10,7 +10,7 @@
     - [Tear Down](#tear-down)
   - [Prepare](#prepare)
     - [Verify your `config.yaml`](#verify-your-configyaml)
-    - [Optional: Adapt `terraform.tfvars`](#optional-adapt-terraformtfvars)
+    - [Optional: Adapt `terraform.tfvars` in Configurations](#optional-adapt-terraformtfvars-in-configurations)
     - [Optional: Server \& Workload Protection Event-Based Tasks](#optional-server--workload-protection-event-based-tasks)
   - [Notes on the Components](#notes-on-the-components)
     - [Access the EC2 instance(s)](#access-the-ec2-instances)
@@ -19,6 +19,8 @@
     - [Vision One Endpoint Security Server \& Workload Protection](#vision-one-endpoint-security-server--workload-protection)
     - [Sentry](#sentry)
     - [Atomic Launcher](#atomic-launcher)
+  - [Environment Specification](#environment-specification)
+    - [Kubernetes Autoscaling](#kubernetes-autoscaling)
 
 
 # Add-On: AWS One Playground
@@ -47,17 +49,21 @@ Configuration located in `2-network`
 
 This creates a VPC with the most commonly used architecture, private and public subnets accross three availability zones. It includes everything what a VPC should have, this is amongst others an internet gateway, NAT gateway, security groups, etc. Since a VPC is cheap there's no real need to destroy the networking configuration everyday, just leave it as it is and reuse it the next time. This eases the handling of other components like Vision One XDR for Containers.
 
+![alt text](images/2-network-architecture.png "Architecture diagram")
+
 ### Virtual Instances
 
 Configuration located in `3-instances`
 
 Depends on `2-network`
 
-Basically, a couple of EC2 instances are created with this configuration. Currently these are two Linux and one Windows instance.
+Basically, a couple of EC2 instances are created with this configuration. Currently these are two Linux and one Windows instances.
 
 If you store the agent installers for Server and Workload Security in `0-files` the instances will connect to Vision One.
 
 You can optionally drop any file or installer in the `0-files` directory which will then be available in the ec2 instances download folder.
+
+![alt text](images/3-instances-architecture.png "Instances architecture diagram")
 
 ### Kubernetes Cluster
 
@@ -65,12 +71,15 @@ Configuration located in `4-cluster`
 
 Depends on `2-network`
 
-So, this is my favorit part. This configuration creates an EKS cluster with some nice key features:
+So, this is my favorite part. This configuration creates an EKS cluster with some nice key features:
 
 - Autoscaling from 1 to 10 nodes
 - Nodes running as Spot instances to save money :-)
 - ALB Load Balancer controller
+- Kubernetes Autoscaler
 - Located in the private subnets
+
+![alt text](images/4-cluster-architecture.png "Cluster architecture diagram")
 
 ### Cluster Deployments
 
@@ -78,7 +87,7 @@ Configuration located in `9-cluster-deployments`
 
 Depends on `4-cluster`
 
-TODO
+![alt text](images/9-cluster-deployments-architecture.png "Cluster deployments architecture diagram")
 
 ## General Life-Cycle
 
@@ -87,7 +96,7 @@ TODO
 Start with `2-network`
 
 ```sh
-cd 2-network
+cd $PGPATH/terraform-awsone/2-network
 
 # automatically download terraform modules
 terraform init
@@ -114,7 +123,7 @@ This will create your VPC in the configured region (see `config.yaml`)
 If you want to use EC2 instances:
 
 ```sh
-cd 3-instances
+cd $PGPATH/terraform-awsone/3-instances
 terraform init
 terraform apply -auto-approve
 ```
@@ -122,7 +131,7 @@ terraform apply -auto-approve
 If you want to use the EKS cluster:
 
 ```sh
-cd 4-cluster
+cd $PGPATH/terraform-awsone/4-cluster
 terraform init
 terraform apply -auto-approve
 ```
@@ -132,7 +141,7 @@ You can choose to use either or both, of course.
 When using the EKS cluster, some cluster deployments might make sense:
 
 ```sh
-cd 9-cluster-deployments
+cd $PGPATH/terraform-awsone/9-cluster-deployments
 terraform init
 terraform apply -auto-approve
 ```
@@ -200,17 +209,17 @@ To prepare AWS One Playground demo environmant run
 deploy-awsone.sh
 ```
 
-and exit the Playground menu. Change in the terraform subdirectory
+Change in the terraform subdirectory
 
 ```sh
 cd $PGPATH/terraform-awsone
 ```
 
-Next, you need to download the installer packages for Vision One Endpoint Security for Windows and Linux operating systems from your Vision One instance. You need to do this manually since these installers are specific to your environment. The downloaded files should be named `TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar` respectively `TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip` and are to be placed into the directory `./terraform-awsone/0-files`
+Next, you need to download the installer packages for Vision One Endpoint Security for Windows and Linux operating systems from your Vision One instance. You need to do this manually since these installers are specific to your environment. The downloaded files should be named `TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar` respectively `TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip` and are to be placed into the directory `$PGPATH/terraform-awsone/0-files`
 
-Optionally, download the Atomic Launcher from [here](https://wiki.jarvis.trendmicro.com/display/GRTL/Atomic+Launcher#AtomicLauncher-DownloadAtomicLauncher) and store them in the  `./terraform-awsone/0-files` directory as well.
+Optionally, download the Atomic Launcher from [here](https://wiki.jarvis.trendmicro.com/display/GRTL/Atomic+Launcher#AtomicLauncher-DownloadAtomicLauncher) and store them in the  `$PGPATH/terraform-awsone/0-files` directory as well.
 
-Your `0-files`-directory should look like this:
+Your `$PGPATH/terraform-awsone/0-files`-directory should look like this:
 
 ```sh
 -rw-rw-r-- 1 17912014 May 15 09:10 atomic_launcher_linux_1.0.0.1009.zip
@@ -222,34 +231,9 @@ Your `0-files`-directory should look like this:
 -rw-rw-r-- 1     1102 Jul 14 14:06 TMServerAgent_Windows_deploy.ps1
 ```
 
-### Optional: Adapt `terraform.tfvars`
+### Optional: Adapt `terraform.tfvars` in Configurations
 
-The `terraform.tfvars`-file allows you to configure the AWSONE playground configurations in some aspects.
-
-```tf
-# Allow access to the environment from any location or restrict it to your public ip
-# Example:
-#   access_ip      = "<YOUR IP>/32"
-access_ip        = "0.0.0.0/0"
-
-# Linux Username (Do not change)
-linux_username   = "ubuntu"
-
-# Windows Username
-windows_username = "admin"
-
-# Create Linux instance(s)
-create_linux     = true
-
-# Create Windows instance(s)
-create_windows   = true
-
-# AWS Account ID
-account_id       = "xxxxxxxxxxxx"
-
-# AWS Region
-aws_region       = "eu-central-1"
-```
+The `terraform.tfvars`-files located within the configurations allow you to configure the AWS One playground in some aspects. Normally there's nothing to do for you, but if you only need Linux servers you could disable windows instance(s) in `3-instances/terraform.tfvars`.
 
 ### Optional: Server & Workload Protection Event-Based Tasks
 
@@ -258,12 +242,12 @@ Create Event-Based Tasks to automatically assign Linux or Windows server policie
 Agent-initiated Activation Linux
 
 - *Actions:* Assign Policy: Linux Server
-- *Conditions:* "Platform" matches ".*Linux.*"
+- *Conditions:* "Platform" matches ".\*Linux\*."
 
 Agent-initiated Activation Windows
 
 - *Actions:* Assign Policy: Windows Server
-- *Conditions:* "Platform" matches ".*Windows.*"
+- *Conditions:* "Platform" matches ".\*Windows\*."
 
 ## Notes on the Components
 
@@ -284,7 +268,7 @@ ssh -i $(terraform output -raw private_key_path) -o StrictHostKeyChecking=no ubu
 ssh -i $(terraform output -raw private_key_path) -o StrictHostKeyChecking=no admin@$(terraform output -raw public_instance_ip_srv1)
 ```
 
-To connect to the Windows Server you can also use Remote Desktop. Use the configured `admin` user for authentication, the ip address is shown in the outputs section after `terraform apply`. Retrieve the password with
+To connect to the Windows Server you can use Remote Desktop as well. Use the configured `admin` user for authentication, the ip address is shown in the outputs section after `terraform apply`. Retrieve the password with
 
 ```sh
 terraform output -raw public_instance_password_srv1
@@ -334,7 +318,7 @@ All instances including the Windows Server are accessible via ssh and key authen
 To create findings and scan with Sentry run
 
 ```sh
-1-scripts/create-findings.sh
+$PGPATH/terraform-awsone/1-scripts/create-findings.sh
 ```
 
 Feel free to have a look on the script above, but in theory it should prepare six findings for Sentry and two Workbenches in Vision One.
@@ -354,4 +338,16 @@ The Atomic Launcher is stored within the downloads folder of each of the instanc
 
 The unzip password is `virus`.
 
-You should disable Anti Malware protection und set detect only for the IPS module before using Atomic Launcher.
+You should disable Anti Malware protection und set the IPS module to detect only before using Atomic Launcher :-).
+
+## Environment Specification
+
+TODO
+
+### Kubernetes Autoscaling
+
+Logs:
+
+```sh
+kubectl logs -f -n kube-system -l app=cluster-autoscaler
+```

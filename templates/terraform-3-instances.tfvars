@@ -19,4 +19,4 @@ create_linux = ${CREATE_LINUX}
 create_windows = ${CREATE_WINDOWS}
 
 # Environment Name
-environment = "playground"
+environment = "${AWS_ENVIRONMENT}"

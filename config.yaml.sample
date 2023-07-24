@@ -55,6 +55,11 @@ services:
     ## Default value: "eu-central-1"
     region: "eu-central-1"
 
+    ## The default AWS environment name to use
+    ## 
+    ## Default value: "playground-awsone"
+    environment: "playground-awsone"
+
   - name: awsone
     ## Restrict access to AWS One
     ## 

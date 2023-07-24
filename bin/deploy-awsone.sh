@@ -8,6 +8,7 @@ set -e
 # Get config
 AWS_ACCOUNT_ID="$(yq '.services[] | select(.name=="aws") | .account_id' $PGPATH/config.yaml)"
 AWS_REGION="$(yq '.services[] | select(.name=="aws") | .region' $PGPATH/config.yaml)"
+AWS_ENVIRONMENT="$(yq '.services[] | select(.name=="aws") | .environment' $PGPATH/config.yaml)"
 ACCESS_IP="$(yq '.services[] | select(.name=="awsone") | .access_ip' $PGPATH/config.yaml)"
 CREATE_LINUX="$(yq '.services[] | select(.name=="awsone") | .create_linux' $PGPATH/config.yaml)"
 CREATE_WINDOWS="$(yq '.services[] | select(.name=="awsone") | .create_windows' $PGPATH/config.yaml)"
@@ -29,12 +30,14 @@ function create_tf_variables() {
   printf '%s\n' "Create terraform.tfvars for network"
   AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
   AWS_REGION=${AWS_REGION} \
+  AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
   ACCESS_IP=${ACCESS_IP} \
     envsubst <$PGPATH/templates/terraform-2-network.tfvars >$PGPATH/terraform-awsone/2-network/terraform.tfvars
 
   printf '%s\n' "Create terraform.tfvars for instances"
   AWS_REGION=${AWS_REGION} \
   ACCESS_IP=${ACCESS_IP} \
+  AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
   CREATE_LINUX=${CREATE_LINUX} \
   CREATE_WINDOWS=${CREATE_WINDOWS} \
     envsubst <$PGPATH/templates/terraform-3-instances.tfvars >$PGPATH/terraform-awsone/3-instances/terraform.tfvars
@@ -42,6 +45,7 @@ function create_tf_variables() {
   printf '%s\n' "Create terraform.tfvars for cluster"
   AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
   AWS_REGION=${AWS_REGION} \
+  AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
   ACCESS_IP=${ACCESS_IP} \
     envsubst <$PGPATH/templates/terraform-4-cluster.tfvars >$PGPATH/terraform-awsone/4-cluster/terraform.tfvars
 

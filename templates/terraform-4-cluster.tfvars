@@ -10,4 +10,4 @@ aws_region = "${AWS_REGION}"
 access_ip = "${ACCESS_IP}"
 
 # Environment Name
-environment = "playground"
+environment = "${AWS_ENVIRONMENT}"

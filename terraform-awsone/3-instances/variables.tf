@@ -28,5 +28,5 @@ variable "create_windows" {
 }
 
 variable "environment" {
-  type    = string
+  type = string
 }
