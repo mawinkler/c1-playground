@@ -82,6 +82,11 @@ services:
     ## Default value: relaxed_playground
     policy_name: relaxed_playground
 
+    ## The id of the policy for use with AWSONE
+    ## 
+    ## Example value: relaxed_playground-2OxPQEiC6Jo4dbDVfebKiZMured
+    policy_id: ''
+
     ## Target namespace for Smart Check
     ## 
     ## Default value: trendmicro-system

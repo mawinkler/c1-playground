@@ -13,6 +13,15 @@ ACCESS_IP="$(yq '.services[] | select(.name=="awsone") | .access_ip' $PGPATH/con
 CREATE_LINUX="$(yq '.services[] | select(.name=="awsone") | .create_linux' $PGPATH/config.yaml)"
 CREATE_WINDOWS="$(yq '.services[] | select(.name=="awsone") | .create_windows' $PGPATH/config.yaml)"
 
+CLOUD_ONE_API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
+CLOUD_ONE_REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"
+CLOUD_ONE_INSTANCE="$(yq '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.yaml)"
+if [ ${CLOUD_ONE_INSTANCE} = null ]; then
+  CLOUD_ONE_INSTANCE=cloudone
+fi
+CLOUD_ONE_POLICY_ID="$(yq '.services[] | select(.name=="container_security") | .policy_id' $PGPATH/config.yaml)"
+
+
 mkdir -p $PGPATH/overrides
 
 #######################################
@@ -48,6 +57,14 @@ function create_tf_variables() {
   AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
   ACCESS_IP=${ACCESS_IP} \
     envsubst <$PGPATH/templates/terraform-4-cluster.tfvars >$PGPATH/terraform-awsone/4-cluster/terraform.tfvars
+
+  printf '%s\n' "Create terraform.tfvars for cluster deployments"
+  AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
+  CLOUD_ONE_API_KEY=${CLOUD_ONE_API_KEY} \
+  CLOUD_ONE_REGION=${CLOUD_ONE_REGION} \
+  CLOUD_ONE_INSTANCE=${CLOUD_ONE_INSTANCE} \
+  CLOUD_ONE_POLICY_ID=${CLOUD_ONE_POLICY_ID} \
+    envsubst <$PGPATH/templates/terraform-9-cluster-deployments.tfvars >$PGPATH/terraform-awsone/9-cluster-deployments/terraform.tfvars
 
   echo "💬 Terraform terraform.tfvars dropped to configurations"
 }

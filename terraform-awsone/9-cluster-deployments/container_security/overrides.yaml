@@ -1,0 +1,34 @@
+cloudOne:
+  admissionController:
+    enabled: true
+    validationNamespaceSelector:
+      matchExpressions:
+      - key: ignoreAdmissionControl
+        operator: DoesNotExist
+    enableKubeSystem: false
+    failurePolicy: Ignore
+  oversight:
+    enabled: true
+    syncPeriod: 600s
+    enableNetworkPolicyCreation: true
+  exclusion:
+    namespaces:
+    - kube-system
+    - trendmicro-smartcheck
+    - trendmicro-system
+    - calico-system
+    - calico-apiserver
+    - registry
+    - metallb-system
+    - tigera-operator
+    - local-path-storage
+    - ingress-nginx
+
+scout:
+  excludeSameNamespace: true
+
+securityContext:
+  scout:
+    scout:
+      allowPrivilegeEscalation: true
+      privileged: true
