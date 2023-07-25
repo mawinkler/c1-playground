@@ -13,11 +13,3 @@ variable "account_id" {
 variable "environment" {
   type = string
 }
-
-variable "create_ecs" {
-  default = true
-}
-
-variable "create_eks" {
-  default = false
-}

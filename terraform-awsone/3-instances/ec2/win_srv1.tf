@@ -15,8 +15,8 @@ resource "aws_instance" "srv1" {
 
     ami                    = "${data.aws_ami.windows.id}"
     instance_type          = "t3.medium"
-    subnet_id              = var.public_subnet[1]
-    vpc_security_group_ids = [var.public_sg]
+    subnet_id              = var.public_subnet_ids[1]
+    vpc_security_group_ids = [var.public_security_group_id]
     iam_instance_profile   = var.ec2_profile
     key_name               = aws_key_pair.key_pair.key_name
 

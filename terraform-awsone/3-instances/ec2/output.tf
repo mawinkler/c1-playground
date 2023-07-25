@@ -45,5 +45,5 @@ output "ssh_instance_web1" {
 
 output "ssh_instance_srv1" {
   description = "Command to ssh to instance srv1"
-  value       = length(aws_instance.srv1) > 0 ? "ssh -i ${aws_key_pair.key_pair.key_name}.pem -o StrictHostKeyChecking=no ubuntu@${aws_instance.srv1[0].public_ip}" : ""
+  value       = length(aws_instance.srv1) > 0 ? "ssh -i ${aws_key_pair.key_pair.key_name}.pem -o StrictHostKeyChecking=no ${var.windows_username}@${aws_instance.srv1[0].public_ip}" : ""
 }

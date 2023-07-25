@@ -3,9 +3,9 @@
 # #############################################################################
 variable "environment" {}
 
-variable "public_sg" {}
+variable "public_security_group_id" {}
 
-variable "public_subnet" {}
+variable "public_subnet_ids" {}
 
 variable "ec2_profile" {}
 

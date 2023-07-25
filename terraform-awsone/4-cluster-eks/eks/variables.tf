@@ -11,7 +11,7 @@ variable "aws_region" {}
 
 variable "private_subnet_ids" {}
 
-variable "private_sg" {}
+variable "private_security_group_id" {}
 
 variable "kubernetes_version" {
   description = "Cluster Kubernetes version"

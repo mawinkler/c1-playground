@@ -50,11 +50,11 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
     # cluster_additional_security_group_ids = [aws_security_group.eks.id]
-    cluster_additional_security_group_ids = [var.private_sg]
+    cluster_additional_security_group_ids = [var.private_security_group_id]
     disk_size                             = 50
     instance_types                        = ["t3.medium", "t3.large"]
     # vpc_security_group_ids                = [aws_security_group.eks.id]
-    vpc_security_group_ids = [var.private_sg]
+    vpc_security_group_ids = [var.private_security_group_id]
   }
 
   cluster_security_group_additional_rules = {
