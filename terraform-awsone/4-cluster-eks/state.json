@@ -1,0 +1,2807 @@
+{
+  "version": 4,
+  "terraform_version": "1.5.3",
+  "serial": 1438,
+  "lineage": "18408d17-bfd0-f3de-7c7e-be5a761834d0",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "data",
+      "type": "terraform_remote_state",
+      "name": "vpc",
+      "provider": "provider[\"terraform.io/builtin/terraform\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "backend": "local",
+            "config": {
+              "value": {
+                "path": "../2-network/terraform.tfstate"
+              },
+              "type": [
+                "object",
+                {
+                  "path": "string"
+                }
+              ]
+            },
+            "defaults": null,
+            "outputs": {
+              "value": {
+                "private_sg": "sg-0f7f426897d54760c",
+                "private_subnet": [
+                  "subnet-0b6760bad7c0801ba",
+                  "subnet-0054a590b618ef7cd",
+                  "subnet-040e5e8ce148a9308"
+                ],
+                "public_sg": "sg-01238a371bd835f38",
+                "public_subnet": [
+                  "subnet-056cb106a557861ca",
+                  "subnet-05e0ec4b611ff84fc",
+                  "subnet-0d13f4b4cda4c2e64"
+                ],
+                "vpc_id": "vpc-0933149e01f1136aa"
+              },
+              "type": [
+                "object",
+                {
+                  "private_sg": "string",
+                  "private_subnet": [
+                    "tuple",
+                    [
+                      "string",
+                      "string",
+                      "string"
+                    ]
+                  ],
+                  "public_sg": "string",
+                  "public_subnet": [
+                    "tuple",
+                    [
+                      "string",
+                      "string",
+                      "string"
+                    ]
+                  ],
+                  "vpc_id": "string"
+                }
+              ]
+            },
+            "workspace": null
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs",
+      "mode": "data",
+      "type": "aws_caller_identity",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "account_id": "634503960501",
+            "arn": "arn:aws:iam::634503960501:user/markus",
+            "id": "634503960501",
+            "user_id": "AIDAJ6V7MRHJDWVHGHKI6"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs",
+      "mode": "data",
+      "type": "aws_ssm_parameter",
+      "name": "ecs_optimized_ami",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ssm:eu-central-1::parameter/aws/service/ecs/optimized-ami/amazon-linux-2/recommended",
+            "id": "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended",
+            "insecure_value": "{\"ecs_agent_version\":\"1.73.1\",\"ecs_runtime_version\":\"Docker version 20.10.23\",\"image_id\":\"ami-0895a12593a7b3a0b\",\"image_name\":\"amzn2-ami-ecs-hvm-2.0.20230705-x86_64-ebs\",\"image_version\":\"2.0.20230705\",\"os\":\"Amazon Linux 2\",\"schema_version\":1,\"source_image_name\":\"amzn2-ami-minimal-hvm-2.0.20230628.0-x86_64-ebs\"}",
+            "name": "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended",
+            "type": "String",
+            "value": "{\"ecs_agent_version\":\"1.73.1\",\"ecs_runtime_version\":\"Docker version 20.10.23\",\"image_id\":\"ami-0895a12593a7b3a0b\",\"image_name\":\"amzn2-ami-ecs-hvm-2.0.20230705-x86_64-ebs\",\"image_version\":\"2.0.20230705\",\"os\":\"Amazon Linux 2\",\"schema_version\":1,\"source_image_name\":\"amzn2-ami-minimal-hvm-2.0.20230628.0-x86_64-ebs\"}",
+            "version": 117,
+            "with_decryption": true
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb",
+      "mode": "managed",
+      "type": "aws_lb",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "access_logs": [
+              {
+                "bucket": "",
+                "enabled": false,
+                "prefix": ""
+              }
+            ],
+            "arn": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:loadbalancer/app/playground-ecs/63e6cc33651ae90c",
+            "arn_suffix": "app/playground-ecs/63e6cc33651ae90c",
+            "customer_owned_ipv4_pool": "",
+            "desync_mitigation_mode": "defensive",
+            "dns_name": "playground-ecs-1931513442.eu-central-1.elb.amazonaws.com",
+            "drop_invalid_header_fields": false,
+            "enable_cross_zone_load_balancing": true,
+            "enable_deletion_protection": false,
+            "enable_http2": true,
+            "enable_tls_version_and_cipher_suite_headers": false,
+            "enable_waf_fail_open": false,
+            "enable_xff_client_port": true,
+            "id": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:loadbalancer/app/playground-ecs/63e6cc33651ae90c",
+            "idle_timeout": 60,
+            "internal": false,
+            "ip_address_type": "ipv4",
+            "load_balancer_type": "application",
+            "name": "playground-ecs",
+            "name_prefix": null,
+            "preserve_host_header": false,
+            "security_groups": [
+              "sg-07c96d3df13296af1",
+              "sg-09ee408b523c019e0"
+            ],
+            "subnet_mapping": [
+              {
+                "allocation_id": "",
+                "ipv6_address": "",
+                "outpost_id": "",
+                "private_ipv4_address": "",
+                "subnet_id": "subnet-056cb106a557861ca"
+              },
+              {
+                "allocation_id": "",
+                "ipv6_address": "",
+                "outpost_id": "",
+                "private_ipv4_address": "",
+                "subnet_id": "subnet-05e0ec4b611ff84fc"
+              },
+              {
+                "allocation_id": "",
+                "ipv6_address": "",
+                "outpost_id": "",
+                "private_ipv4_address": "",
+                "subnet_id": "subnet-0d13f4b4cda4c2e64"
+              }
+            ],
+            "subnets": [
+              "subnet-056cb106a557861ca",
+              "subnet-05e0ec4b611ff84fc",
+              "subnet-0d13f4b4cda4c2e64"
+            ],
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "timeouts": {
+              "create": "10m",
+              "delete": "10m",
+              "update": "10m"
+            },
+            "vpc_id": "vpc-0933149e01f1136aa",
+            "xff_header_processing_mode": "append",
+            "zone_id": "Z215JYRZR1TBD5"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwLCJ1cGRhdGUiOjYwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb",
+      "mode": "managed",
+      "type": "aws_lb_listener",
+      "name": "frontend_http_tcp",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "alpn_policy": null,
+            "arn": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:listener/app/playground-ecs/63e6cc33651ae90c/bb0b1f98d11198a4",
+            "certificate_arn": null,
+            "default_action": [
+              {
+                "authenticate_cognito": [],
+                "authenticate_oidc": [],
+                "fixed_response": [],
+                "forward": [],
+                "order": 1,
+                "redirect": [],
+                "target_group_arn": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:targetgroup/playground-ecs-ecs-sample/556cf8be4f0ff32a",
+                "type": "forward"
+              }
+            ],
+            "id": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:listener/app/playground-ecs/63e6cc33651ae90c/bb0b1f98d11198a4",
+            "load_balancer_arn": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:loadbalancer/app/playground-ecs/63e6cc33651ae90c",
+            "port": 80,
+            "protocol": "HTTP",
+            "ssl_policy": "",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsicmVhZCI6NjAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb.aws_lb.this",
+            "module.ecs.module.alb.aws_lb_target_group.main",
+            "module.ecs.module.alb.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb",
+      "mode": "managed",
+      "type": "aws_lb_target_group",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:targetgroup/playground-ecs-ecs-sample/556cf8be4f0ff32a",
+            "arn_suffix": "targetgroup/playground-ecs-ecs-sample/556cf8be4f0ff32a",
+            "connection_termination": false,
+            "deregistration_delay": "300",
+            "health_check": [
+              {
+                "enabled": true,
+                "healthy_threshold": 5,
+                "interval": 30,
+                "matcher": "200",
+                "path": "/",
+                "port": "traffic-port",
+                "protocol": "HTTP",
+                "timeout": 5,
+                "unhealthy_threshold": 2
+              }
+            ],
+            "id": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:targetgroup/playground-ecs-ecs-sample/556cf8be4f0ff32a",
+            "ip_address_type": "ipv4",
+            "lambda_multi_value_headers_enabled": false,
+            "load_balancing_algorithm_type": "round_robin",
+            "load_balancing_cross_zone_enabled": "use_load_balancer_configuration",
+            "name": "playground-ecs-ecs-sample",
+            "name_prefix": null,
+            "port": 80,
+            "preserve_client_ip": null,
+            "protocol": "HTTP",
+            "protocol_version": "HTTP1",
+            "proxy_protocol_v2": false,
+            "slow_start": 0,
+            "stickiness": [
+              {
+                "cookie_duration": 86400,
+                "cookie_name": "",
+                "enabled": false,
+                "type": "lb_cookie"
+              }
+            ],
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs-ecs-sample"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs-ecs-sample"
+            },
+            "target_failover": [
+              {
+                "on_deregistration": null,
+                "on_unhealthy": null
+              }
+            ],
+            "target_type": "ip",
+            "vpc_id": "vpc-0933149e01f1136aa"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:security-group/sg-09ee408b523c019e0",
+            "description": "Managed by Terraform",
+            "egress": [],
+            "id": "sg-09ee408b523c019e0",
+            "ingress": [],
+            "name": "playground-ecs-20230725081946176800000004",
+            "name_prefix": "playground-ecs-",
+            "owner_id": "634503960501",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-0933149e01f1136aa"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb_sg",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "this_name_prefix",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:security-group/sg-07c96d3df13296af1",
+            "description": "Service security group",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "10.0.96.0/19",
+                  "10.0.128.0/19",
+                  "10.0.160.0/19"
+                ],
+                "description": "All protocols",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [
+                  "::/0"
+                ],
+                "prefix_list_ids": [],
+                "protocol": "-1",
+                "security_groups": [],
+                "self": false,
+                "to_port": 0
+              }
+            ],
+            "id": "sg-07c96d3df13296af1",
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "HTTP",
+                "from_port": 80,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 80
+              }
+            ],
+            "name": "playground-ecs-service-20230725081946164300000002",
+            "name_prefix": "playground-ecs-service-",
+            "owner_id": "634503960501",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "timeouts": {
+              "create": "10m",
+              "delete": "15m"
+            },
+            "vpc_id": "vpc-0933149e01f1136aa"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb_sg",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "egress_rules",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": [
+              "10.0.96.0/19",
+              "10.0.128.0/19",
+              "10.0.160.0/19"
+            ],
+            "description": "All protocols",
+            "from_port": 0,
+            "id": "sgrule-2012554804",
+            "ipv6_cidr_blocks": [
+              "::/0"
+            ],
+            "prefix_list_ids": [],
+            "protocol": "-1",
+            "security_group_id": "sg-07c96d3df13296af1",
+            "security_group_rule_id": "",
+            "self": false,
+            "source_security_group_id": null,
+            "timeouts": null,
+            "to_port": 0,
+            "type": "egress"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb_sg.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.alb_sg",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "ingress_rules",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "HTTP",
+            "from_port": 80,
+            "id": "sgrule-149092343",
+            "ipv6_cidr_blocks": [],
+            "prefix_list_ids": [],
+            "protocol": "tcp",
+            "security_group_id": "sg-07c96d3df13296af1",
+            "security_group_rule_id": "sgr-07d13c489c153b366",
+            "self": false,
+            "source_security_group_id": null,
+            "timeouts": null,
+            "to_port": 80,
+            "type": "ingress"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb_sg.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "data",
+      "type": "aws_default_tags",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "aws",
+            "tags": {}
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "assume_role_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "1256122602",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"EC2AssumeRole\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ec2.amazonaws.com\"\n      }\n    }\n  ]\n}",
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "ec2.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  }
+                ],
+                "resources": [],
+                "sid": "EC2AssumeRole"
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "data",
+      "type": "aws_partition",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "dns_suffix": "amazonaws.com",
+            "id": "aws",
+            "partition": "aws",
+            "reverse_dns_prefix": "com.amazonaws"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "managed",
+      "type": "aws_autoscaling_group",
+      "name": "idc",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:autoscaling:eu-central-1:634503960501:autoScalingGroup:88ad7fe6-fa68-4d11-953b-eda83eca4079:autoScalingGroupName/playground-ecs-ex-1-20230725081948593600000010",
+            "availability_zones": [
+              "eu-central-1a",
+              "eu-central-1b",
+              "eu-central-1c"
+            ],
+            "capacity_rebalance": false,
+            "context": "",
+            "default_cooldown": 300,
+            "default_instance_warmup": 0,
+            "desired_capacity": 5,
+            "desired_capacity_type": "",
+            "enabled_metrics": [],
+            "force_delete": false,
+            "force_delete_warm_pool": false,
+            "health_check_grace_period": 300,
+            "health_check_type": "EC2",
+            "id": "playground-ecs-ex-1-20230725081948593600000010",
+            "initial_lifecycle_hook": [],
+            "instance_refresh": [],
+            "launch_configuration": "",
+            "launch_template": [
+              {
+                "id": "lt-05682364566dbf502",
+                "name": "playground-ecs-ex-1-2023072508194837240000000e",
+                "version": "1"
+              }
+            ],
+            "load_balancers": [],
+            "max_instance_lifetime": 0,
+            "max_size": 5,
+            "metrics_granularity": "1Minute",
+            "min_elb_capacity": null,
+            "min_size": 1,
+            "mixed_instances_policy": [],
+            "name": "playground-ecs-ex-1-20230725081948593600000010",
+            "name_prefix": "playground-ecs-ex-1-",
+            "placement_group": "",
+            "predicted_capacity": 0,
+            "protect_from_scale_in": true,
+            "service_linked_role_arn": "arn:aws:iam::634503960501:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+            "suspended_processes": [],
+            "tag": [
+              {
+                "key": "AmazonECSManaged",
+                "propagate_at_launch": true,
+                "value": "true"
+              },
+              {
+                "key": "Environment",
+                "propagate_at_launch": true,
+                "value": "playground"
+              },
+              {
+                "key": "Name",
+                "propagate_at_launch": true,
+                "value": "playground-ecs-ex-1"
+              }
+            ],
+            "target_group_arns": [],
+            "termination_policies": [],
+            "timeouts": {
+              "delete": null,
+              "update": null
+            },
+            "traffic_source": [],
+            "vpc_zone_identifier": [
+              "subnet-0054a590b618ef7cd",
+              "subnet-040e5e8ce148a9308",
+              "subnet-0b6760bad7c0801ba"
+            ],
+            "wait_for_capacity_timeout": "10m",
+            "wait_for_elb_capacity": null,
+            "warm_pool": [],
+            "warm_pool_size": 0
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjo2MDAwMDAwMDAwMDAsInVwZGF0ZSI6NjAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.aws_launch_template.this",
+            "module.ecs.module.autoscaling.data.aws_default_tags.current",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "managed",
+      "type": "aws_iam_instance_profile",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:instance-profile/playground-ecs-20230725081947194100000006",
+            "create_date": "2023-07-25T08:19:47Z",
+            "id": "playground-ecs-20230725081947194100000006",
+            "name": "playground-ecs-20230725081947194100000006",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "role": "playground-ecs-20230725081946182800000005",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "unique_id": "AIPAZHO3CC62XYEHJBQPQ"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725081946182800000005",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Sid\":\"EC2AssumeRole\"}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2023-07-25T08:19:46Z",
+            "description": "ECS role for playground-ecs",
+            "force_detach_policies": true,
+            "id": "playground-ecs-20230725081946182800000005",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+              "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+            ],
+            "max_session_duration": 3600,
+            "name": "playground-ecs-20230725081946182800000005",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "permissions_boundary": null,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "unique_id": "AROAZHO3CC62X3E2M32SG"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": "AmazonEC2ContainerServiceforEC2Role",
+          "schema_version": 0,
+          "attributes": {
+            "id": "playground-ecs-20230725081946182800000005-2023072508194755380000000a",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+            "role": "playground-ecs-20230725081946182800000005"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        },
+        {
+          "index_key": "AmazonSSMManagedInstanceCore",
+          "schema_version": 0,
+          "attributes": {
+            "id": "playground-ecs-20230725081946182800000005-20230725081947376100000008",
+            "policy_arn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+            "role": "playground-ecs-20230725081946182800000005"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-1\"]",
+      "mode": "managed",
+      "type": "aws_launch_template",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:launch-template/lt-05682364566dbf502",
+            "block_device_mappings": [],
+            "capacity_reservation_specification": [],
+            "cpu_options": [],
+            "credit_specification": [],
+            "default_version": 1,
+            "description": "",
+            "disable_api_stop": false,
+            "disable_api_termination": false,
+            "ebs_optimized": "",
+            "elastic_gpu_specifications": [],
+            "elastic_inference_accelerator": [],
+            "enclave_options": [],
+            "hibernation_options": [],
+            "iam_instance_profile": [
+              {
+                "arn": "arn:aws:iam::634503960501:instance-profile/playground-ecs-20230725081947194100000006",
+                "name": ""
+              }
+            ],
+            "id": "lt-05682364566dbf502",
+            "image_id": "ami-0895a12593a7b3a0b",
+            "instance_initiated_shutdown_behavior": "",
+            "instance_market_options": [],
+            "instance_requirements": [],
+            "instance_type": "t3.large",
+            "kernel_id": "",
+            "key_name": "",
+            "latest_version": 1,
+            "license_specification": [],
+            "maintenance_options": [],
+            "metadata_options": [],
+            "monitoring": [
+              {
+                "enabled": true
+              }
+            ],
+            "name": "playground-ecs-ex-1-2023072508194837240000000e",
+            "name_prefix": "playground-ecs-ex-1-",
+            "network_interfaces": [],
+            "placement": [],
+            "private_dns_name_options": [],
+            "ram_disk_id": "",
+            "security_group_names": [],
+            "tag_specifications": [],
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "update_default_version": null,
+            "user_data": "IyEvYmluL2Jhc2gKY2F0IDw8J0VPRicgPj4gL2V0Yy9lY3MvZWNzLmNvbmZpZwpFQ1NfQ0xVU1RFUj1wbGF5Z3JvdW5kLWVjcwpFQ1NfTE9HTEVWRUw9ZGVidWcKRUNTX0NPTlRBSU5FUl9JTlNUQU5DRV9UQUdTPXsiRW52aXJvbm1lbnQiOiJwbGF5Z3JvdW5kIiwiTmFtZSI6InBsYXlncm91bmQtZWNzIn0KRUNTX0VOQUJMRV9UQVNLX0lBTV9ST0xFPXRydWUKRU9GCg==",
+            "vpc_security_group_ids": [
+              "sg-0ac76897575b50d58"
+            ]
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "image_id"
+              }
+            ]
+          ],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "data",
+      "type": "aws_default_tags",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "aws",
+            "tags": {}
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "assume_role_policy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "1256122602",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"EC2AssumeRole\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ec2.amazonaws.com\"\n      }\n    }\n  ]\n}",
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "ec2.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  }
+                ],
+                "resources": [],
+                "sid": "EC2AssumeRole"
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "data",
+      "type": "aws_partition",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "dns_suffix": "amazonaws.com",
+            "id": "aws",
+            "partition": "aws",
+            "reverse_dns_prefix": "com.amazonaws"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "managed",
+      "type": "aws_autoscaling_group",
+      "name": "idc",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:autoscaling:eu-central-1:634503960501:autoScalingGroup:13ff8fa0-efad-4ce2-a94f-036fac172b15:autoScalingGroupName/playground-ecs-ex-2-20230725081948595100000011",
+            "availability_zones": [
+              "eu-central-1a",
+              "eu-central-1b",
+              "eu-central-1c"
+            ],
+            "capacity_rebalance": false,
+            "context": "",
+            "default_cooldown": 300,
+            "default_instance_warmup": 0,
+            "desired_capacity": 5,
+            "desired_capacity_type": "",
+            "enabled_metrics": [],
+            "force_delete": false,
+            "force_delete_warm_pool": false,
+            "health_check_grace_period": 300,
+            "health_check_type": "EC2",
+            "id": "playground-ecs-ex-2-20230725081948595100000011",
+            "initial_lifecycle_hook": [],
+            "instance_refresh": [],
+            "launch_configuration": "",
+            "launch_template": [],
+            "load_balancers": [],
+            "max_instance_lifetime": 0,
+            "max_size": 5,
+            "metrics_granularity": "1Minute",
+            "min_elb_capacity": null,
+            "min_size": 1,
+            "mixed_instances_policy": [
+              {
+                "instances_distribution": [
+                  {
+                    "on_demand_allocation_strategy": "prioritized",
+                    "on_demand_base_capacity": 0,
+                    "on_demand_percentage_above_base_capacity": 0,
+                    "spot_allocation_strategy": "price-capacity-optimized",
+                    "spot_instance_pools": 0,
+                    "spot_max_price": ""
+                  }
+                ],
+                "launch_template": [
+                  {
+                    "launch_template_specification": [
+                      {
+                        "launch_template_id": "lt-01ecd13a7841361f7",
+                        "launch_template_name": "playground-ecs-ex-2-2023072508194836970000000c",
+                        "version": "1"
+                      }
+                    ],
+                    "override": [
+                      {
+                        "instance_requirements": [],
+                        "instance_type": "m4.large",
+                        "launch_template_specification": [],
+                        "weighted_capacity": "2"
+                      },
+                      {
+                        "instance_requirements": [],
+                        "instance_type": "t3.large",
+                        "launch_template_specification": [],
+                        "weighted_capacity": "1"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "name": "playground-ecs-ex-2-20230725081948595100000011",
+            "name_prefix": "playground-ecs-ex-2-",
+            "placement_group": "",
+            "predicted_capacity": 0,
+            "protect_from_scale_in": true,
+            "service_linked_role_arn": "arn:aws:iam::634503960501:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+            "suspended_processes": [],
+            "tag": [
+              {
+                "key": "AmazonECSManaged",
+                "propagate_at_launch": true,
+                "value": "true"
+              },
+              {
+                "key": "Environment",
+                "propagate_at_launch": true,
+                "value": "playground"
+              },
+              {
+                "key": "Name",
+                "propagate_at_launch": true,
+                "value": "playground-ecs-ex-2"
+              }
+            ],
+            "target_group_arns": [],
+            "termination_policies": [],
+            "timeouts": {
+              "delete": null,
+              "update": null
+            },
+            "traffic_source": [],
+            "vpc_zone_identifier": [
+              "subnet-0054a590b618ef7cd",
+              "subnet-040e5e8ce148a9308",
+              "subnet-0b6760bad7c0801ba"
+            ],
+            "wait_for_capacity_timeout": "10m",
+            "wait_for_elb_capacity": null,
+            "warm_pool": [],
+            "warm_pool_size": 0
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjo2MDAwMDAwMDAwMDAsInVwZGF0ZSI6NjAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.aws_launch_template.this",
+            "module.ecs.module.autoscaling.data.aws_default_tags.current",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "managed",
+      "type": "aws_iam_instance_profile",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:instance-profile/playground-ecs-20230725081947198000000007",
+            "create_date": "2023-07-25T08:19:47Z",
+            "id": "playground-ecs-20230725081947198000000007",
+            "name": "playground-ecs-20230725081947198000000007",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "role": "playground-ecs-20230725081946176500000003",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "unique_id": "AIPAZHO3CC62WP55WCSA2"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725081946176500000003",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Sid\":\"EC2AssumeRole\"}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2023-07-25T08:19:46Z",
+            "description": "ECS role for playground-ecs",
+            "force_detach_policies": true,
+            "id": "playground-ecs-20230725081946176500000003",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+              "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+            ],
+            "max_session_duration": 3600,
+            "name": "playground-ecs-20230725081946176500000003",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "permissions_boundary": null,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "unique_id": "AROAZHO3CC62W4MISAWUW"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": "AmazonEC2ContainerServiceforEC2Role",
+          "schema_version": 0,
+          "attributes": {
+            "id": "playground-ecs-20230725081946176500000003-20230725081947376100000009",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+            "role": "playground-ecs-20230725081946176500000003"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        },
+        {
+          "index_key": "AmazonSSMManagedInstanceCore",
+          "schema_version": 0,
+          "attributes": {
+            "id": "playground-ecs-20230725081946176500000003-2023072508194755810000000b",
+            "policy_arn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+            "role": "playground-ecs-20230725081946176500000003"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling[\"ex-2\"]",
+      "mode": "managed",
+      "type": "aws_launch_template",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:launch-template/lt-01ecd13a7841361f7",
+            "block_device_mappings": [],
+            "capacity_reservation_specification": [],
+            "cpu_options": [],
+            "credit_specification": [],
+            "default_version": 1,
+            "description": "",
+            "disable_api_stop": false,
+            "disable_api_termination": false,
+            "ebs_optimized": "",
+            "elastic_gpu_specifications": [],
+            "elastic_inference_accelerator": [],
+            "enclave_options": [],
+            "hibernation_options": [],
+            "iam_instance_profile": [
+              {
+                "arn": "arn:aws:iam::634503960501:instance-profile/playground-ecs-20230725081947198000000007",
+                "name": ""
+              }
+            ],
+            "id": "lt-01ecd13a7841361f7",
+            "image_id": "ami-0895a12593a7b3a0b",
+            "instance_initiated_shutdown_behavior": "",
+            "instance_market_options": [],
+            "instance_requirements": [],
+            "instance_type": "t3.medium",
+            "kernel_id": "",
+            "key_name": "",
+            "latest_version": 1,
+            "license_specification": [],
+            "maintenance_options": [],
+            "metadata_options": [],
+            "monitoring": [
+              {
+                "enabled": true
+              }
+            ],
+            "name": "playground-ecs-ex-2-2023072508194836970000000c",
+            "name_prefix": "playground-ecs-ex-2-",
+            "network_interfaces": [],
+            "placement": [],
+            "private_dns_name_options": [],
+            "ram_disk_id": "",
+            "security_group_names": [],
+            "tag_specifications": [],
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "update_default_version": null,
+            "user_data": "IyEvYmluL2Jhc2gKY2F0IDw8J0VPRicgPj4gL2V0Yy9lY3MvZWNzLmNvbmZpZwpFQ1NfQ0xVU1RFUj1wbGF5Z3JvdW5kLWVjcwpFQ1NfTE9HTEVWRUw9ZGVidWcKRUNTX0NPTlRBSU5FUl9JTlNUQU5DRV9UQUdTPXsiRW52aXJvbm1lbnQiOiJwbGF5Z3JvdW5kIiwiTmFtZSI6InBsYXlncm91bmQtZWNzIn0KRUNTX0VOQUJMRV9UQVNLX0lBTV9ST0xFPXRydWUKRUNTX0VOQUJMRV9TUE9UX0lOU1RBTkNFX0RSQUlOSU5HPXRydWUKRU9GCg==",
+            "vpc_security_group_ids": [
+              "sg-0ac76897575b50d58"
+            ]
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "image_id"
+              }
+            ]
+          ],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling_sg",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "this_name_prefix",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:security-group/sg-0ac76897575b50d58",
+            "description": "Autoscaling group security group",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "All protocols",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [
+                  "::/0"
+                ],
+                "prefix_list_ids": [],
+                "protocol": "-1",
+                "security_groups": [],
+                "self": false,
+                "to_port": 0
+              }
+            ],
+            "id": "sg-0ac76897575b50d58",
+            "ingress": [
+              {
+                "cidr_blocks": [],
+                "description": "Ingress Rule",
+                "from_port": 80,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [
+                  "sg-07c96d3df13296af1"
+                ],
+                "self": false,
+                "to_port": 80
+              }
+            ],
+            "name": "playground-ecs-20230725081946160400000001",
+            "name_prefix": "playground-ecs-",
+            "owner_id": "634503960501",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "timeouts": {
+              "create": "10m",
+              "delete": "15m"
+            },
+            "vpc_id": "vpc-0933149e01f1136aa"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling_sg",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "computed_ingress_with_source_security_group_id",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": null,
+            "description": "Ingress Rule",
+            "from_port": 80,
+            "id": "sgrule-4111447092",
+            "ipv6_cidr_blocks": null,
+            "prefix_list_ids": [],
+            "protocol": "tcp",
+            "security_group_id": "sg-0ac76897575b50d58",
+            "security_group_rule_id": "sgr-0830943660880eb0d",
+            "self": false,
+            "source_security_group_id": "sg-07c96d3df13296af1",
+            "timeouts": null,
+            "to_port": 80,
+            "type": "ingress"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb_sg.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.autoscaling_sg",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "egress_rules",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "All protocols",
+            "from_port": 0,
+            "id": "sgrule-997546222",
+            "ipv6_cidr_blocks": [
+              "::/0"
+            ],
+            "prefix_list_ids": [],
+            "protocol": "-1",
+            "security_group_id": "sg-0ac76897575b50d58",
+            "security_group_rule_id": "",
+            "self": false,
+            "source_security_group_id": null,
+            "timeouts": null,
+            "to_port": 0,
+            "type": "egress"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs.module.cluster",
+      "mode": "data",
+      "type": "aws_partition",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "dns_suffix": "amazonaws.com",
+            "id": "aws",
+            "partition": "aws",
+            "reverse_dns_prefix": "com.amazonaws"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs.module.cluster",
+      "mode": "managed",
+      "type": "aws_cloudwatch_log_group",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:logs:eu-central-1:634503960501:log-group:/aws/ecs/playground-ecs",
+            "id": "/aws/ecs/playground-ecs",
+            "kms_key_id": "",
+            "name": "/aws/ecs/playground-ecs",
+            "name_prefix": "",
+            "retention_in_days": 90,
+            "skip_destroy": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs.module.cluster",
+      "mode": "managed",
+      "type": "aws_ecs_capacity_provider",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": "ex-1",
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ecs:eu-central-1:634503960501:capacity-provider/ex-1",
+            "auto_scaling_group_provider": [
+              {
+                "auto_scaling_group_arn": "arn:aws:autoscaling:eu-central-1:634503960501:autoScalingGroup:88ad7fe6-fa68-4d11-953b-eda83eca4079:autoScalingGroupName/playground-ecs-ex-1-20230725081948593600000010",
+                "managed_scaling": [
+                  {
+                    "instance_warmup_period": 0,
+                    "maximum_scaling_step_size": 10000,
+                    "minimum_scaling_step_size": 1,
+                    "status": "ENABLED",
+                    "target_capacity": 3
+                  }
+                ],
+                "managed_termination_protection": "ENABLED"
+              }
+            ],
+            "id": "arn:aws:ecs:eu-central-1:634503960501:capacity-provider/ex-1",
+            "name": "ex-1",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.aws_launch_template.this",
+            "module.ecs.module.autoscaling.data.aws_default_tags.current",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        },
+        {
+          "index_key": "ex-2",
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ecs:eu-central-1:634503960501:capacity-provider/ex-2",
+            "auto_scaling_group_provider": [
+              {
+                "auto_scaling_group_arn": "arn:aws:autoscaling:eu-central-1:634503960501:autoScalingGroup:13ff8fa0-efad-4ce2-a94f-036fac172b15:autoScalingGroupName/playground-ecs-ex-2-20230725081948595100000011",
+                "managed_scaling": [
+                  {
+                    "instance_warmup_period": 0,
+                    "maximum_scaling_step_size": 10000,
+                    "minimum_scaling_step_size": 1,
+                    "status": "ENABLED",
+                    "target_capacity": 3
+                  }
+                ],
+                "managed_termination_protection": "ENABLED"
+              }
+            ],
+            "id": "arn:aws:ecs:eu-central-1:634503960501:capacity-provider/ex-2",
+            "name": "ex-2",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.aws_launch_template.this",
+            "module.ecs.module.autoscaling.data.aws_default_tags.current",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs.module.cluster",
+      "mode": "managed",
+      "type": "aws_ecs_cluster",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ecs:eu-central-1:634503960501:cluster/playground-ecs",
+            "configuration": [
+              {
+                "execute_command_configuration": [
+                  {
+                    "kms_key_id": "",
+                    "log_configuration": [],
+                    "logging": "DEFAULT"
+                  }
+                ]
+              }
+            ],
+            "id": "arn:aws:ecs:eu-central-1:634503960501:cluster/playground-ecs",
+            "name": "playground-ecs",
+            "service_connect_defaults": [],
+            "setting": [
+              {
+                "name": "containerInsights",
+                "value": "enabled"
+              }
+            ],
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs.module.cluster",
+      "mode": "managed",
+      "type": "aws_ecs_cluster_capacity_providers",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "capacity_providers": [
+              "ex-1",
+              "ex-2"
+            ],
+            "cluster_name": "playground-ecs",
+            "default_capacity_provider_strategy": [
+              {
+                "base": 0,
+                "capacity_provider": "ex-2",
+                "weight": 40
+              },
+              {
+                "base": 20,
+                "capacity_provider": "ex-1",
+                "weight": 60
+              }
+            ],
+            "id": "playground-ecs"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.data.aws_ssm_parameter.ecs_optimized_ami",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.autoscaling.aws_iam_instance_profile.this",
+            "module.ecs.module.autoscaling.aws_iam_role.this",
+            "module.ecs.module.autoscaling.aws_launch_template.this",
+            "module.ecs.module.autoscaling.data.aws_default_tags.current",
+            "module.ecs.module.autoscaling.data.aws_iam_policy_document.assume_role_policy",
+            "module.ecs.module.autoscaling.data.aws_partition.current",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this",
+            "module.ecs.module.autoscaling_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_capacity_provider.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_caller_identity",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "account_id": "634503960501",
+            "arn": "arn:aws:iam::634503960501:user/markus",
+            "id": "634503960501",
+            "user_id": "AIDAJ6V7MRHJDWVHGHKI6"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_ecs_task_definition",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ecs:eu-central-1:634503960501:task-definition/playground-ecs:1",
+            "arn_without_revision": "arn:aws:ecs:eu-central-1:634503960501:task-definition/playground-ecs",
+            "execution_role_arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725083417351500000003",
+            "family": "playground-ecs",
+            "id": "arn:aws:ecs:eu-central-1:634503960501:task-definition/playground-ecs:1",
+            "network_mode": "awsvpc",
+            "revision": 1,
+            "status": "ACTIVE",
+            "task_definition": "playground-ecs",
+            "task_role_arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725083417348600000001"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "task_exec",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "1415633931",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"Logs\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"logs:PutLogEvents\",\n        \"logs:CreateLogStream\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"ECR\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"ecr:GetDownloadUrlForLayer\",\n        \"ecr:GetAuthorizationToken\",\n        \"ecr:BatchGetImage\",\n        \"ecr:BatchCheckLayerAvailability\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"GetSSMParams\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"ssm:GetParameters\",\n      \"Resource\": \"arn:aws:ssm:*:*:parameter/*\"\n    },\n    {\n      \"Sid\": \"GetSecrets\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"secretsmanager:GetSecretValue\",\n      \"Resource\": \"arn:aws:secretsmanager:*:*:secret:*\"\n    }\n  ]\n}",
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "logs:CreateLogStream",
+                  "logs:PutLogEvents"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "*"
+                ],
+                "sid": "Logs"
+              },
+              {
+                "actions": [
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:BatchGetImage",
+                  "ecr:GetAuthorizationToken",
+                  "ecr:GetDownloadUrlForLayer"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "*"
+                ],
+                "sid": "ECR"
+              },
+              {
+                "actions": [
+                  "ssm:GetParameters"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "arn:aws:ssm:*:*:parameter/*"
+                ],
+                "sid": "GetSSMParams"
+              },
+              {
+                "actions": [
+                  "secretsmanager:GetSecretValue"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [],
+                "resources": [
+                  "arn:aws:secretsmanager:*:*:secret:*"
+                ],
+                "sid": "GetSecrets"
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "task_exec_assume",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "2291109037",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"ECSTaskExecutionAssumeRole\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ecs-tasks.amazonaws.com\"\n      }\n    }\n  ]\n}",
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "ecs-tasks.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  }
+                ],
+                "resources": [],
+                "sid": "ECSTaskExecutionAssumeRole"
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "tasks_assume",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "1406694116",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"ECSTasksAssumeRole\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ecs-tasks.amazonaws.com\"\n      },\n      \"Condition\": {\n        \"ArnLike\": {\n          \"aws:SourceArn\": \"arn:aws:ecs:eu-central-1:634503960501:*\"\n        },\n        \"StringEquals\": {\n          \"aws:SourceAccount\": \"634503960501\"\n        }\n      }\n    }\n  ]\n}",
+            "override_policy_documents": null,
+            "policy_id": null,
+            "source_policy_documents": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [
+                  {
+                    "test": "ArnLike",
+                    "values": [
+                      "arn:aws:ecs:eu-central-1:634503960501:*"
+                    ],
+                    "variable": "aws:SourceArn"
+                  },
+                  {
+                    "test": "StringEquals",
+                    "values": [
+                      "634503960501"
+                    ],
+                    "variable": "aws:SourceAccount"
+                  }
+                ],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "ecs-tasks.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  }
+                ],
+                "resources": [],
+                "sid": "ECSTasksAssumeRole"
+              }
+            ],
+            "version": "2012-10-17"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_partition",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "dns_suffix": "amazonaws.com",
+            "id": "aws",
+            "partition": "aws",
+            "reverse_dns_prefix": "com.amazonaws"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_region",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "description": "Europe (Frankfurt)",
+            "endpoint": "ec2.eu-central-1.amazonaws.com",
+            "id": "eu-central-1",
+            "name": "eu-central-1"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "data",
+      "type": "aws_subnet",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:subnet/subnet-0b6760bad7c0801ba",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "eu-central-1a",
+            "availability_zone_id": "euc1-az2",
+            "available_ip_address_count": 8184,
+            "cidr_block": "10.0.96.0/19",
+            "customer_owned_ipv4_pool": "",
+            "default_for_az": false,
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "filter": null,
+            "id": "subnet-0b6760bad7c0801ba",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "634503960501",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "state": "available",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-eu-central-1a-private-subnet",
+              "kubernetes.io/role/internal-elb": "1"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-0933149e01f1136aa"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_appautoscaling_policy",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": "cpu",
+          "schema_version": 0,
+          "attributes": {
+            "alarm_arns": [
+              "arn:aws:cloudwatch:eu-central-1:634503960501:alarm:TargetTracking-service/playground-ecs/playground-ecs-AlarmHigh-efb20bbe-30d5-4f31-9aaf-a2cce6a3eef6",
+              "arn:aws:cloudwatch:eu-central-1:634503960501:alarm:TargetTracking-service/playground-ecs/playground-ecs-AlarmLow-cfbc350f-a42e-400c-89ad-99a238a8700e"
+            ],
+            "arn": "arn:aws:autoscaling:eu-central-1:634503960501:scalingPolicy:f8682fb6-bb9e-482e-b965-0d48919f207d:resource/ecs/service/playground-ecs/playground-ecs:policyName/cpu",
+            "id": "cpu",
+            "name": "cpu",
+            "policy_type": "TargetTrackingScaling",
+            "resource_id": "service/playground-ecs/playground-ecs",
+            "scalable_dimension": "ecs:service:DesiredCount",
+            "service_namespace": "ecs",
+            "step_scaling_policy_configuration": [],
+            "target_tracking_scaling_policy_configuration": [
+              {
+                "customized_metric_specification": [],
+                "disable_scale_in": false,
+                "predefined_metric_specification": [
+                  {
+                    "predefined_metric_type": "ECSServiceAverageCPUUtilization",
+                    "resource_label": ""
+                  }
+                ],
+                "scale_in_cooldown": 300,
+                "scale_out_cooldown": 60,
+                "target_value": 75
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb.aws_lb_target_group.main",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_capacity_provider.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_appautoscaling_target.this",
+            "module.ecs.module.ecs_service.aws_ecs_service.ignore_task_definition",
+            "module.ecs.module.ecs_service.aws_ecs_service.this",
+            "module.ecs.module.ecs_service.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.aws_iam_role.service",
+            "module.ecs.module.ecs_service.aws_iam_role.task_exec",
+            "module.ecs.module.ecs_service.aws_iam_role.tasks",
+            "module.ecs.module.ecs_service.aws_iam_role_policy_attachment.service",
+            "module.ecs.module.ecs_service.aws_security_group.this",
+            "module.ecs.module.ecs_service.data.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.tasks_assume",
+            "module.ecs.module.ecs_service.data.aws_subnet.this",
+            "module.ecs.module.ecs_service.module.container_definition.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs_service.module.container_definition.data.aws_region.current"
+          ]
+        },
+        {
+          "index_key": "memory",
+          "schema_version": 0,
+          "attributes": {
+            "alarm_arns": [
+              "arn:aws:cloudwatch:eu-central-1:634503960501:alarm:TargetTracking-service/playground-ecs/playground-ecs-AlarmHigh-bb107e53-4178-4973-ab41-e00c53456e0a",
+              "arn:aws:cloudwatch:eu-central-1:634503960501:alarm:TargetTracking-service/playground-ecs/playground-ecs-AlarmLow-63b52ab7-0796-4d55-a1d8-b363221680d1"
+            ],
+            "arn": "arn:aws:autoscaling:eu-central-1:634503960501:scalingPolicy:f8682fb6-bb9e-482e-b965-0d48919f207d:resource/ecs/service/playground-ecs/playground-ecs:policyName/memory",
+            "id": "memory",
+            "name": "memory",
+            "policy_type": "TargetTrackingScaling",
+            "resource_id": "service/playground-ecs/playground-ecs",
+            "scalable_dimension": "ecs:service:DesiredCount",
+            "service_namespace": "ecs",
+            "step_scaling_policy_configuration": [],
+            "target_tracking_scaling_policy_configuration": [
+              {
+                "customized_metric_specification": [],
+                "disable_scale_in": false,
+                "predefined_metric_specification": [
+                  {
+                    "predefined_metric_type": "ECSServiceAverageMemoryUtilization",
+                    "resource_label": ""
+                  }
+                ],
+                "scale_in_cooldown": 300,
+                "scale_out_cooldown": 60,
+                "target_value": 75
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb.aws_lb_target_group.main",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_capacity_provider.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_appautoscaling_target.this",
+            "module.ecs.module.ecs_service.aws_ecs_service.ignore_task_definition",
+            "module.ecs.module.ecs_service.aws_ecs_service.this",
+            "module.ecs.module.ecs_service.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.aws_iam_role.service",
+            "module.ecs.module.ecs_service.aws_iam_role.task_exec",
+            "module.ecs.module.ecs_service.aws_iam_role.tasks",
+            "module.ecs.module.ecs_service.aws_iam_role_policy_attachment.service",
+            "module.ecs.module.ecs_service.aws_security_group.this",
+            "module.ecs.module.ecs_service.data.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.tasks_assume",
+            "module.ecs.module.ecs_service.data.aws_subnet.this",
+            "module.ecs.module.ecs_service.module.container_definition.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs_service.module.container_definition.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_appautoscaling_target",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:application-autoscaling:eu-central-1:634503960501:scalable-target/0ec5f8682fb6bb9e482eb9650d48919f207d",
+            "id": "service/playground-ecs/playground-ecs",
+            "max_capacity": 10,
+            "min_capacity": 1,
+            "resource_id": "service/playground-ecs/playground-ecs",
+            "role_arn": "arn:aws:iam::634503960501:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            "scalable_dimension": "ecs:service:DesiredCount",
+            "service_namespace": "ecs",
+            "tags": null,
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb.aws_lb_target_group.main",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_capacity_provider.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_ecs_service.ignore_task_definition",
+            "module.ecs.module.ecs_service.aws_ecs_service.this",
+            "module.ecs.module.ecs_service.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.aws_iam_role.service",
+            "module.ecs.module.ecs_service.aws_iam_role.task_exec",
+            "module.ecs.module.ecs_service.aws_iam_role.tasks",
+            "module.ecs.module.ecs_service.aws_iam_role_policy_attachment.service",
+            "module.ecs.module.ecs_service.aws_security_group.this",
+            "module.ecs.module.ecs_service.data.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.tasks_assume",
+            "module.ecs.module.ecs_service.data.aws_subnet.this",
+            "module.ecs.module.ecs_service.module.container_definition.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs_service.module.container_definition.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_ecs_service",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "alarms": [],
+            "capacity_provider_strategy": [
+              {
+                "base": 1,
+                "capacity_provider": "ex-1",
+                "weight": 1
+              }
+            ],
+            "cluster": "arn:aws:ecs:eu-central-1:634503960501:cluster/playground-ecs",
+            "deployment_circuit_breaker": [
+              {
+                "enable": false,
+                "rollback": false
+              }
+            ],
+            "deployment_controller": [
+              {
+                "type": "ECS"
+              }
+            ],
+            "deployment_maximum_percent": 200,
+            "deployment_minimum_healthy_percent": 66,
+            "desired_count": 1,
+            "enable_ecs_managed_tags": true,
+            "enable_execute_command": false,
+            "force_new_deployment": true,
+            "health_check_grace_period_seconds": 0,
+            "iam_role": "/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+            "id": "arn:aws:ecs:eu-central-1:634503960501:service/playground-ecs/playground-ecs",
+            "launch_type": "",
+            "load_balancer": [
+              {
+                "container_name": "ecs-sample",
+                "container_port": 80,
+                "elb_name": "",
+                "target_group_arn": "arn:aws:elasticloadbalancing:eu-central-1:634503960501:targetgroup/playground-ecs-ecs-sample/556cf8be4f0ff32a"
+              }
+            ],
+            "name": "playground-ecs",
+            "network_configuration": [
+              {
+                "assign_public_ip": false,
+                "security_groups": [
+                  "sg-03347028c29bd9747"
+                ],
+                "subnets": [
+                  "subnet-0054a590b618ef7cd",
+                  "subnet-040e5e8ce148a9308",
+                  "subnet-0b6760bad7c0801ba"
+                ]
+              }
+            ],
+            "ordered_placement_strategy": [],
+            "placement_constraints": [],
+            "platform_version": "",
+            "propagate_tags": "NONE",
+            "scheduling_strategy": "REPLICA",
+            "service_connect_configuration": [],
+            "service_registries": [],
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "task_definition": "playground-ecs:1",
+            "timeouts": {
+              "create": null,
+              "delete": null,
+              "update": null
+            },
+            "triggers": {},
+            "wait_for_steady_state": false
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "data.terraform_remote_state.vpc",
+            "module.ecs.module.alb.aws_lb_target_group.main",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.idc",
+            "module.ecs.module.autoscaling.aws_autoscaling_group.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_capacity_provider.this",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.aws_iam_role.service",
+            "module.ecs.module.ecs_service.aws_iam_role.task_exec",
+            "module.ecs.module.ecs_service.aws_iam_role.tasks",
+            "module.ecs.module.ecs_service.aws_iam_role_policy_attachment.service",
+            "module.ecs.module.ecs_service.aws_security_group.this",
+            "module.ecs.module.ecs_service.data.aws_ecs_task_definition.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.tasks_assume",
+            "module.ecs.module.ecs_service.data.aws_subnet.this",
+            "module.ecs.module.ecs_service.module.container_definition.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs_service.module.container_definition.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_ecs_task_definition",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ecs:eu-central-1:634503960501:task-definition/playground-ecs:1",
+            "arn_without_revision": "arn:aws:ecs:eu-central-1:634503960501:task-definition/playground-ecs",
+            "container_definitions": "[{\"cpu\":0,\"environment\":[],\"essential\":true,\"image\":\"public.ecr.aws/ecs-sample-image/amazon-ecs-sample:latest\",\"interactive\":false,\"logConfiguration\":{\"logDriver\":\"awslogs\",\"options\":{\"awslogs-group\":\"/aws/ecs/playground-ecs/ecs-sample\",\"awslogs-region\":\"eu-central-1\",\"awslogs-stream-prefix\":\"ecs\"}},\"mountPoints\":[{\"containerPath\":\"/var/www/my-vol\",\"sourceVolume\":\"my-vol\"}],\"name\":\"ecs-sample\",\"portMappings\":[{\"containerPort\":80,\"hostPort\":80,\"name\":\"ecs-sample\",\"protocol\":\"tcp\"}],\"privileged\":false,\"pseudoTerminal\":false,\"readonlyRootFilesystem\":false,\"startTimeout\":30,\"stopTimeout\":120,\"volumesFrom\":[]}]",
+            "cpu": "1024",
+            "ephemeral_storage": [],
+            "execution_role_arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725083417351500000003",
+            "family": "playground-ecs",
+            "id": "playground-ecs",
+            "inference_accelerator": [],
+            "ipc_mode": "",
+            "memory": "2048",
+            "network_mode": "awsvpc",
+            "pid_mode": "",
+            "placement_constraints": [],
+            "proxy_configuration": [],
+            "requires_compatibilities": [
+              "EC2"
+            ],
+            "revision": 1,
+            "runtime_platform": [
+              {
+                "cpu_architecture": "X86_64",
+                "operating_system_family": "LINUX"
+              }
+            ],
+            "skip_destroy": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "task_role_arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725083417348600000001",
+            "volume": [
+              {
+                "docker_volume_configuration": [],
+                "efs_volume_configuration": [],
+                "fsx_windows_file_server_volume_configuration": [],
+                "host_path": "",
+                "name": "my-vol"
+              }
+            ]
+          },
+          "sensitive_attributes": [],
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_iam_role.task_exec",
+            "module.ecs.module.ecs_service.aws_iam_role.tasks",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.tasks_assume",
+            "module.ecs.module.ecs_service.module.container_definition.aws_cloudwatch_log_group.this",
+            "module.ecs.module.ecs_service.module.container_definition.data.aws_region.current"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_iam_policy",
+      "name": "task_exec",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:policy/playground-ecs-20230725083417355500000004",
+            "description": "Task execution role IAM policy",
+            "id": "arn:aws:iam::634503960501:policy/playground-ecs-20230725083417355500000004",
+            "name": "playground-ecs-20230725083417355500000004",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "policy": "{\"Statement\":[{\"Action\":[\"logs:PutLogEvents\",\"logs:CreateLogStream\"],\"Effect\":\"Allow\",\"Resource\":\"*\",\"Sid\":\"Logs\"},{\"Action\":[\"ecr:GetDownloadUrlForLayer\",\"ecr:GetAuthorizationToken\",\"ecr:BatchGetImage\",\"ecr:BatchCheckLayerAvailability\"],\"Effect\":\"Allow\",\"Resource\":\"*\",\"Sid\":\"ECR\"},{\"Action\":\"ssm:GetParameters\",\"Effect\":\"Allow\",\"Resource\":\"arn:aws:ssm:*:*:parameter/*\",\"Sid\":\"GetSSMParams\"},{\"Action\":\"secretsmanager:GetSecretValue\",\"Effect\":\"Allow\",\"Resource\":\"arn:aws:secretsmanager:*:*:secret:*\",\"Sid\":\"GetSecrets\"}],\"Version\":\"2012-10-17\"}",
+            "policy_id": "ANPAZHO3CC62UE47WJMB2",
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "task_exec",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725083417351500000003",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"},\"Sid\":\"ECSTaskExecutionAssumeRole\"}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2023-07-25T08:34:17Z",
+            "description": "Task execution role for playground-ecs",
+            "force_detach_policies": true,
+            "id": "playground-ecs-20230725083417351500000003",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "playground-ecs-20230725083417351500000003",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "permissions_boundary": null,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "unique_id": "AROAZHO3CC62S36RZNGNS"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "tasks",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::634503960501:role/playground-ecs-20230725083417348600000001",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Condition\":{\"ArnLike\":{\"aws:SourceArn\":\"arn:aws:ecs:eu-central-1:634503960501:*\"},\"StringEquals\":{\"aws:SourceAccount\":\"634503960501\"}},\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ecs-tasks.amazonaws.com\"},\"Sid\":\"ECSTasksAssumeRole\"}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2023-07-25T08:34:17Z",
+            "description": "",
+            "force_detach_policies": true,
+            "id": "playground-ecs-20230725083417348600000001",
+            "inline_policy": [],
+            "managed_policy_arns": [],
+            "max_session_duration": 3600,
+            "name": "playground-ecs-20230725083417348600000001",
+            "name_prefix": "playground-ecs-",
+            "path": "/",
+            "permissions_boundary": null,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "unique_id": "AROAZHO3CC622Y6FYPYTM"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.tasks_assume"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "task_exec",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "playground-ecs-20230725083417351500000003-20230725083418524600000005",
+            "policy_arn": "arn:aws:iam::634503960501:policy/playground-ecs-20230725083417355500000004",
+            "role": "playground-ecs-20230725083417351500000003"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_iam_policy.task_exec",
+            "module.ecs.module.ecs_service.aws_iam_role.task_exec",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec",
+            "module.ecs.module.ecs_service.data.aws_iam_policy_document.task_exec_assume"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:634503960501:security-group/sg-03347028c29bd9747",
+            "description": "Managed by Terraform",
+            "egress": [],
+            "id": "sg-03347028c29bd9747",
+            "ingress": [],
+            "name": "playground-ecs-20230725083417351100000002",
+            "name_prefix": "playground-ecs-",
+            "owner_id": "634503960501",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-0933149e01f1136aa"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.data.aws_subnet.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": "alb_http_ingress",
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": null,
+            "description": "Service port",
+            "from_port": 80,
+            "id": "sgrule-1616847563",
+            "ipv6_cidr_blocks": null,
+            "prefix_list_ids": null,
+            "protocol": "tcp",
+            "security_group_id": "sg-03347028c29bd9747",
+            "security_group_rule_id": "sgr-0c1d65129e435f602",
+            "self": false,
+            "source_security_group_id": "sg-07c96d3df13296af1",
+            "timeouts": null,
+            "to_port": 80,
+            "type": "ingress"
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "module.ecs.module.alb_sg.aws_security_group.this",
+            "module.ecs.module.alb_sg.aws_security_group.this_name_prefix",
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this",
+            "module.ecs.module.ecs_service.aws_security_group.this",
+            "module.ecs.module.ecs_service.data.aws_subnet.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service.module.container_definition[\"ecs-sample\"]",
+      "mode": "data",
+      "type": "aws_region",
+      "name": "current",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "description": "Europe (Frankfurt)",
+            "endpoint": "ec2.eu-central-1.amazonaws.com",
+            "id": "eu-central-1",
+            "name": "eu-central-1"
+          },
+          "sensitive_attributes": []
+        }
+      ]
+    },
+    {
+      "module": "module.ecs.module.ecs_service.module.container_definition[\"ecs-sample\"]",
+      "mode": "managed",
+      "type": "aws_cloudwatch_log_group",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:logs:eu-central-1:634503960501:log-group:/aws/ecs/playground-ecs/ecs-sample",
+            "id": "/aws/ecs/playground-ecs/ecs-sample",
+            "kms_key_id": "",
+            "name": "/aws/ecs/playground-ecs/ecs-sample",
+            "name_prefix": "",
+            "retention_in_days": 14,
+            "skip_destroy": false,
+            "tags": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            },
+            "tags_all": {
+              "Environment": "playground",
+              "Name": "playground-ecs"
+            }
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.ecs.module.ecs.module.cluster.aws_ecs_cluster.this"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}
+

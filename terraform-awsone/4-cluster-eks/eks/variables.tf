@@ -25,3 +25,7 @@ variable "autoscaler_version" {
   description = "Cluster Kubernetes Autoscaler version"
   default     = "1.25.1"
 }
+
+variable "create_fargate_profile" {
+  default = false
+}

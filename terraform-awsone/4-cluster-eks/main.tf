@@ -6,8 +6,8 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-module "cluster" {
-  source             = "./cluster"
+module "eks" {
+  source             = "./eks"
   environment        = var.environment
   account_id         = var.account_id
   aws_region         = var.aws_region
