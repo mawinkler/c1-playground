@@ -17,6 +17,8 @@ variable "public_subnet_ids" {}
 
 variable "private_security_group_id" {}
 
+variable "private_subnet_cidr_blocks" {}
+
 variable "create_fargate_profile" {
   default = false
 }
