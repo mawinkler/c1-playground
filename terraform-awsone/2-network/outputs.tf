@@ -14,6 +14,14 @@ output "public_subnet_ids" {
   value = module.network.public_subnet_ids
 }
 
+output "public_subnet_cidr_blocks" {
+  value = module.network.public_subnet_cidr_blocks
+}
+
 output "private_subnet_ids" {
   value = module.network.private_subnet_ids
+}
+
+output "private_subnet_cidr_blocks" {
+  value = module.network.private_subnet_cidr_blocks
 }

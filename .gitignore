@@ -91,4 +91,6 @@ TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip
 TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar
 terraform.tfvars
 .pluralith
-9-cluster-deployments-repo
+8-cluster-eks-deployments-repo
+9-cluster-ecs-services
+9-cluster-ecs-services-repo
