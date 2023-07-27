@@ -11,16 +11,18 @@ variable "aws_region" {}
 
 variable "access_ip" {}
 
-variable "private_subnet_ids" {}
-
 variable "public_subnet_ids" {}
 
-variable "private_security_group_id" {}
+variable "private_subnet_ids" {}
 
 variable "public_subnet_cidr_blocks" {}
 
 variable "private_subnet_cidr_blocks" {}
 
-variable "create_fargate_profile" {
-  default = false
-}
+variable "private_security_group_id" {}
+
+variable "ws_tenantid" {}
+
+variable "ws_token" {}
+
+variable "ws_policyid" {}

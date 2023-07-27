@@ -76,6 +76,28 @@ services:
     ## Default value: true
     create_windows: true
 
+  - name: workload-security
+    ## Cloud One Workload Security Tenant ID
+    ## 
+    ## REQUIRED if you want to play with Cloud One Workload Security
+    ##
+    ## Default value: ''
+    ws_tenant_id: ''
+
+    ## Cloud One Workload Security Token
+    ## 
+    ## REQUIRED if you want to play with Cloud One Workload Security
+    ##
+    ## Default value: ''
+    ws_token: ''
+
+    ## Cloud One Workload Security Linux Policy ID
+    ## 
+    ## REQUIRED if you want to play with Cloud One Workload Security
+    ##
+    ## Default value: 0
+    ws_policy_id: 0
+
   - name: container_security
     ## The name of the created or reused policy
     ## 

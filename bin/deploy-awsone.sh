@@ -16,6 +16,11 @@ CREATE_WINDOWS="$(yq '.services[] | select(.name=="awsone") | .create_windows' $
 CLOUD_ONE_API_KEY="$(yq '.services[] | select(.name=="cloudone") | .api_key' $PGPATH/config.yaml)"
 CLOUD_ONE_REGION="$(yq '.services[] | select(.name=="cloudone") | .region' $PGPATH/config.yaml)"
 CLOUD_ONE_INSTANCE="$(yq '.services[] | select(.name=="cloudone") | .instance' $PGPATH/config.yaml)"
+
+WS_TENANTID="$(yq '.services[] | select(.name=="workload-security") | .ws_tenant_id' $PGPATH/config.yaml)"
+WS_TOKEN="$(yq '.services[] | select(.name=="workload-security") | .ws_token' $PGPATH/config.yaml)"
+WS_POLICY="$(yq '.services[] | select(.name=="workload-security") | .ws_policy_id' $PGPATH/config.yaml)"
+
 if [ ${CLOUD_ONE_INSTANCE} = null ]; then
   CLOUD_ONE_INSTANCE=cloudone
 fi
@@ -51,20 +56,30 @@ function create_tf_variables() {
   CREATE_WINDOWS=${CREATE_WINDOWS} \
     envsubst <$PGPATH/templates/terraform-3-instances.tfvars >$PGPATH/terraform-awsone/3-instances/terraform.tfvars
 
-  printf '%s\n' "Create terraform.tfvars for cluster"
+  printf '%s\n' "Create terraform.tfvars for cluster-eks"
   AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
   AWS_REGION=${AWS_REGION} \
   AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
   ACCESS_IP=${ACCESS_IP} \
-    envsubst <$PGPATH/templates/terraform-4-cluster.tfvars >$PGPATH/terraform-awsone/4-cluster/terraform.tfvars
+    envsubst <$PGPATH/templates/terraform-4-cluster-eks.tfvars >$PGPATH/terraform-awsone/4-cluster-eks/terraform.tfvars
 
-  printf '%s\n' "Create terraform.tfvars for cluster deployments"
+  printf '%s\n' "Create terraform.tfvars for cluster-ecs"
+  AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} \
+  AWS_REGION=${AWS_REGION} \
+  AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
+  ACCESS_IP=${ACCESS_IP} \
+  WS_TENANTID=${WS_TENANTID} \
+  WS_TOKEN=${WS_TOKEN} \
+  WS_POLICY=${WS_POLICY} \
+    envsubst <$PGPATH/templates/terraform-5-cluster-ecs.tfvars >$PGPATH/terraform-awsone/5-cluster-ecs/terraform.tfvars
+
+  printf '%s\n' "Create terraform.tfvars for cluster-eks deployments"
   AWS_ENVIRONMENT=${AWS_ENVIRONMENT} \
   CLOUD_ONE_API_KEY=${CLOUD_ONE_API_KEY} \
   CLOUD_ONE_REGION=${CLOUD_ONE_REGION} \
   CLOUD_ONE_INSTANCE=${CLOUD_ONE_INSTANCE} \
   CLOUD_ONE_POLICY_ID=${CLOUD_ONE_POLICY_ID} \
-    envsubst <$PGPATH/templates/terraform-9-cluster-deployments.tfvars >$PGPATH/terraform-awsone/9-cluster-deployments/terraform.tfvars
+    envsubst <$PGPATH/templates/terraform-8-cluster-eks-deployments.tfvars >$PGPATH/terraform-awsone/8-cluster-eks-deployments/terraform.tfvars
 
   echo "💬 Terraform terraform.tfvars dropped to configurations"
 }

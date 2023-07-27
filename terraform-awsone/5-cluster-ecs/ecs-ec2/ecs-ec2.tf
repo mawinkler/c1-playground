@@ -17,7 +17,7 @@ module "ecs" {
         # maximum_scaling_step_size = 5
         # minimum_scaling_step_size = 1
         status          = "ENABLED"
-        target_capacity = 1
+        target_capacity = 3
       }
 
       default_capacity_provider_strategy = {
@@ -35,7 +35,7 @@ module "ecs" {
         # maximum_scaling_step_size = 15
         # minimum_scaling_step_size = 5
         status          = "ENABLED"
-        target_capacity = 2
+        target_capacity = 4
       }
 
       default_capacity_provider_strategy = {

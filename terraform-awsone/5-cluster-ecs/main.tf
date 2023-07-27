@@ -18,4 +18,7 @@ module "ecs-ec2" {
   public_subnet_cidr_blocks  = data.terraform_remote_state.vpc.outputs.public_subnet_cidr_blocks.*
   private_subnet_cidr_blocks = data.terraform_remote_state.vpc.outputs.private_subnet_cidr_blocks.*
   private_security_group_id  = data.terraform_remote_state.vpc.outputs.private_security_group_id
+  ws_tenantid                = var.ws_tenantid
+  ws_token                   = var.ws_token
+  ws_policyid                = var.ws_policyid
 }

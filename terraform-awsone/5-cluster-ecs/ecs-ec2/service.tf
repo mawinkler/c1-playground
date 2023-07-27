@@ -15,6 +15,12 @@ module "ecs_service" {
     # spot instances
     asg-spot = {
       capacity_provider = module.ecs.autoscaling_capacity_providers["asg-spot"].name
+      weight            = 2
+      base              = 0
+    }
+    # ondemand instances
+    asg-ondemand = {
+      capacity_provider = module.ecs.autoscaling_capacity_providers["asg-ondemand"].name
       weight            = 1
       base              = 1
     }
@@ -60,16 +66,6 @@ module "ecs_service" {
           protocol      = "tcp"
         }
       ]
-
-      # mount_points = [
-      #   {
-      #     sourceVolume  = "my-vol",
-      #     containerPath = "/var/www/my-vol"
-      #   }
-      # ]
-
-      # command = ["catalina.sh", "run"]
-      # entry_point = ["/usr/sbin/apache2", "-D", "FOREGROUND"]
 
       # Example image used requires access to write to root filesystem
       readonly_root_filesystem = false
