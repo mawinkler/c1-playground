@@ -9,8 +9,8 @@ module "ecs" {
 
   autoscaling_capacity_providers = {
     # On-demand instances
-    ondemand = {
-      auto_scaling_group_arn         = module.autoscaling["ondemand"].autoscaling_group_arn
+    asg-ondemand = {
+      auto_scaling_group_arn         = module.autoscaling["asg-ondemand"].autoscaling_group_arn
       managed_termination_protection = "ENABLED"
 
       managed_scaling = {
@@ -27,8 +27,8 @@ module "ecs" {
     }
 
     # Spot instances
-    spot = {
-      auto_scaling_group_arn         = module.autoscaling["spot"].autoscaling_group_arn
+    asg-spot = {
+      auto_scaling_group_arn         = module.autoscaling["asg-spot"].autoscaling_group_arn
       managed_termination_protection = "ENABLED"
 
       managed_scaling = {

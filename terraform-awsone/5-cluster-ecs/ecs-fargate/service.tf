@@ -52,7 +52,7 @@ module "ecs_service" {
 
   container_definitions = {
     (local.container_name) = {
-      image = "mawinkler/goof:latest"
+      image = "mawinkler/java-goof"
       port_mappings = [
         {
           name          = local.container_name
@@ -68,7 +68,7 @@ module "ecs_service" {
       #   }
       # ]
 
-      # command = ["catalina.sh", "run"]
+      command = ["catalina.sh", "run"]
       # entry_point = ["/usr/sbin/apache2", "-D", "FOREGROUND"]
 
       # Example image used requires access to write to root filesystem

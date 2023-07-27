@@ -32,7 +32,7 @@ module "alb" {
 
   http_tcp_listeners = [
     {
-      port               = local.container_port
+      port               = local.load_balancer_port
       protocol           = "HTTP"
       target_group_index = 0
     },

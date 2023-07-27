@@ -15,6 +15,7 @@ module "ecs-ec2" {
   vpc_id                     = data.terraform_remote_state.vpc.outputs.vpc_id
   public_subnet_ids          = data.terraform_remote_state.vpc.outputs.public_subnet_ids.*
   private_subnet_ids         = data.terraform_remote_state.vpc.outputs.private_subnet_ids.*
+  public_subnet_cidr_blocks  = data.terraform_remote_state.vpc.outputs.public_subnet_cidr_blocks.*
   private_subnet_cidr_blocks = data.terraform_remote_state.vpc.outputs.private_subnet_cidr_blocks.*
   private_security_group_id  = data.terraform_remote_state.vpc.outputs.private_security_group_id
 }

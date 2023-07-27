@@ -41,6 +41,12 @@ locals {
           protocol    = "tcp"
           cidr_blocks = [var.access_ip]
         }
+        http = {
+          from        = 8080
+          to          = 8080
+          protocol    = "tcp"
+          cidr_blocks = [var.access_ip]
+        }
       }
     }
 
@@ -76,6 +82,12 @@ locals {
           description = "WinRM Access"
           from        = 5985
           to          = 5986
+          protocol    = "tcp"
+          cidr_blocks = [var.access_ip]
+        }
+        http = {
+          from        = 8080
+          to          = 8080
           protocol    = "tcp"
           cidr_blocks = [var.access_ip]
         }

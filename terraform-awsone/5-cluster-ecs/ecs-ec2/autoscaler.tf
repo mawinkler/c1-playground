@@ -7,7 +7,7 @@ module "autoscaling" {
 
   for_each = {
     # On-demand instances
-    ondemand = {
+    asg-ondemand = {
       instance_type              = "t3.medium"
       use_mixed_instances_policy = false
       mixed_instances_policy     = {}
@@ -22,7 +22,7 @@ module "autoscaling" {
       EOT
     }
     # Spot instances
-    spot = {
+    asg-spot = {
       instance_type              = "t3.medium"
       use_mixed_instances_policy = true
       mixed_instances_policy = {
@@ -91,6 +91,10 @@ module "autoscaling" {
   use_mixed_instances_policy = each.value.use_mixed_instances_policy
   mixed_instances_policy     = each.value.mixed_instances_policy
 
+  # Key nane
+  key_name = "${var.environment}-key-pair"
+
+  # Tags
   tags = local.tags
 }
 
@@ -106,6 +110,12 @@ module "autoscaling_sg" {
     {
       rule                     = "http-80-tcp"
       source_security_group_id = module.alb_sg.security_group_id
+    }
+  ]
+  ingress_with_cidr_blocks = [
+    {
+      rule        = "ssh-tcp"
+      cidr_blocks = "${var.public_subnet_cidr_blocks[0]},${var.public_subnet_cidr_blocks[1]},${var.public_subnet_cidr_blocks[2]}"
     }
   ]
   number_of_computed_ingress_with_source_security_group_id = 1
