@@ -6,8 +6,6 @@ Typically you don't need to change much here besides setting your api-key and re
 
 If you intent to use Artifact Scanning as a Service create a scanner api-key in Cloud One and set it as `scanner_api_key`.
 
-When willing to play with the built-in AWSONE environment (`terraform-awsone`) you need to set the relevant values for Workload Security and Vision One, of course.
-
 ```yaml
 ## Kubernetes cluster name
 ##
@@ -72,15 +70,6 @@ services:
     ##
     ## Default value: ''
     ws_policy_id: ''
-
-  - name: visionone
-
-    ## Vision One Basecamp agent download url
-    ##
-    ## REQUIRED if you want to play with Vision One
-    ##
-    ## Default value: ''
-    xbc_agent_url: ''
 
   - name: container_security
     ## The name of the created or reused policy

@@ -8,12 +8,19 @@ Ultra fast and slim kubernetes playground.
 
 !!! ***Playground prepares for Vision One*** !!!
 
-The Playground is preparing for Vision One.
+The Playground is preparing for Vision One. Available soon as ***Playground One***!
 
-Deploy
+Some of the functionalities to come:
 
-- workload ready to be exploited on an EKS cluster integrated with XDR for Containers
-- virtual machines on AWS integrated with Vision One Endpoint Security (soon)
+- EC2 instances integrated in Vision One Endpoint Security
+- EKS on autoscaling Spot instances
+- EKS with Fargate Profile
+- ECS with EC2
+- ECS with Fargate
+- Vulnerable deployments
+- Support for XDR for Containers, Vision One Cloud Security, and lots more.
+
+*Private Preview on request, general availability September 2023.*
 
 !!! ***Playground SIMPLICITY*** !!!
 
@@ -39,7 +46,6 @@ In a nutshell:
 
 ## Currently Work in Progress
 
-- Preparing the sub project `terraform-awsone` to integrate with V1ES for Server & Workload Protection (Windows & Linux)
 - Enable ALB for Bottlerocket and Fargate cluster
 
 ## Requirements and Support Matrix

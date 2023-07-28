@@ -59,16 +59,12 @@ archive
 
 # Pipeline
 aws
-c1-app-sec-uploader
-bin/.teardown.sh
 site
-docs-20221124
 
 # Terraform
 .terraform*
 terraform.tfstate*
 *-key-pair*
-public-ip
 
 # Sentry
 sentry-*/
@@ -81,16 +77,6 @@ training
 demos/demo-attack.sh
 demos/struts-exploit-headers.txt
 kubernetes-goat
-terraform-awsone/scripts/dsa.sh
 bin/kubeclarity-cli
 atomic_launcher_windows_1.0.0.1013.zip
 atomic_launcher_linux_1.0.0.1009.zip
-
-# Terraform
-TMServerAgent_Windows_auto_64_Server_-_Workload_Protection_Manager.zip
-TMServerAgent_Linux_auto_64_Server_-_Workload_Protection_Manager.tar
-terraform.tfvars
-.pluralith
-8-cluster-eks-deployments-repo
-9-cluster-ecs-services
-9-cluster-ecs-services-repo

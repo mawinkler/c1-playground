@@ -55,27 +55,6 @@ services:
     ## Default value: "eu-central-1"
     region: "eu-central-1"
 
-    ## The default AWS environment name to use
-    ## 
-    ## Default value: "playground-awsone"
-    environment: "playground-awsone"
-
-  - name: awsone
-    ## Restrict access to AWS One
-    ## 
-    ## Default value: "0.0.0.0/0"
-    access_ip: "0.0.0.0/0"
-
-    ## Create Linux instance(s)
-    ## 
-    ## Default value: true
-    create_linux: true
-
-    ## Create Windows instance(s)
-    ## 
-    ## Default value: true
-    create_windows: true
-
   - name: workload-security
     ## Cloud One Workload Security Tenant ID
     ## 
@@ -103,11 +82,6 @@ services:
     ## 
     ## Default value: relaxed_playground
     policy_name: relaxed_playground
-
-    ## The id of the policy for use with AWSONE
-    ## 
-    ## Example value: relaxed_playground-2OxPQEiC6Jo4dbDVfebKiZMured
-    policy_id: ''
 
     ## Target namespace for Smart Check
     ## 

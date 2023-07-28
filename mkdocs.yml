@@ -9,7 +9,6 @@ nav:
   - Clusters: clusters.md
   - Deployments: deployments.md
   - Add-On Documentation:
-    - AWS One Playground: add-ons/awsone.md
     - Cilium: add-ons/cilium.md
     - Container Security: add-ons/container-security.md
     - Falco: add-ons/falco.md
