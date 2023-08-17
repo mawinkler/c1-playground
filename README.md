@@ -2,7 +2,16 @@
 
 - [Playground](#playground)
   - [Latest News](#latest-news)
+  - [C1-Playground (deprecated)](#c1-playground-deprecated)
   - [Documentation](#documentation)
+
+## Latest News
+
+!!! ***C1-Playground is now deprecated*** !!!
+
+***Please welcome the brand new [Playground One](https://github.com/mawinkler/playground-one), completely driven by Terraform.***
+
+## C1-Playground (deprecated)
 
 Ultra fast and slim kubernetes playground designed for educational and demoing purposes.
 
@@ -20,17 +29,6 @@ In a nutshell:
 - No `daemon.json` configuration.
 - Run the menu by executing `playground` from anywhere on your system.
 - Bootstrapping has never been easier!
-
-## Latest News
-
-!!! ***Playground prepares for Vision One*** !!!
-
-The Playground is preparing for Vision One.
-
-Deploy
-
-- workload ready to be exploited on an EKS cluster integrated with XDR for Containers
-- virtual machines on AWS integrated with Vision One Endpoint Security (soon)
 
 ## Documentation
 
